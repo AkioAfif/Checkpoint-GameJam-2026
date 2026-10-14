@@ -116,3 +116,9 @@ InitTestScene*.unity*
 # Third-party Asset Store content (do not redistribute)
 /Assets/Synty/
 /Assets/Synty.meta
+
+# Personal AI instruction files (shared rules live in AGENTS.md + .claude/rules/)
+/CLAUDE.md
+/CLAUDE.local.md
+/.claude/CLAUDE.md
+/.claude/settings.local.json
