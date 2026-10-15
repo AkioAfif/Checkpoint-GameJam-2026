@@ -17,6 +17,7 @@ paths:
 
 ## Unity 6 API changes (old names are obsolete → warnings or errors)
 - Rigidbody: `linearVelocity` (not `velocity`), `linearDamping` (not `drag`), `angularDamping` (not `angularDrag`).
+- `Object.GetInstanceID()` is a **compile error** in 6000.6 (CS0619, verified). Use `GetEntityId()`, or better, compare the object references directly.
 - Don't use `FindObjectOfType` / `FindObjectsOfType` (obsolete). Prefer serialized refs or `Instance`. If you really must search, use `FindAnyObjectByType<T>()`.
 - Input: `UnityEngine.Input.*` **throws** in this project (Input System only). Go through `GameInput`.
 - UI EventSystem: must use **`InputSystemUIInputModule`**, not `StandaloneInputModule`, which throws every frame.

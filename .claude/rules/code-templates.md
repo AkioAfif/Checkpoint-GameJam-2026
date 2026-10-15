@@ -117,6 +117,8 @@ public class Checkpoint : MonoBehaviour, IHasProgress
 
     private State state;
     private float activateTimer;
+    // raised every frame → reuse one args object instead of allocating garbage per frame
+    private readonly IHasProgress.OnProgressChangedEventArgs progressChangedEventArgs = new IHasProgress.OnProgressChangedEventArgs();
 
     private void Update()
     {
@@ -149,7 +151,8 @@ public class Checkpoint : MonoBehaviour, IHasProgress
 
     private void SetProgress(float progressNormalized)
     {
-        OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs { progressNormalized = progressNormalized });
+        progressChangedEventArgs.progressNormalized = progressNormalized;
+        OnProgressChanged?.Invoke(this, progressChangedEventArgs);
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -225,7 +228,7 @@ public class SoundManager : MonoBehaviour
 
     private void Checkpoint_OnAnyCheckpointActivated(object sender, EventArgs e)
     {
-        Checkpoint checkpoint = sender as Checkpoint;
+        Checkpoint checkpoint = (Checkpoint)sender;
         PlaySound(audioClipRefsSO.checkpointArray, checkpoint.transform.position);
     }
 
@@ -246,6 +249,7 @@ public class SoundManager : MonoBehaviour
 
     private void PlaySound(AudioClip[] audioClipArray, Vector3 position, float volumeMultiplier = 1f)
     {
+        if (audioClipArray.Length == 0) return; // clips not assigned yet → stay silent instead of IndexOutOfRange
         PlaySound(audioClipArray[UnityEngine.Random.Range(0, audioClipArray.Length)], position, volumeMultiplier);
     }
 

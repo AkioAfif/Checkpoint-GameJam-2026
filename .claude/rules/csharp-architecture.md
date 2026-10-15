@@ -21,6 +21,8 @@ Small, single-purpose components that talk through C# events. Templates: `code-t
 - Event signatures always use `EventHandler` / `EventHandler<TArgs>`. Never `Action`, `UnityEvent` or `delegate` for gameplay events. **Exception:** a one-shot callback parameter like `Show(Action onClosed)`.
 - Payload goes in a nested `public class OnXEventArgs : EventArgs { public T field; }` declared in the publisher (or in the interface, for interface events).
 - Raise an event from exactly **one** place: wrap state change + invoke in a private `SetState(...)`.
+- Events raised every frame (progress, timers) reuse one cached `private readonly` args object and only update its field before invoking. Listeners read the args inside the handler and never store them.
+- A listener that needs the publisher casts `sender` with a hard cast `(Checkpoint)sender`, never `as`: a wrong sender then fails on that line instead of becoming a null later.
 
 ## 3. Inheritance for shared behaviour
 - Put common behaviour in a base class with `virtual` methods (`BaseInteractable.Interact(Player player)`). Subclasses `override` only what differs.

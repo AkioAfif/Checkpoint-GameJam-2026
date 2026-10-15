@@ -168,7 +168,8 @@ If something fails in 6a or 6b, run `unity doctor` in a terminal and see [Troubl
   | `unity-editor-workflow.md` | Editor, prefab and git workflow |
   | `rendering-urp.md` | URP materials & shaders |
 
-- `AGENTS.md` and `.claude/rules/` **are committed**, so the whole team and every AI follow the same rules.
+- `.claude/settings.json` registers a hook (`.claude/hooks/check-unity-rules.sh`) that checks every C# file Claude Code edits for the never-break rules (legacy `Input`, `using UnityEditor` in runtime code, `?.`/`??`, `FindObjectOfType`) and makes Claude fix them before moving on. It runs in Git Bash, which Claude Code on Windows already requires.
+- `AGENTS.md`, `.claude/rules/` and `.claude/settings.json` **are committed**, so the whole team and every AI follow the same rules.
 - **`CLAUDE.md` is gitignored** (along with `CLAUDE.local.md`) and is only for **your own personal notes**. ⚠️ If you create one, its **first line must be `@AGENTS.md`**. As soon as a `CLAUDE.md` or `CLAUDE.local.md` exists, Claude Code stops reading `AGENTS.md` on its own, and that import line brings it back.
 - Don't create a personal `AGENTS.md` variant or rename the shared one. Codex users read it directly.
 - If you **change a project setting** (add a layer/tag, a build scene, a package, an input action), update `.claude/rules/project-settings.md` in the same commit. You can also ask your AI to do it.
