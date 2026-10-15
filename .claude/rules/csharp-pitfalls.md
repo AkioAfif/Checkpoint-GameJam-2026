@@ -46,7 +46,7 @@ paths:
 - `Awake`: own references only (`GetComponent`, `Instance = this`, `new List<>()`, button listeners).
 - `Start`: subscribe to other objects' events and read other singletons. All `Awake`s have run by then.
 - `GetComponent<T>()` in `Awake` → add `[RequireComponent(typeof(T))]` on the class so it can't be null.
-- **Inactive GameObjects never run `Awake`/`Start`.** A UI panel that should start hidden must be **active in the scene** and call `Hide()` at the end of its own `Start` (KC pattern). Never save it disabled in the scene, or it will never subscribe to its events.
+- **Inactive GameObjects never run `Awake`/`Start`**, so they never subscribe to events. Never hide an object that has listening scripts with `SetActive(false)`. UI panels hide through their `CanvasGroup` instead (see `ui.md`).
 - Never rely on script execution order between two `Start`s. If needed, move the dependency into `Awake`.
 
 ## Serialization (Inspector values)

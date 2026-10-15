@@ -14,7 +14,7 @@ Last verified: 2026-10-14. If you change a setting below, update this file in th
 - URP **17.6.0**, Shader Graph 17.6.0, Input System **1.20.0**, uGUI **2.6.0** (TextMeshPro lives inside this package — `using TMPro;`), Timeline 6.6.0, AI Navigation 2.0.15 (`using Unity.AI.Navigation;` for `NavMeshSurface`, `UnityEngine.AI` for `NavMeshAgent`), Test Framework 1.8.0.
 - Installed but **not used by our code**: Visual Scripting, `com.unity.ai.*`, `com.unity.pipeline`, collab-proxy. Never `using Unity.VisualScripting;` (KC had this by accident).
 - **Not installed**: Cinemachine, DOTween, Odin, NaughtyAttributes, UniTask, Newtonsoft. Don't write code that needs them. Ask before adding any package.
-- TMP Essential Resources are **not imported yet** (`Assets/TextMesh Pro/` is missing). Before the first TMP text, import them with the editor menu *Window > TextMeshPro > Import TMP Essential Resources* (Unity MCP `menu` tool), or ask the user to do it.
+- TMP Essential Resources are **not imported yet** (`Assets/TextMesh Pro/` is missing). Before the first TMP text, import them non-interactively with Unity MCP `eval`: `TMPro.TMP_PackageResourceImporter.ImportResources(true, false, false);` (essentials, no examples, no dialog). **Never use the menu item *Window > TextMeshPro > Import TMP Essential Resources***: it opens a modal dialog that blocks the agent until a human closes it.
 
 ## Input
 - Active Input Handling = **Input System Package only** (`activeInputHandler: 1`). Any `UnityEngine.Input.*` call (`Input.GetKey`, `Input.GetAxis`, `Input.mousePosition`) throws `InvalidOperationException` at runtime.
