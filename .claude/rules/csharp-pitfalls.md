@@ -17,6 +17,7 @@ paths:
 
 ## Unity 6 API changes (old names are obsolete → warnings or errors)
 - Rigidbody: `linearVelocity` (not `velocity`), `linearDamping` (not `drag`), `angularDamping` (not `angularDrag`).
+- `Object.GetInstanceID()` is a **compile error** in 6000.6 (CS0619, verified). Use `GetEntityId()`, or better, compare the object references directly.
 - Don't use `FindObjectOfType` / `FindObjectsOfType` (obsolete). Prefer serialized refs or `Instance`. If you really must search, use `FindAnyObjectByType<T>()`.
 - Input: `UnityEngine.Input.*` **throws** in this project (Input System only). Go through `GameInput`.
 - UI EventSystem: must use **`InputSystemUIInputModule`**, not `StandaloneInputModule`, which throws every frame.
@@ -45,7 +46,7 @@ paths:
 - `Awake`: own references only (`GetComponent`, `Instance = this`, `new List<>()`, button listeners).
 - `Start`: subscribe to other objects' events and read other singletons. All `Awake`s have run by then.
 - `GetComponent<T>()` in `Awake` → add `[RequireComponent(typeof(T))]` on the class so it can't be null.
-- **Inactive GameObjects never run `Awake`/`Start`.** A UI panel that should start hidden must be **active in the scene** and call `Hide()` at the end of its own `Start` (KC pattern). Never save it disabled in the scene, or it will never subscribe to its events.
+- **Inactive GameObjects never run `Awake`/`Start`**, so they never subscribe to events. Never hide an object that has listening scripts with `SetActive(false)`. UI panels hide through their `CanvasGroup` instead (see `ui.md`).
 - Never rely on script execution order between two `Start`s. If needed, move the dependency into `Awake`.
 
 ## Serialization (Inspector values)
