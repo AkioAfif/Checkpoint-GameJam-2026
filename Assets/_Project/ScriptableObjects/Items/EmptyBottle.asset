@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a532d23ec25add43b52cecb0ff0daae, type: 3}
+  m_Name: EmptyBottle
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
+  itemName: Empty Bottle
+  description: A sturdy glass potion bottle. Fill it at the river.
+  icon: {fileID: 1810397676228586542, guid: f11df3f879a61d840a745dc453b00a99, type: 3}
+  prefab: {fileID: 2436846218672304449, guid: 0ba584f244f0f2d42a8a514a192adb9f, type: 3}
+  liquidColor: {r: 1, g: 1, b: 1, a: 1}
