@@ -36,4 +36,4 @@ Checkpoint (prefab root)   ← Checkpoint.cs, Collider (isTrigger), CheckpointSo
 
 ## Git
 - Commit only when the user asks. Every new/moved asset is committed **with its `.meta`**.
-- Don't commit `Library/`, `Temp/`, `Logs/`, `UserSettings/`, `Builds/` (already in `.gitignore`).
+- Don't commit `Library/`, `Temp/`, `Logs/`, `UserSettings/`, `Builds/` (in `.gitignore`).

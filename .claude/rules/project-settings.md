@@ -13,6 +13,7 @@ Last verified: 2026-10-17. If you change a setting below, update this file in th
 - Unity **6000.6.5f1**. C# API compatibility: .NET Standard 2.1 (`apiCompatibilityLevel: 6`). Language: C# 9 — no `required`, no file-scoped namespaces, no primary constructors, no raw string literals.
 - URP **17.6.0**, Shader Graph 17.6.0, Input System **1.20.0**, uGUI **2.6.0** (TextMeshPro lives inside this package — `using TMPro;`), Timeline 6.6.0, AI Navigation 2.0.15 (`using Unity.AI.Navigation;` for `NavMeshSurface`, `UnityEngine.AI` for `NavMeshAgent`), Test Framework 1.8.0.
 - Installed but **not used by our code**: Visual Scripting, `com.unity.ai.*`, `com.unity.pipeline`, collab-proxy. Never `using Unity.VisualScripting;` (KC had this by accident).
+- **Removed `com.unity.ai.inference`** (2026-10-17): its dependency `com.unity.dt.app-ui` ships a WebGL native lib that breaks the Web build at link time (`wasm-ld: undefined symbol: _embind_register_class`). Don't re-add it unless you drop the Web build.
 - **Cinemachine 6.6.0** (built-in package, Cinemachine 3 API: `using Unity.Cinemachine;`, `CinemachineCamera`, `CinemachineFollow`, `CinemachineRotationComposer`, `CinemachineConfiner3D`). Added 2026-10-17 for Level01.
 - **Not installed**: DOTween, Odin, NaughtyAttributes, UniTask, Newtonsoft. Don't write code that needs them. Ask before adding any package.
 - TMP Essential Resources are **imported** (`Assets/TextMesh Pro/`). If they ever go missing, re-import non-interactively with Unity MCP `eval`: `TMPro.TMP_PackageResourceImporter.ImportResources(true, false, false);`. **Never use the menu item *Window > TextMeshPro > Import TMP Essential Resources***: it opens a modal dialog that blocks the agent until a human closes it.
@@ -49,6 +50,7 @@ Last verified: 2026-10-17. If you change a setting below, update this file in th
 - Any scene loaded by `Loader` must be in the Build Profiles scene list (Unity MCP `add_scene_to_build`), and its enum name must equal the file name exactly. Scene names with spaces can't be enum members, so rename the scene first (e.g. `TestingScene`).
 
 ## Player settings
+- Web publishing: Compression **Gzip** + **Decompression Fallback on** (works on itch.io). Builds go to `Builds/` (gitignored).
 - Run In Background is **off** (builds pause when unfocused).
 - AI play tests: Play mode still freezes when the editor isn't the focused app. Right after entering Play mode, run Unity MCP `eval` `UnityEngine.Application.runInBackground = true;`. The Input System also ignores the keyboard while unfocused, so MCP `simulate_key` presses only land sometimes; call the game logic directly when they don't.
 
