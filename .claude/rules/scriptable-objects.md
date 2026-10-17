@@ -1,13 +1,13 @@
 ---
 paths:
-  - "Assets/Scripts/ScriptableObjects/**"
-  - "Assets/ScriptableObjects/**"
+  - "Assets/_Project/Scripts/**/*SO.cs"
+  - "Assets/_Project/ScriptableObjects/**"
 ---
 
 # ScriptableObjects (data, not behaviour)
 
 ## Rules
-- Class files go in `Assets/Scripts/ScriptableObjects/`, named `XSO.cs`. Asset files go in `Assets/ScriptableObjects/<Type>/`, named after the content (`Coin.asset`, `Spike_Trap.asset`).
+- Class files live next to the feature that uses them (`Assets/_Project/Scripts/<Feature>/`), named `XSO.cs` (e.g. `ItemDataSO`, `CropDataSO`). Asset files go in `Assets/_Project/ScriptableObjects/<Type>/`, named after the content (`Water.asset`, `SawitLv1.asset`).
 - `[CreateAssetMenu()]` on every SO class that designers create by hand. Leave it off singleton-style lists that exist once (KC `RecipeListSO`) to avoid accidental duplicates. Create those once through the menu, or by script with `ScriptableObject.CreateInstance` + `AssetDatabase.CreateAsset` inside an `Editor/` script or Unity MCP.
 - Fields are **public** and lowerCamelCase (KC style, data-only class). No methods with game logic and no `Update`. Small pure helpers are fine (`public float GetDurationMinutes()`).
 - **Never write to an SO at runtime.** In the editor the change persists into the asset file. Copy values into the MonoBehaviour instead.

@@ -32,4 +32,4 @@ Detailed rules live in `.claude/rules/` (shared by all agents despite the folder
 9. **Done = recompiled with zero console errors** (Unity MCP `recompile` → `console`). If you have no Unity MCP access, say so and tell the user to check the Unity Console. Never claim it compiles without checking.
 10. Ask before adding packages, renaming serialized fields on existing prefabs, or touching `Assets/Synty/`.
 
-For Claude Code, `.claude/hooks/check-unity-rules.sh` greps every `.cs` you Edit/Write for rules 2–5 and blocks with the offending lines. Other agents: run it yourself, e.g. `echo '{"file_path":"Assets/Scripts/X.cs"}' | bash .claude/hooks/check-unity-rules.sh`.
+For Claude Code, `.claude/hooks/check-unity-rules.sh` greps every `.cs` you Edit/Write for rules 2–5 and blocks with the offending lines. Other agents: run it yourself, e.g. `echo '{"file_path":"Assets/_Project/Scripts/X.cs"}' | bash .claude/hooks/check-unity-rules.sh`.

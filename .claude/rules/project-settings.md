@@ -7,20 +7,22 @@ paths:
 
 # Project settings (verified facts — check here before assuming any Unity default)
 
-Last verified: 2026-10-14. If you change a setting below, update this file in the same change.
+Last verified: 2026-10-17. If you change a setting below, update this file in the same change.
 
 ## Versions & packages
 - Unity **6000.6.5f1**. C# API compatibility: .NET Standard 2.1 (`apiCompatibilityLevel: 6`). Language: C# 9 — no `required`, no file-scoped namespaces, no primary constructors, no raw string literals.
 - URP **17.6.0**, Shader Graph 17.6.0, Input System **1.20.0**, uGUI **2.6.0** (TextMeshPro lives inside this package — `using TMPro;`), Timeline 6.6.0, AI Navigation 2.0.15 (`using Unity.AI.Navigation;` for `NavMeshSurface`, `UnityEngine.AI` for `NavMeshAgent`), Test Framework 1.8.0.
 - Installed but **not used by our code**: Visual Scripting, `com.unity.ai.*`, `com.unity.pipeline`, collab-proxy. Never `using Unity.VisualScripting;` (KC had this by accident).
-- **Not installed**: Cinemachine, DOTween, Odin, NaughtyAttributes, UniTask, Newtonsoft. Don't write code that needs them. Ask before adding any package.
-- TMP Essential Resources are **not imported yet** (`Assets/TextMesh Pro/` is missing). Before the first TMP text, import them non-interactively with Unity MCP `eval`: `TMPro.TMP_PackageResourceImporter.ImportResources(true, false, false);` (essentials, no examples, no dialog). **Never use the menu item *Window > TextMeshPro > Import TMP Essential Resources***: it opens a modal dialog that blocks the agent until a human closes it.
+- **Cinemachine 6.6.0** (built-in package, Cinemachine 3 API: `using Unity.Cinemachine;`, `CinemachineCamera`, `CinemachineFollow`, `CinemachineRotationComposer`, `CinemachineConfiner3D`). Added 2026-10-17 for Level01.
+- **Not installed**: DOTween, Odin, NaughtyAttributes, UniTask, Newtonsoft. Don't write code that needs them. Ask before adding any package.
+- TMP Essential Resources are **imported** (`Assets/TextMesh Pro/`). If they ever go missing, re-import non-interactively with Unity MCP `eval`: `TMPro.TMP_PackageResourceImporter.ImportResources(true, false, false);`. **Never use the menu item *Window > TextMeshPro > Import TMP Essential Resources***: it opens a modal dialog that blocks the agent until a human closes it.
 
 ## Input
 - Active Input Handling = **Input System Package only** (`activeInputHandler: 1`). Any `UnityEngine.Input.*` call (`Input.GetKey`, `Input.GetAxis`, `Input.mousePosition`) throws `InvalidOperationException` at runtime.
 - **Project-wide actions** = `Assets/InputSystem_Actions.inputactions` (access through `InputSystem.actions`; it is enabled automatically).
 - C# wrapper generation is **off** (`generateWrapperCode: 0`), so the class `InputSystem_Actions` **does not exist**. Don't reference it. See `.claude/rules/input.md`.
-- Action map `Player`: Move (Vector2), Look (Vector2), Attack, Interact (E / pad North), Crouch (C / pad East), Jump (Space / pad South), Previous (1), Next (2), Sprint (LeftShift / L3).
+- Action map `Player`: Move (Vector2), Look (Vector2), Attack (LMB / Enter / pad West — the Fabricator uses it to dig), Interact (E / pad North, **plain press, no Hold interaction**), Crouch (C / pad East), Jump (Space / pad South), Previous (1), Next (2), Sprint (LeftShift / L3), Pause (Esc / pad Start), Restart (R / pad Select).
+- Interact rebinds are saved as JSON overrides in PlayerPrefs key `InputBindings` (see `GameInput.RebindInteract`).
 - Action map `UI`: Navigate, Submit, Cancel, Point, Click, RightClick, MiddleClick, ScrollWheel, TrackedDevice*.
 - Control schemes: Keyboard&Mouse, Gamepad, Touch, Joystick, XR.
 
@@ -35,14 +37,20 @@ Last verified: 2026-10-14. If you change a setting below, update this file in th
 
 ## Physics & time
 - Gravity (0, -9.81, 0). Fixed timestep 0.02. `Physics.autoSyncTransforms = false`.
-- Layers: **only the Unity built-ins** (Default, TransparentFX, Ignore Raycast, Water, UI). Tags: **none custom**. Sorting layers: default only.
+- Layers: built-ins + **Interactable (8)** (everything the player can target), **Portrait (9)** (dialogue portrait booth, filmed by its own cameras), **Puzzle (10)** (Fabricator diorama). Main Camera and the sun exclude Portrait + Puzzle. Tags: **none custom**. Sorting layers: default only.
   - Before code uses `LayerMask.NameToLayer("X")`, `CompareTag("X")` or a serialized `LayerMask`, create that layer/tag (Unity MCP `set_tags_layers`) and add it to the list above.
 
 ## Scenes
-- `Assets/Scenes/SampleScene.unity` — the **only** scene in Build Profiles.
+- Build Profiles list: `Assets/_Project/Scenes/Level01_VillagePrototype.unity` (0), `LoadingScene.unity` (1), `HouseInterior_Stub.unity` (2). `Loader.Scene` enum names match these files.
+- **Level01 is generated**: *Tools > Level01 > Rebuild Scene* (`Level01SceneBuilder`) recreates the whole scene, its prefabs, SO data and NavMesh from code, and wipes hand edits in the scene. Change the builders, or stop using Rebuild once the level is hand-tuned. *Tools > Level01 > Rebuild Loading + Stub Scenes* does the other two scenes and the build list.
+- `Assets/Scenes/SampleScene.unity` — template scene, no longer in Build Profiles.
 - `Assets/Scenes/Testing Scene.unity` — Synty PolygonPrototype greybox (stairs, ramps, ladder, crates), Main Camera, 2 directional lights, Global Volume. **Not in the build list.**
-- Neither scene has an EventSystem or Canvas yet.
+- SampleScene / Testing Scene have no EventSystem or Canvas.
 - Any scene loaded by `Loader` must be in the Build Profiles scene list (Unity MCP `add_scene_to_build`), and its enum name must equal the file name exactly. Scene names with spaces can't be enum members, so rename the scene first (e.g. `TestingScene`).
+
+## Player settings
+- Run In Background is **off** (builds pause when unfocused).
+- AI play tests: Play mode still freezes when the editor isn't the focused app. Right after entering Play mode, run Unity MCP `eval` `UnityEngine.Application.runInBackground = true;`. The Input System also ignores the keyboard while unfocused, so MCP `simulate_key` presses only land sometimes; call the game logic directly when they don't.
 
 ## Assets
 - `Assets/Synty/` — third-party art (PolygonGeneric, PolygonStarter = the PolygonPrototype greybox kit; SyntyPackageHelper is editor-only). **Read-only**: never edit, move or rename anything inside it. Make a prefab variant or copy into our folders when you need changes.

@@ -1,6 +1,6 @@
 ---
 paths:
-  - "Assets/Scripts/**/*.cs"
+  - "Assets/_Project/Scripts/**/*.cs"
 ---
 
 # C# architecture (Kitchen Chaos style)
@@ -81,7 +81,7 @@ Small, single-purpose components that talk through C# events. Templates: `code-t
 - Accessors are methods, not properties: `GetX()`, `IsX()`, `HasX()`, `TryGetX(out T)`. (The only property is `Instance`.)
 - Class name = file name, one top-level class per file. Visual/sound/UI suffixes: `XVisual`, `XSound`, `XUI`, `XSingleUI` (one row of a list).
 - Arrays named `xArray`, lists `xList`, SO fields `xSO`, SO arrays `xSOArray`.
-- Folders: `Assets/Scripts/Core/` (GameManager, GameInput, Loader, LoaderCallback, SoundManager, MusicManager), `Assets/Scripts/Player/`, `Assets/Scripts/<Feature>/` (logic + its Visual/Sound together), `Assets/Scripts/UI/`, `Assets/Scripts/ScriptableObjects/` (SO class definitions), `Assets/Scripts/Interfaces/`.
+- Folders (all our work lives under `Assets/_Project/`): `Scripts/Core/` (GameManager, GameInput, Loader, LoaderCallback, CameraDirector), `Scripts/Player/`, `Scripts/<Feature>/` (logic + its Visual/Sound + its SO class + its interfaces together, e.g. `Scripts/Farming/CropDataSO.cs`), `Scripts/UI/`, `Scripts/Editor/` (editor-only tools). Assets: `Art/{Materials,Models,Shaders,Animations,Textures,RenderTextures}`, `Prefabs/<Feature>/`, `Scenes/`, `ScriptableObjects/<Type>/`.
 - Global namespace (KC style). Before creating a class, grep the project so its name doesn't collide with an existing class, Synty (`Generic_*`) or a Unity type (`Camera`, `Light`, `Input`, `Random`, `Object`, `Debug`, `Time`, `Physics`, `Collider`, `Animation`).
 
 ## Member order inside a class
