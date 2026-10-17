@@ -1,6 +1,6 @@
 ---
 paths:
-  - "Assets/Scripts/**/*.cs"
+  - "Assets/_Project/Scripts/**/*.cs"
 ---
 
 # Code templates — copy the shape, rename, delete what you don't need

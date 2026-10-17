@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90dd2cd9f9ef57b4a9813410d4edfba8, type: 3}
+  m_Name: Ratna
+  m_EditorClassIdentifier: Assembly-CSharp::NpcSO
+  npcName: Bu Ratna
+  portraitPrefab: {fileID: 4586235318861031813, guid: f753860a9d9914644840c1ddce33cb05, type: 3}
+  firstDialogueSO: {fileID: 11400000, guid: 9cd6bbcc3a126a94e9e780f76abb13f9, type: 2}
+  repeatDialogueSO: {fileID: 11400000, guid: 4ffe2069f1726a544920d6fb955a5ba5, type: 2}
+  portraitBackground: {r: 0.99, g: 0.87, b: 0.88, a: 1}

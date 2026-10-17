@@ -1,0 +1,86 @@
+using System;
+using UnityEngine;
+
+// Today's checklist. Every objective counts from the start; the house unlocks when all but "go home" are done.
+public class TaskManager : MonoBehaviour
+{
+    public static TaskManager Instance { get; private set; }
+
+    public event EventHandler<OnObjectiveProgressEventArgs> OnObjectiveProgress;
+    public class OnObjectiveProgressEventArgs : EventArgs { public int index; public bool isComplete; }
+    public event EventHandler OnRequiredTasksCompleted;
+
+    [SerializeField] private TaskObjectiveSO[] objectiveSOArray;
+
+    private int[] progressArray;
+    private bool areRequiredComplete;
+
+    private void Awake()
+    {
+        if (Instance != null) Debug.LogError("More than one TaskManager", this);
+        Instance = this;
+        progressArray = new int[objectiveSOArray.Length];
+    }
+
+    private void Start()
+    {
+        Inventory.Instance.OnItemChanged += Inventory_OnItemChanged;
+        FabricatorController.OnAnySeedFabricated += FabricatorController_OnAnySeedFabricated;
+        FarmPlot.OnAnyPlanted += FarmPlot_OnAnyPlanted;
+    }
+
+    private void OnDestroy()
+    {
+        if (Inventory.Instance != null) Inventory.Instance.OnItemChanged -= Inventory_OnItemChanged;
+        FabricatorController.OnAnySeedFabricated -= FabricatorController_OnAnySeedFabricated;
+        FarmPlot.OnAnyPlanted -= FarmPlot_OnAnyPlanted;
+    }
+
+    private void Inventory_OnItemChanged(object sender, Inventory.OnItemChangedEventArgs e)
+    {
+        if (e.delta > 0) AddProgress(TaskObjectiveSO.Type.CollectItem, e.itemDataSO, e.delta);
+    }
+
+    private void FabricatorController_OnAnySeedFabricated(object sender, EventArgs e) => AddProgress(TaskObjectiveSO.Type.FabricateSeed, null, 1);
+    private void FarmPlot_OnAnyPlanted(object sender, EventArgs e) => AddProgress(TaskObjectiveSO.Type.PlantCrop, null, 1);
+
+    public void CompleteEnterHouse() => AddProgress(TaskObjectiveSO.Type.EnterHouse, null, 1);
+
+    public TaskObjectiveSO[] GetObjectiveSOArray() => objectiveSOArray;
+    public int GetProgress(int index) => progressArray[index];
+    public bool IsComplete(int index) => progressArray[index] >= objectiveSOArray[index].requiredCount;
+    public bool AreRequiredTasksComplete() => areRequiredComplete;
+
+    // the first unfinished objective, highlighted in the UI as "do this next"
+    public int GetCurrentIndex()
+    {
+        for (int i = 0; i < objectiveSOArray.Length; i++)
+            if (!IsComplete(i)) return i;
+        return -1;
+    }
+
+    private void AddProgress(TaskObjectiveSO.Type type, ItemDataSO itemDataSO, int amount)
+    {
+        for (int i = 0; i < objectiveSOArray.Length; i++)
+        {
+            TaskObjectiveSO objectiveSO = objectiveSOArray[i];
+            if (objectiveSO.type != type || IsComplete(i)) continue;
+            if (type == TaskObjectiveSO.Type.CollectItem && objectiveSO.itemDataSO != itemDataSO) continue;
+            progressArray[i] = Mathf.Min(progressArray[i] + amount, objectiveSO.requiredCount);
+            OnObjectiveProgress?.Invoke(this, new OnObjectiveProgressEventArgs { index = i, isComplete = IsComplete(i) });
+        }
+        CheckRequiredComplete();
+    }
+
+    private void CheckRequiredComplete()
+    {
+        if (areRequiredComplete) return;
+        for (int i = 0; i < objectiveSOArray.Length; i++)
+            if (objectiveSOArray[i].type != TaskObjectiveSO.Type.EnterHouse && !IsComplete(i)) return;
+        areRequiredComplete = true;
+        OnRequiredTasksCompleted?.Invoke(this, EventArgs.Empty);
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStaticData() => Instance = null;
+}

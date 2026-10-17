@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90dd2cd9f9ef57b4a9813410d4edfba8, type: 3}
+  m_Name: Dimas
+  m_EditorClassIdentifier: Assembly-CSharp::NpcSO
+  npcName: Dimas
+  portraitPrefab: {fileID: 910527092536818029, guid: 91f64c8b25550c141abc05ea29d5bc0f, type: 3}
+  firstDialogueSO: {fileID: 11400000, guid: a927227bf2781b94fbd900ae4a44b631, type: 2}
+  repeatDialogueSO: {fileID: 11400000, guid: fa00f8de65852ba47b4cfe6cea86ad21, type: 2}
+  portraitBackground: {r: 1, g: 0.91, b: 0.8, a: 1}

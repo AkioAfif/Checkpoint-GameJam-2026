@@ -19,6 +19,7 @@
 /[Oo]bj/
 /[Bb]uild/
 /[Bb]uilds/
+/Data/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 *.log
@@ -79,6 +80,8 @@ sysinfo.txt
 mono_crash.*
 
 # Builds
+/[Bb]uilds/
+/Data/
 *.apk
 *.aab
 *.unitypackage

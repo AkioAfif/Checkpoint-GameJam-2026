@@ -22,7 +22,7 @@ paths:
 - Don't modify anything while in Play mode. Those changes are discarded on stop.
 - Don't touch `Library/`, `Temp/`, `Logs/`, `UserSettings/`, `*.csproj`, `*.slnx` (all generated).
 - Layers, tags and the build scene list are changed via `set_tags_layers` / `add_scene_to_build`, then recorded in `project-settings.md`.
-- Gameplay objects are **prefabs** (`Assets/Prefabs/<Feature>/`). Scene instances only override position/serialized refs. Logic + Visual + Sound components sit on the same prefab (visual parts as children).
+- Gameplay objects are **prefabs** (`Assets/_Project/Prefabs/<Feature>/`). Scene instances only override position/serialized refs. Logic + Visual + Sound components sit on the same prefab (visual parts as children).
 
 ## Prefab structure convention (KC)
 ```
@@ -36,4 +36,4 @@ Checkpoint (prefab root)   ← Checkpoint.cs, Collider (isTrigger), CheckpointSo
 
 ## Git
 - Commit only when the user asks. Every new/moved asset is committed **with its `.meta`**.
-- Don't commit `Library/`, `Temp/`, `Logs/`, `UserSettings/`, `Builds/` (already in `.gitignore`).
+- Don't commit `Library/`, `Temp/`, `Logs/`, `UserSettings/`, `Builds/` (in `.gitignore`).

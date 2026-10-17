@@ -1,7 +1,7 @@
 ---
 paths:
-  - "Assets/Scripts/UI/**/*.cs"
-  - "Assets/Prefabs/UI/**"
+  - "Assets/_Project/Scripts/UI/**/*.cs"
+  - "Assets/_Project/Prefabs/UI/**"
 ---
 
 # UI (uGUI + TextMeshPro)
@@ -28,7 +28,7 @@ paths:
 - Subscriptions to singleton events must be removed in `OnDestroy` (see `csharp-pitfalls.md`).
 
 ## Template: show/hide helper (one file, shared by every panel)
-`Assets/Scripts/UI/CanvasGroupExtensions.cs`:
+`Assets/_Project/Scripts/UI/CanvasGroupExtensions.cs`:
 ```csharp
 using UnityEngine;
 

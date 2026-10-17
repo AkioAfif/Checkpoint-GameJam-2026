@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a532d23ec25add43b52cecb0ff0daae, type: 3}
+  m_Name: SawitSeed
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
+  itemName: Sawit Seed Lv.1
+  description: A warm, glowing seed pressed by the Fabricator. Plant it in an empty plot.
+  icon: {fileID: -618244441179235363, guid: 4aa02dba2f101454ea826f24f2956597, type: 3}
+  prefab: {fileID: 1014136733725347773, guid: 21dc0f858edd69d49b6cf130193407f4, type: 3}
+  liquidColor: {r: 1, g: 0.8, b: 0.35, a: 1}

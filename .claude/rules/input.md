@@ -1,8 +1,8 @@
 ---
 paths:
-  - "Assets/Scripts/Core/GameInput.cs"
+  - "Assets/_Project/Scripts/Core/GameInput.cs"
   - "Assets/**/*.inputactions"
-  - "Assets/Scripts/Player/**/*.cs"
+  - "Assets/_Project/Scripts/Player/**/*.cs"
 ---
 
 # Input (Input System 1.20, project-wide actions)
@@ -11,8 +11,9 @@ paths:
 - Only `GameInput.cs` may write `using UnityEngine.InputSystem;`. Everything else talks to `GameInput.Instance`.
 - Source of truth: `Assets/InputSystem_Actions.inputactions`, registered as **project-wide actions** → `InputSystem.actions`, which is **already enabled** at startup. Don't call `Enable()` on it again, and don't `Dispose()` it.
 - There's **no generated C# wrapper** (`InputSystem_Actions` class doesn't exist). Look up actions by `"Map/Action"` string with `throwIfNotFound: true`, so a typo fails loudly in `Awake` instead of silently returning null.
-- Existing actions — Player: `Move` (Vector2), `Look` (Vector2), `Attack`, `Interact`, `Crouch`, `Jump`, `Previous`, `Next`, `Sprint`. UI: `Navigate`, `Submit`, `Cancel`, `Point`, `Click`, `ScrollWheel`, ….
-- **There is no `Pause` action yet.** Before using pause, add `Pause` (Button) to the `Player` map with bindings `<Keyboard>/escape` (group `Keyboard&Mouse`) and `<Gamepad>/start` (group `Gamepad`). Edit it in the Input Actions editor, or edit the JSON carefully: each action and binding needs a unique new GUID `id`. Then update the action list here and in `project-settings.md`.
+- Existing actions — Player: `Move` (Vector2), `Look` (Vector2), `Attack`, `Interact`, `Crouch`, `Jump`, `Previous`, `Next`, `Sprint`, `Pause` (Esc / pad Start), `Restart` (R / pad Select). UI: `Navigate`, `Submit`, `Cancel`, `Point`, `Click`, `ScrollWheel`, ….
+- New actions: add them in the Input Actions editor, or edit the JSON carefully (each action and binding needs a unique new GUID `id`). Then update the action list here and in `project-settings.md`.
+- `Interact` is a plain press (the template's Hold interaction was removed — QTE timing and dialogue need instant presses).
 - `Interact` binds to `<Keyboard>/e`, `Jump` to Space, `Attack` to LMB/Enter, `Sprint` to LeftShift.
 
 ## GameInput template
@@ -76,5 +77,5 @@ public class GameInput : MonoBehaviour
 - Lambdas can't be unsubscribed, so never subscribe one to `performed`. Always use named methods.
 - Movement on the XZ plane: `Vector3 moveDir = new Vector3(input.x, 0f, input.y);`. Make it camera-relative only if the camera rotates.
 - Gameplay handlers check `GameManager.Instance.IsGamePlaying()` first.
-- Rebinding UI (KC `GameOptionUI`) is out of scope unless asked. If it's needed: `PerformInteractiveRebinding(index)`, persist with `InputSystem.actions.SaveBindingOverridesAsJson()` + PlayerPrefs, and use **one** `GetActionAndBindingIndex(Binding)` mapping instead of KC's two parallel switches.
+- Rebinding exists for Interact only (`GameInput.RebindInteract`, pause menu). It uses `PerformInteractiveRebinding` + `SaveBindingOverridesAsJson()` in PlayerPrefs. UI shows keys via `GameInput.GetInteractBindingDisplay()` and refreshes on `OnBindingDisplayChanged` (rebind or keyboard↔gamepad switch).
 - UI navigation uses the `UI` map through `InputSystemUIInputModule` on the EventSystem. Call `button.Select()` on panel show so gamepad works.
