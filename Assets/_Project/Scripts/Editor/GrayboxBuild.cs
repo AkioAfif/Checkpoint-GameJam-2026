@@ -58,6 +58,20 @@ public static class GrayboxBuild
             hull.SetActive(false);
             hulls[i] = hull;
         }
+        // shortcut: skinned hulls follow the bones but not blend shapes, fine while the face keys stay subtle
+        foreach (SkinnedMeshRenderer skinned in visual.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+        {
+            GameObject hull = Root("Outline", skinned.transform);
+            SkinnedMeshRenderer hullRenderer = hull.AddComponent<SkinnedMeshRenderer>();
+            hullRenderer.sharedMesh = GrayboxMeshFactory.Outline(skinned.sharedMesh, thickness);
+            hullRenderer.sharedMaterial = outlineMaterial;
+            hullRenderer.bones = skinned.bones;
+            hullRenderer.rootBone = skinned.rootBone;
+            hullRenderer.localBounds = skinned.localBounds;
+            hullRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            hull.SetActive(false);
+            ArrayUtility.Add(ref hulls, hull);
+        }
         return hulls;
     }
 

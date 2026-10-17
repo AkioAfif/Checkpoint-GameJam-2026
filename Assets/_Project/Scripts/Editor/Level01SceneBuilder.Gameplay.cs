@@ -200,6 +200,9 @@ public static partial class Level01SceneBuilder
         Villager(villagers, points, InteractablePrefabBuilder.Villager("Npc_Darto", CharacterBuilder.DartoLook, GameDataBuilder.Darto), new Vector3(-31.5f, 0f, -5f), new[] { new Vector3(-29f, 0f, -4f), new Vector3(-26f, 0f, -2.2f), new Vector3(-31f, 0f, -3f) });
         Villager(villagers, points, InteractablePrefabBuilder.Villager("Npc_Dimas", CharacterBuilder.DimasLook, GameDataBuilder.Dimas), new Vector3(-33f, 0f, 5f), new[] { new Vector3(-40f, 0f, 4f), new Vector3(-30f, 0f, 3.5f), new Vector3(-37f, 0f, 2.2f), new Vector3(-28f, 0f, 6f) });
         Villager(villagers, points, InteractablePrefabBuilder.Villager("Npc_Ijah", CharacterBuilder.IjahLook, GameDataBuilder.Ijah), new Vector3(-3.5f, 0f, 6.5f), new[] { new Vector3(-2f, 0f, 5.5f), new Vector3(-5f, 0f, 6.2f) });
+        // the antagonist loiters by the Fabricator and never wanders
+        GameObject distributor = InteractablePrefabBuilder.Villager("Npc_Distributor", CharacterBuilder.DistributorRigPrefab(), GameDataBuilder.Distributor, 1.3f, .6f, 1.05f);
+        Villager(villagers, points, distributor, FabricatorPosition + new Vector3(2.3f, 0f, -.5f), new Vector3[0]);
     }
 
     private static void Villager(Transform parent, Transform pointsParent, GameObject prefab, Vector3 position, Vector3[] wanderPoints)

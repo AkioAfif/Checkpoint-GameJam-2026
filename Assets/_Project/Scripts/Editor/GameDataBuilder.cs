@@ -13,7 +13,7 @@ public static class GameDataBuilder
     public static CropDataSO SawitLv1;
     public static FabricatorPuzzleSO PuzzleTutorial, PuzzleNormal;
     public static TaskObjectiveSO[] Tasks;
-    public static NpcSO Ratna, Darto, Dimas, Ijah;
+    public static NpcSO Ratna, Darto, Dimas, Ijah, Distributor;
     public static AudioClipRefsSO AudioRefs;
     public static TileBase DirtTile, RockTile;
     public static PhysicsMaterial2D LiquidPhysics;
@@ -104,10 +104,20 @@ public static class GameDataBuilder
         DialogueSO ijahRepeat = Dialogue("Ijah_Repeat", default,
             N("Patience, dear. Good things grow slowly.", Emote.Nod));
 
-        Ratna = Npc("Ratna", "Bu Ratna", CharacterBuilder.RatnaLook, ratnaFirst, ratnaRepeat, new Color(.99f, .87f, .88f));
-        Darto = Npc("Darto", "Pak Darto", CharacterBuilder.DartoLook, dartoFirst, dartoRepeat, new Color(.86f, .94f, .86f));
-        Dimas = Npc("Dimas", "Dimas", CharacterBuilder.DimasLook, dimasFirst, dimasRepeat, new Color(1f, .91f, .80f));
-        Ijah = Npc("Ijah", "Nek Ijah", CharacterBuilder.IjahLook, ijahFirst, ijahRepeat, new Color(.90f, .86f, .97f));
+        Ratna = Npc("Ratna", "Bu Ratna", CharacterBuilder.RigPrefab(CharacterBuilder.RatnaLook), ratnaFirst, ratnaRepeat, new Color(.99f, .87f, .88f));
+        Darto = Npc("Darto", "Pak Darto", CharacterBuilder.RigPrefab(CharacterBuilder.DartoLook), dartoFirst, dartoRepeat, new Color(.86f, .94f, .86f));
+        Dimas = Npc("Dimas", "Dimas", CharacterBuilder.RigPrefab(CharacterBuilder.DimasLook), dimasFirst, dimasRepeat, new Color(1f, .91f, .80f));
+        Ijah = Npc("Ijah", "Nek Ijah", CharacterBuilder.RigPrefab(CharacterBuilder.IjahLook), ijahFirst, ijahRepeat, new Color(.90f, .86f, .97f));
+
+        DialogueSO distributorFirst = Dialogue("Distributor_First", default,
+            N("Well, well. The little farmer pressing seeds in MY Fabricator.", Emote.Nod),
+            P("Your Fabricator? It's stood by my house for years!", Emote.Surprised),
+            N("Every seed that machine makes is distributed... by me.", Emote.Shake),
+            N("Plant them if you like. At harvest we'll discuss my share.", Emote.Nod),
+            P("...", Emote.Sad));
+        DialogueSO distributorRepeat = Dialogue("Distributor_Repeat", default,
+            N("Keep pressing, farmer. I'm counting every seed.", Emote.Nod));
+        Distributor = Npc("Distributor", "The Distributor", CharacterBuilder.DistributorRigPrefab(), distributorFirst, distributorRepeat, new Color(.86f, .82f, .72f));
     }
 
     // ---------- item / prop models (visual only, no colliders) ----------
@@ -236,11 +246,11 @@ public static class GameDataBuilder
         return dialogue;
     }
 
-    private static NpcSO Npc(string file, string npcName, CharacterBuilder.Look look, DialogueSO first, DialogueSO repeat, Color background)
+    private static NpcSO Npc(string file, string npcName, GameObject portraitRig, DialogueSO first, DialogueSO repeat, Color background)
     {
         NpcSO npc = Asset<NpcSO>("Npcs", file);
         npc.npcName = npcName;
-        npc.portraitPrefab = CharacterBuilder.RigPrefab(look).transform;
+        npc.portraitPrefab = portraitRig.transform;
         npc.firstDialogueSO = first;
         npc.repeatDialogueSO = repeat;
         npc.portraitBackground = background;

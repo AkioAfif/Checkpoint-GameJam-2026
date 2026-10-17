@@ -137,17 +137,20 @@ public static class InteractablePrefabBuilder
         return SavePrefab(root, FOLDER, "Fabricator");
     }
 
-    public static GameObject Villager(string name, CharacterBuilder.Look look, NpcSO npcSO)
+    public static GameObject Villager(string name, CharacterBuilder.Look look, NpcSO npcSO) => Villager(name, CharacterBuilder.RigPrefab(look), npcSO, 1f, .35f, look.scale);
+
+    // visualScale grows the world model only (the dialogue portrait keeps the rig at scale 1 so it fits the frame)
+    public static GameObject Villager(string name, GameObject rigPrefab, NpcSO npcSO, float visualScale, float radius, float promptScale)
     {
         GameObject root = Root(name);
         Npc npc = root.AddComponent<Npc>();
         CapsuleCollider capsule = root.AddComponent<CapsuleCollider>();
-        capsule.center = new Vector3(0f, .8f, 0f);
-        capsule.radius = .35f;
-        capsule.height = 1.6f;
+        capsule.center = new Vector3(0f, .8f * visualScale, 0f);
+        capsule.radius = radius;
+        capsule.height = 1.6f * visualScale;
         NavMeshAgent agent = root.AddComponent<NavMeshAgent>();
-        agent.radius = .35f;
-        agent.height = 1.6f;
+        agent.radius = radius;
+        agent.height = 1.6f * visualScale;
         agent.speed = 1.3f;
         agent.angularSpeed = 300f;
         agent.acceleration = 6f;
@@ -156,7 +159,8 @@ public static class InteractablePrefabBuilder
         SetField(wander, "npc", npc);
 
         GameObject visual = Root("Visual", root.transform);
-        GameObject rig = (GameObject)PrefabUtility.InstantiatePrefab(CharacterBuilder.RigPrefab(look), visual.transform);
+        visual.transform.localScale = Vector3.one * visualScale;
+        GameObject rig = (GameObject)PrefabUtility.InstantiatePrefab(rigPrefab, visual.transform);
         NpcVisual npcVisual = visual.AddComponent<NpcVisual>();
         SetField(npcVisual, "npc", npc);
         SetField(npcVisual, "npcWander", wander);
@@ -164,7 +168,7 @@ public static class InteractablePrefabBuilder
         AddOutline(root, rig.transform, GrayboxPalette.Outline, .025f);
 
         SetField(npc, "npcSO", npcSO);
-        SetField(npc, "promptAnchor", Anchor(root, "PromptAnchor", new Vector3(0f, 2.15f * look.scale, 0f)));
+        SetField(npc, "promptAnchor", Anchor(root, "PromptAnchor", new Vector3(0f, 2.15f * promptScale, 0f)));
         SetLayerRecursively(root, InteractableLayer);
         return SavePrefab(root, "Characters", name);
     }
