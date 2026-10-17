@@ -53,6 +53,21 @@ public static class GrayboxPalette
         });
     }
 
+    // same lighting response as Lit(), plus a baked base map + normal map (the Distributor's head)
+    public static Material LitMapped(string name, Texture2D baseMap, Texture2D normalMap, float smoothness = .25f)
+    {
+        return GetOrCreate(name, LIT, material =>
+        {
+            material.SetColor("_BaseColor", Color.white);
+            material.SetTexture("_BaseMap", baseMap);
+            material.SetTexture("_BumpMap", normalMap);
+            material.EnableKeyword("_NORMALMAP");
+            material.SetFloat("_Smoothness", smoothness);
+            material.SetFloat("_Metallic", 0f);
+            material.enableInstancing = true;
+        });
+    }
+
     public static Material Transparent(string name, Color color, float smoothness)
     {
         return GetOrCreate(name, LIT, material =>

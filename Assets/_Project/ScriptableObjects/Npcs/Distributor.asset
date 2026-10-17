@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90dd2cd9f9ef57b4a9813410d4edfba8, type: 3}
+  m_Name: Distributor
+  m_EditorClassIdentifier: Assembly-CSharp::NpcSO
+  npcName: The Distributor
+  portraitPrefab: {fileID: 4535430875316945219, guid: 338ad4fb40ac83a42b5b757f485e3bba, type: 3}
+  firstDialogueSO: {fileID: 11400000, guid: f882a60308e86b54bbe9ac399d8d11e6, type: 2}
+  repeatDialogueSO: {fileID: 11400000, guid: 2729058b783181549ad48a184994a7e2, type: 2}
+  portraitBackground: {r: 0.86, g: 0.82, b: 0.72, a: 1}

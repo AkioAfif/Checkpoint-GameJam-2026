@@ -69,7 +69,8 @@ public static class GrayboxMeshFactory
             Vector3[] vertices = source.vertices;
             Vector3[] normals = source.normals;
             for (int i = 0; i < vertices.Length; i++) vertices[i] += normals[i] * thickness;
-            Mesh mesh = new Mesh { vertices = vertices, normals = normals, triangles = source.triangles };
+            // bone data is empty for static meshes; skinned sources keep deforming with their rig
+            Mesh mesh = new Mesh { vertices = vertices, normals = normals, triangles = source.triangles, boneWeights = source.boneWeights, bindposes = source.bindposes };
             mesh.RecalculateBounds();
             return mesh;
         });

@@ -10,6 +10,9 @@ public static class CharacterBuilder
     private const string ANIMATION_FOLDER = "Assets/_Project/Art/Animations";
     private const string CONTROLLER_PATH = ANIMATION_FOLDER + "/Chibi.controller";
     private const float HIPS_Y = .42f;
+    private const string DISTRIBUTOR_FOLDER = "Assets/_Project/Art/Models/Distributor";
+    private const string DISTRIBUTOR_FBX = DISTRIBUTOR_FOLDER + "/Distributor.fbx";
+    private const string GENERATED_FOLDER = "Assets/_Project/Art/Models/Generated";
 
     public enum Accessory { None, StrawHat, Bun, Cap }
 
@@ -82,6 +85,114 @@ public static class CharacterBuilder
 
         foreach (Renderer r in rig.GetComponentsInChildren<Renderer>()) ((MeshRenderer)r).receiveShadows = true;
         return SavePrefab(rig, "Characters", $"Rig_{look.name}");
+    }
+
+    // The antagonist: a skinned mesh made by Tools/Blender/build_distributor.py, re-bound to identity-rotation bones
+    // (FBX rest rotations would fight the clips' absolute euler keys) so Chibi.controller drives him like everyone else.
+    public static GameObject DistributorRigPrefab()
+    {
+        ConfigureDistributorImport();
+        GameObject model = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(DISTRIBUTOR_FBX));
+        SkinnedMeshRenderer source = model.GetComponentInChildren<SkinnedMeshRenderer>();
+        Dictionary<string, Transform> importedBones = new Dictionary<string, Transform>();
+        foreach (Transform t in model.GetComponentsInChildren<Transform>()) importedBones[t.name] = t;
+
+        GameObject rig = Root("Rig_Distributor");
+        Animator animator = rig.AddComponent<Animator>();
+        animator.runtimeAnimatorController = Controller();
+        animator.applyRootMotion = false;
+        animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+        Dictionary<string, Transform> bones = new Dictionary<string, Transform>();
+        // parents first, so setting a child's world position sticks
+        foreach (string boneName in new[] { "Hips", "LegL", "LegR", "Head", "ArmL", "ArmR" })
+        {
+            Transform parent = boneName == "Head" || boneName.StartsWith("Arm") ? bones["Hips"] : rig.transform;
+            bones[boneName] = Root(boneName, parent).transform;
+            bones[boneName].position = importedBones[boneName].position;
+        }
+        if (Mathf.Abs(bones["Hips"].localPosition.y - HIPS_Y) > .001f) Debug.LogError($"Distributor Hips at y {bones["Hips"].localPosition.y}, the Chibi clips expect {HIPS_Y}");
+
+        Transform[] boneArray = new Transform[source.bones.Length];
+        for (int i = 0; i < boneArray.Length; i++) boneArray[i] = bones[source.bones[i].name];
+        GameObject body = Root("Body", rig.transform);
+        SkinnedMeshRenderer skinned = body.AddComponent<SkinnedMeshRenderer>();
+        skinned.sharedMesh = DistributorMesh(source, boneArray);
+        skinned.bones = boneArray;
+        skinned.rootBone = bones["Hips"];
+        skinned.localBounds = new Bounds(skinned.sharedMesh.bounds.center - bones["Hips"].position, skinned.sharedMesh.bounds.size * 1.3f);
+        Material[] materials = new Material[source.sharedMaterials.Length];
+        for (int i = 0; i < materials.Length; i++) materials[i] = DistributorMaterial(source.sharedMaterials[i].name);
+        skinned.sharedMaterials = materials;
+        Object.DestroyImmediate(model);
+
+        DistributorFaceVisual face = rig.AddComponent<DistributorFaceVisual>();
+        SetField(face, "faceRenderer", skinned);
+        return SavePrefab(rig, "Characters", "Rig_Distributor");
+    }
+
+    // copy of the imported mesh with bindposes for the new bones; named after the FBX hash so a re-export rebuilds it
+    private static Mesh DistributorMesh(SkinnedMeshRenderer source, Transform[] boneArray)
+    {
+        string key = "Distributor_" + AssetDatabase.GetAssetDependencyHash(DISTRIBUTOR_FBX).ToString().Substring(0, 8);
+        foreach (string guid in AssetDatabase.FindAssets("Distributor_", new[] { GENERATED_FOLDER }))
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            if (!System.IO.Path.GetFileName(path).StartsWith(key)) AssetDatabase.DeleteAsset(path); // stale export + its outline hull
+        }
+        string meshPath = $"{GENERATED_FOLDER}/{key}.asset";
+        Mesh existing = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
+        if (existing != null) return existing;
+
+        Mesh mesh = Object.Instantiate(source.sharedMesh);
+        mesh.name = key;
+        Matrix4x4[] bindposes = new Matrix4x4[boneArray.Length];
+        for (int i = 0; i < boneArray.Length; i++) bindposes[i] = boneArray[i].worldToLocalMatrix * source.transform.localToWorldMatrix;
+        mesh.bindposes = bindposes;
+        AssetDatabase.CreateAsset(mesh, meshPath);
+        return mesh;
+    }
+
+    // Blender material slot name → our palette, so he shares the villagers' lighting response
+    private static Material DistributorMaterial(string slot)
+    {
+        Color tan = new Color(.80f, .62f, .46f);
+        switch (slot)
+        {
+            case "SkinHead":
+                return GrayboxPalette.LitMapped("SkinDistributorHead",
+                    AssetDatabase.LoadAssetAtPath<Texture2D>(DISTRIBUTOR_FOLDER + "/Distributor_Head_Base.png"),
+                    AssetDatabase.LoadAssetAtPath<Texture2D>(DISTRIBUTOR_FOLDER + "/Distributor_Head_Normal.png"));
+            case "Skin": return GrayboxPalette.Lit("SkinDistributor", tan);
+            case "Hair": return GrayboxPalette.Lit("HairDistributor", new Color(.10f, .09f, .10f), .45f);
+            case "Frame": return GrayboxPalette.Lit("GlassesFrame", new Color(.12f, .11f, .12f), .4f);
+            case "Lens": return GrayboxPalette.Lit("GlassesLens", new Color(.96f, .96f, .94f), .7f);
+            case "Lips": return GrayboxPalette.Lit("LipsDistributor", new Color(.80f, .47f, .45f));
+            case "Cloth": return GrayboxPalette.Cloth("Distributor", new Color(.80f, .66f, .36f));
+            case "Accent": return GrayboxPalette.Accent;
+            case "Dark": return GrayboxPalette.DarkGray;
+        }
+        Debug.LogError($"Distributor.fbx has an unknown material slot '{slot}'");
+        return GrayboxPalette.DarkGray;
+    }
+
+    private static void ConfigureDistributorImport()
+    {
+        ModelImporter model = (ModelImporter)AssetImporter.GetAtPath(DISTRIBUTOR_FBX);
+        if (model.importAnimation || !model.importBlendShapes)
+        {
+            model.importAnimation = false;
+            model.importBlendShapes = true;
+            model.SaveAndReimport();
+        }
+        foreach (string map in new[] { "Base", "Normal" })
+        {
+            TextureImporter texture = (TextureImporter)AssetImporter.GetAtPath($"{DISTRIBUTOR_FOLDER}/Distributor_Head_{map}.png");
+            TextureImporterType type = map == "Normal" ? TextureImporterType.NormalMap : TextureImporterType.Default;
+            if (texture.textureType == type && texture.maxTextureSize == 1024) continue;
+            texture.textureType = type;
+            texture.maxTextureSize = 1024;
+            texture.SaveAndReimport();
+        }
     }
 
     private static void AddAccessory(Transform head, Accessory accessory, Material hair)
