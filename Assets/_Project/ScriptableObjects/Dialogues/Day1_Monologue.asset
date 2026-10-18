@@ -10,13 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e0ce3e543780b04dba488492949ce28, type: 3}
-  m_Name: Distributor_Repeat
+  m_Name: Day1_Monologue
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   lineArray:
-  - speaker: 1
-    text: Keep pressing, farmer. I'm counting every seed.
+  - speaker: 0
+    text: How am I supposed to pay off a debt this huge...
     playerEmote: 0
-    npcEmote: 1
+    npcEmote: 0
+  - speaker: 0
+    text: Maybe there are still plenty of crops I can harvest today. I'll go check the field. Maybe something survived.
+    playerEmote: 10
+    npcEmote: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

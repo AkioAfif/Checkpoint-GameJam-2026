@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
     public event EventHandler OnGamePaused;
     public event EventHandler OnGameUnpaused;
 
-    public enum State { Playing, Dialogue, Popup, Fabricating, Planting, EnteringHouse }
+    public enum State { Playing, Dialogue, Popup, Fabricating, Planting, EnteringHouse, Cutscene }
 
     private State state;
     private bool isGamePaused;

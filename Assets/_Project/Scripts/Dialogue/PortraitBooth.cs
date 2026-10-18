@@ -26,29 +26,35 @@ public class PortraitBooth : MonoBehaviour
         DialogueManager.Instance.OnLineChanged -= DialogueManager_OnLineChanged;
     }
 
+    // e.npc is null for the player's monologues: only the player portrait is filmed
     private void DialogueManager_OnDialogueStarted(object sender, DialogueManager.OnDialogueEventArgs e)
     {
-        NpcSO npcSO = e.npc.GetNpcSO();
-        Transform portrait = Instantiate(npcSO.portraitPrefab, npcStand);
-        portrait.localPosition = Vector3.zero;
-        portrait.localRotation = Quaternion.identity;
-        int portraitLayer = gameObject.layer;
-        foreach (Transform t in portrait.GetComponentsInChildren<Transform>()) t.gameObject.layer = portraitLayer;
-        npcPortraitAnimator = portrait.GetComponent<Animator>();
-        npcCamera.backgroundColor = npcSO.portraitBackground;
+        if (e.npc != null)
+        {
+            NpcSO npcSO = e.npc.GetNpcSO();
+            Transform portrait = Instantiate(npcSO.portraitPrefab, npcStand);
+            portrait.localPosition = Vector3.zero;
+            portrait.localRotation = Quaternion.identity;
+            int portraitLayer = gameObject.layer;
+            foreach (Transform t in portrait.GetComponentsInChildren<Transform>()) t.gameObject.layer = portraitLayer;
+            npcPortraitAnimator = portrait.GetComponent<Animator>();
+            npcCamera.backgroundColor = npcSO.portraitBackground;
+        }
         SetCamerasEnabled(true);
+        npcCamera.enabled = e.npc != null;
     }
 
     private void DialogueManager_OnDialogueEnded(object sender, DialogueManager.OnDialogueEventArgs e)
     {
-        Destroy(npcPortraitAnimator.gameObject);
+        if (npcPortraitAnimator != null) Destroy(npcPortraitAnimator.gameObject);
+        npcPortraitAnimator = null;
         SetCamerasEnabled(false);
     }
 
     private void DialogueManager_OnLineChanged(object sender, DialogueManager.OnLineChangedEventArgs e)
     {
         ChibiAnimation.PlayEmote(playerPortraitAnimator, e.line.playerEmote);
-        ChibiAnimation.PlayEmote(npcPortraitAnimator, e.line.npcEmote);
+        if (npcPortraitAnimator != null) ChibiAnimation.PlayEmote(npcPortraitAnimator, e.line.npcEmote);
     }
 
     private void SetCamerasEnabled(bool isEnabled)

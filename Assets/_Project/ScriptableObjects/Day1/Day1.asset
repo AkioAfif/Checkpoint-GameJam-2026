@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acd96b4fd3fb84c46ab837456e779df1, type: 3}
+  m_Name: Day1
+  m_EditorClassIdentifier: Assembly-CSharp::Day1SO
+  letterTitle: FINAL NOTICE
+  letterBody: 'The harvest loan on your field is overdue.
+
+
+    The rains took the last crop, but the debt did not wash away. Settle the full amount, or the land goes to the lender.'
+  debtAmount: 48.500.000 Koin
+  letterCloseHint: Press [{0}] to put it down
+  monologueDialogueSO: {fileID: 11400000, guid: ff4d8229011aa1c468f4bfad927f2b04, type: 2}
+  introDialogueSO: {fileID: 11400000, guid: 476e66a86160bc045816884734ecc3d5, type: 2}
+  pressedDialogueSO: {fileID: 11400000, guid: aa1c942a6790bf04ea9ece64b3682a45, type: 2}
+  nightDialogueSO: {fileID: 11400000, guid: de873c9bee1e99949bbbac33164b1744, type: 2}
+  waitingTutorial1DialogueSO: {fileID: 11400000, guid: 3af04db81241a904d8d8037a31fc91c1, type: 2}
+  waitingTutorial2DialogueSO: {fileID: 11400000, guid: 003fdc46783756f42a3506d7e83459fb, type: 2}
+  letterObjectiveArray:
+  - {fileID: 11400000, guid: b95b6e2e5a6de48428f2c9087f82e8a7, type: 2}
+  tutorialObjectiveArray:
+  - {fileID: 11400000, guid: f7a62aefaa05a1142a100c7671ac88ae, type: 2}
+  - {fileID: 11400000, guid: 847b04b8b7ad88f42a9eb7badae60773, type: 2}
+  - {fileID: 11400000, guid: 3f59fb1d0716c364b850ebf42bf957fe, type: 2}
+  gatherObjectiveArray:
+  - {fileID: 11400000, guid: 3f59fb1d0716c364b850ebf42bf957fe, type: 2}
+  - {fileID: 11400000, guid: b4091ba0ba78a1b4d912049c040e51ca, type: 2}
+  - {fileID: 11400000, guid: 3c72baf8b771a2b429ede7df1a7e2386, type: 2}
+  - {fileID: 11400000, guid: 9f58a875cd6ff0d4c9a0a4ac6184afc2, type: 2}
+  - {fileID: 11400000, guid: fa3f4d8b9555d23488a5fb8eba5a4b11, type: 2}
+  sariObjectiveArray:
+  - {fileID: 11400000, guid: 259e7bc1c0c57a942a0304ed03c65a3d, type: 2}
+  nightObjectiveArray:
+  - {fileID: 11400000, guid: 7220af125aea5844d8dae6caff29f5d0, type: 2}
+  nightCaption: That evening...

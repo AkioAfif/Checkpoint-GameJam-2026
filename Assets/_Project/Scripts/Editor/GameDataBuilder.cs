@@ -11,7 +11,7 @@ public static class GameDataBuilder
 
     public static ItemDataSO EmptyBottle, Water, Flower, Crop, SawitSeed;
     public static CropDataSO SawitLv1;
-    public static FabricatorPuzzleSO PuzzleTutorial, PuzzleNormal;
+    public static FabricatorPuzzleSO PuzzleIntro, PuzzleTutorial, PuzzleNormal;
     public static TaskObjectiveSO[] Tasks;
     public static NpcSO Ratna, Darto, Dimas, Ijah, Distributor;
     public static AudioClipRefsSO AudioRefs;
@@ -37,6 +37,7 @@ public static class GameDataBuilder
         SawitLv1.qteCheckCount = 2;
         EditorUtility.SetDirty(SawitLv1);
 
+        BuildIntroPuzzle();
         PuzzleTutorial = Puzzle("Puzzle_01_Tutorial", "First Press",
             "RRRRRRRRRRRRRR\nRWWWRFFFFRCCCR\nRWWWRFFFFRCCCR\nR###R####R###R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR##RMMMMMMR##R\nR##RMMMMMMR##R\nR##RMMMMMMR##R\nR##RRRRRRRR##R\nRRRRRRRRRRRRRR");
         PuzzleNormal = Puzzle("Puzzle_02_Rocks", "Rocky Road",
@@ -68,55 +69,96 @@ public static class GameDataBuilder
         AssetDatabase.SaveAssets();
     }
 
+    // For hand-built scenes: picks up the assets BuildAll made, without regenerating the item/character prefabs that scene instances sit on.
+    public static void LoadAll()
+    {
+        EmptyBottle = Load<ItemDataSO>("Items", "EmptyBottle");
+        Water = Load<ItemDataSO>("Items", "Water");
+        Flower = Load<ItemDataSO>("Items", "Flower");
+        Crop = Load<ItemDataSO>("Items", "Crop");
+        SawitSeed = Load<ItemDataSO>("Items", "SawitSeed");
+        SawitLv1 = Load<CropDataSO>("Crops", "SawitLv1");
+        PuzzleTutorial = Load<FabricatorPuzzleSO>("Puzzles", "Puzzle_01_Tutorial");
+        PuzzleNormal = Load<FabricatorPuzzleSO>("Puzzles", "Puzzle_02_Rocks");
+        Distributor = Load<NpcSO>("Npcs", "Distributor");
+        BuildIntroPuzzle();
+        BuildDialogues();
+        AssetDatabase.SaveAssets();
+    }
+
     public static void BakeIcons() => GrayboxIconBaker.BakeIcons(new[] { EmptyBottle, Water, Flower, Crop, SawitSeed });
 
-    private static void BuildNpcs()
+    private static DialogueSO ratnaFirst, ratnaRepeat, dartoFirst, dartoRepeat, dimasFirst, dimasRepeat, ijahFirst, ijahRepeat, distributorFirst, distributorRepeat;
+
+    // Day 1's first press: one liquid (plant juice) that you simply dig down to the mould
+    private static void BuildIntroPuzzle()
+    {
+        PuzzleIntro = Puzzle("Puzzle_00_Intro", "Plant Juice",
+            "RRRRRRRRRRRRRR\nR####CCCC####R\nR####CCCC####R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR##RMMMMMMR##R\nR##RMMMMMMR##R\nR##RMMMMMMR##R\nR##RRRRRRRR##R\nRRRRRRRRRRRRRR");
+        PuzzleIntro.hasHint = true;
+        PuzzleIntro.hintFromCell = new Vector2Int(6, 3);
+        PuzzleIntro.hintToCell = new Vector2Int(6, 12);
+        EditorUtility.SetDirty(PuzzleIntro);
+    }
+
+    // Only the villagers' text (the assets keep their GUIDs). Safe to re-run on a hand-built scene.
+    public static void BuildDialogues()
     {
         DialogueSO.DialogueLine N(string text, Emote npcEmote = Emote.None) => new DialogueSO.DialogueLine { speaker = DialogueSO.Speaker.Npc, text = text, npcEmote = npcEmote };
         DialogueSO.DialogueLine P(string text, Emote playerEmote = Emote.None) => new DialogueSO.DialogueLine { speaker = DialogueSO.Speaker.Player, text = text, playerEmote = playerEmote };
 
-        DialogueSO ratnaFirst = Dialogue("Ratna_First", new ItemAmount { itemDataSO = EmptyBottle, amount = 2 },
+        ratnaFirst = Dialogue("Ratna_First", new ItemAmount { itemDataSO = EmptyBottle, amount = 2 },
             N("Oh! Good morning, neighbour! Out tending the farm again?", Emote.Wave),
             P("Morning, Bu Ratna! Just gathering a few things.", Emote.Nod),
             N("Then take these spare bottles. The river water is lovely and cool today.", Emote.Hop),
             P("Two bottles? Thank you so much!", Emote.Cheer),
             N("Don't mention it. Come by any time!", Emote.Nod));
-        DialogueSO ratnaRepeat = Dialogue("Ratna_Repeat", default,
-            N("The flowers by the houses grow back after a little while. Help yourself!", Emote.Wave));
-        DialogueSO dartoFirst = Dialogue("Darto_First", default,
+        ratnaRepeat = Dialogue("Ratna_Repeat", default,
+            N("Take these spare bottles. The river water is lovely and cool today.", Emote.Wave),
+            N("The flowers by the houses grow back after a little while. Help yourself!", Emote.Nod));
+        dartoFirst = Dialogue("Darto_First", default,
             N("Hm? Ah, it's you.", Emote.Surprised),
             P("Hello, Pak Darto! Nice weather today.", Emote.Wave),
             N("Nice weather for a nap, yes.", Emote.Nod),
             N("That bridge creaks a little, but it's sturdy. Built it myself!", Emote.Hop));
-        DialogueSO dartoRepeat = Dialogue("Darto_Repeat", default,
+        dartoRepeat = Dialogue("Darto_Repeat", default,
+            N("That bridge creaks a little, but it's sturdy. Built it myself!", Emote.Hop),
             N("Mind the river edge. It's deeper than it looks.", Emote.Shake));
-        DialogueSO dimasFirst = Dialogue("Dimas_First", default,
+        dimasFirst = Dialogue("Dimas_First", default,
             N("Hey hey! Wanna see how fast I can run?", Emote.Hop),
             P("Maybe later, Dimas!", Emote.Shake),
             N("Aww... okay! I'll practise more!", Emote.Sad));
-        DialogueSO dimasRepeat = Dialogue("Dimas_Repeat", default,
+        dimasRepeat = Dialogue("Dimas_Repeat", default,
+            N("Hey hey! Wanna see how fast I can run? I'll race you to your farm tomorrow!", Emote.Hop),
             N("I counted all the flowers in the village. There are a LOT.", Emote.Surprised));
-        DialogueSO ijahFirst = Dialogue("Ijah_First", default,
+        ijahFirst = Dialogue("Ijah_First", default,
             N("Come here, dear. Let me look at you.", Emote.Wave),
             P("Hello, Nek Ijah!", Emote.Nod),
             N("Your farm looks healthy. Plants grow best when they're tended with patience.", Emote.Nod),
             P("I'll remember that!", Emote.Cheer));
-        DialogueSO ijahRepeat = Dialogue("Ijah_Repeat", default,
+        ijahRepeat = Dialogue("Ijah_Repeat", default,
+            N("A new machine? Hm. Plants grow best when they're tended with patience, dear.", Emote.Nod),
             N("Patience, dear. Good things grow slowly.", Emote.Nod));
 
-        Ratna = Npc("Ratna", "Bu Ratna", CharacterBuilder.RigPrefab(CharacterBuilder.RatnaLook), ratnaFirst, ratnaRepeat, new Color(.99f, .87f, .88f));
-        Darto = Npc("Darto", "Pak Darto", CharacterBuilder.RigPrefab(CharacterBuilder.DartoLook), dartoFirst, dartoRepeat, new Color(.86f, .94f, .86f));
-        Dimas = Npc("Dimas", "Dimas", CharacterBuilder.RigPrefab(CharacterBuilder.DimasLook), dimasFirst, dimasRepeat, new Color(1f, .91f, .80f));
-        Ijah = Npc("Ijah", "Nek Ijah", CharacterBuilder.RigPrefab(CharacterBuilder.IjahLook), ijahFirst, ijahRepeat, new Color(.90f, .86f, .97f));
-
-        DialogueSO distributorFirst = Dialogue("Distributor_First", default,
+        RenameAsset("Dialogues", "Distributor_First", "Distributor_Day2_First");
+        RenameAsset("Dialogues", "Distributor_Repeat", "Distributor_Day2_Repeat");
+        distributorFirst = Dialogue("Distributor_Day2_First", default,
             N("Well, well. The little farmer pressing seeds in MY Fabricator.", Emote.Nod),
             P("Your Fabricator? It's stood by my house for years!", Emote.Surprised),
             N("Every seed that machine makes is distributed... by me.", Emote.Shake),
             N("Plant them if you like. At harvest we'll discuss my share.", Emote.Nod),
             P("...", Emote.Sad));
-        DialogueSO distributorRepeat = Dialogue("Distributor_Repeat", default,
+        distributorRepeat = Dialogue("Distributor_Day2_Repeat", default,
             N("Keep pressing, farmer. I'm counting every seed.", Emote.Nod));
+    }
+
+    private static void BuildNpcs()
+    {
+        BuildDialogues();
+        Ratna = Npc("Ratna", "Bu Ratna", CharacterBuilder.RigPrefab(CharacterBuilder.RatnaLook), ratnaFirst, ratnaRepeat, new Color(.99f, .87f, .88f));
+        Darto = Npc("Darto", "Pak Darto", CharacterBuilder.RigPrefab(CharacterBuilder.DartoLook), dartoFirst, dartoRepeat, new Color(.86f, .94f, .86f));
+        Dimas = Npc("Dimas", "Dimas", CharacterBuilder.RigPrefab(CharacterBuilder.DimasLook), dimasFirst, dimasRepeat, new Color(1f, .91f, .80f));
+        Ijah = Npc("Ijah", "Nek Ijah", CharacterBuilder.RigPrefab(CharacterBuilder.IjahLook), ijahFirst, ijahRepeat, new Color(.90f, .86f, .97f));
         Distributor = Npc("Distributor", "The Distributor", CharacterBuilder.DistributorRigPrefab(), distributorFirst, distributorRepeat, new Color(.86f, .82f, .72f));
     }
 
@@ -226,7 +268,7 @@ public static class GameDataBuilder
         return puzzle;
     }
 
-    private static TaskObjectiveSO Task(string file, TaskObjectiveSO.Type type, string description, ItemDataSO item, int count)
+    public static TaskObjectiveSO Task(string file, TaskObjectiveSO.Type type, string description, ItemDataSO item, int count)
     {
         TaskObjectiveSO task = Asset<TaskObjectiveSO>("Tasks", file);
         task.type = type;
@@ -237,7 +279,7 @@ public static class GameDataBuilder
         return task;
     }
 
-    private static DialogueSO Dialogue(string file, ItemAmount reward, params DialogueSO.DialogueLine[] lines)
+    public static DialogueSO Dialogue(string file, ItemAmount reward, params DialogueSO.DialogueLine[] lines)
     {
         DialogueSO dialogue = Asset<DialogueSO>("Dialogues", file);
         dialogue.lineArray = lines;
@@ -246,7 +288,7 @@ public static class GameDataBuilder
         return dialogue;
     }
 
-    private static NpcSO Npc(string file, string npcName, GameObject portraitRig, DialogueSO first, DialogueSO repeat, Color background)
+    public static NpcSO Npc(string file, string npcName, GameObject portraitRig, DialogueSO first, DialogueSO repeat, Color background)
     {
         NpcSO npc = Asset<NpcSO>("Npcs", file);
         npc.npcName = npcName;
@@ -266,7 +308,22 @@ public static class GameDataBuilder
         return tile;
     }
 
-    private static T Asset<T>(string folder, string file) where T : ScriptableObject
+    // keeps the asset's GUID, so references to it survive the rename
+    private static void RenameAsset(string folder, string oldName, string newName)
+    {
+        string oldPath = $"{SO}/{folder}/{oldName}.asset";
+        if (AssetDatabase.LoadAssetAtPath<Object>(oldPath) == null || AssetDatabase.LoadAssetAtPath<Object>($"{SO}/{folder}/{newName}.asset") != null) return;
+        AssetDatabase.RenameAsset(oldPath, newName);
+    }
+
+    private static T Load<T>(string folder, string file) where T : Object
+    {
+        T asset = AssetDatabase.LoadAssetAtPath<T>($"{SO}/{folder}/{file}.asset");
+        if (asset == null) Debug.LogError($"{folder}/{file}.asset is missing: run Tools > Level01 > Rebuild Scene first");
+        return asset;
+    }
+
+    public static T Asset<T>(string folder, string file) where T : ScriptableObject
     {
         string dir = folder.Length > 0 ? $"{SO}/{folder}" : SO;
         if (!AssetDatabase.IsValidFolder(dir)) AssetDatabase.CreateFolder(SO, folder);

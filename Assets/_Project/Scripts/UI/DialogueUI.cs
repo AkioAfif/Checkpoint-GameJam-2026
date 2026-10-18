@@ -10,6 +10,7 @@ public class DialogueUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI lineText;
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private Image nameTagImage;
+    [SerializeField] private GameObject npcPortraitFrame;
     [SerializeField] private GameObject continueIndicator;
     [SerializeField] private UIPop boxPop;
     [SerializeField] private string playerName = "You";
@@ -50,8 +51,9 @@ public class DialogueUI : MonoBehaviour
 
     private void DialogueManager_OnDialogueStarted(object sender, DialogueManager.OnDialogueEventArgs e)
     {
-        NpcSO npcSO = e.npc.GetNpcSO();
-        npcTagColor = Color.Lerp(npcSO.portraitBackground, Color.black, .25f);
+        // e.npc is null for the player's monologues
+        npcPortraitFrame.SetActive(e.npc != null);
+        if (e.npc != null) npcTagColor = Color.Lerp(e.npc.GetNpcSO().portraitBackground, Color.black, .25f);
         canvasGroup.SetVisible(true);
         boxPop.Play(.7f);
     }
@@ -61,7 +63,7 @@ public class DialogueUI : MonoBehaviour
     private void DialogueManager_OnLineChanged(object sender, DialogueManager.OnLineChangedEventArgs e)
     {
         bool isPlayer = e.line.speaker == DialogueSO.Speaker.Player;
-        nameText.text = isPlayer ? playerName : e.npc.GetNpcSO().npcName;
+        nameText.text = isPlayer || e.npc == null ? playerName : e.npc.GetNpcSO().npcName;
         nameTagImage.color = isPlayer ? playerTagColor : npcTagColor;
         lineText.text = e.line.text;
         lineText.maxVisibleCharacters = 0;

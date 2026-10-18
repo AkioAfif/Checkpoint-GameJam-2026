@@ -7,6 +7,7 @@ public class PlayerVisual : MonoBehaviour
     [SerializeField] private Player player;
     [SerializeField] private Animator animator;
     [SerializeField] private ParticleSystem dustParticleSystem;
+    [SerializeField] private CutsceneActor cutsceneActor;
     [SerializeField] private float dustInterval = .22f;
     [SerializeField] private float squashAmount = .12f;
     [SerializeField] private float squashSpeed = 9f;
@@ -20,6 +21,8 @@ public class PlayerVisual : MonoBehaviour
         PlantingController.Instance.OnStateChanged += PlantingController_OnStateChanged;
         PlantingController.Instance.OnPlantingFinished += PlantingController_OnPlantingFinished;
         QTEManager.Instance.OnCheckResolved += QTEManager_OnCheckResolved;
+        DialogueManager.Instance.OnLineChanged += DialogueManager_OnLineChanged;
+        if (cutsceneActor != null) cutsceneActor.OnEmoteRequested += CutsceneActor_OnEmoteRequested;
     }
 
     private void Update()
@@ -48,7 +51,13 @@ public class PlayerVisual : MonoBehaviour
             PlantingController.Instance.OnPlantingFinished -= PlantingController_OnPlantingFinished;
         }
         if (QTEManager.Instance != null) QTEManager.Instance.OnCheckResolved -= QTEManager_OnCheckResolved;
+        if (DialogueManager.Instance != null) DialogueManager.Instance.OnLineChanged -= DialogueManager_OnLineChanged;
     }
+
+    // the world model reacts like the portrait does
+    private void DialogueManager_OnLineChanged(object sender, DialogueManager.OnLineChangedEventArgs e) => ChibiAnimation.PlayEmote(animator, e.line.playerEmote);
+
+    private void CutsceneActor_OnEmoteRequested(object sender, CutsceneActor.OnEmoteRequestedEventArgs e) => ChibiAnimation.PlayEmote(animator, e.emote);
 
     private void PlantingController_OnStateChanged(object sender, PlantingController.OnStateChangedEventArgs e)
     {

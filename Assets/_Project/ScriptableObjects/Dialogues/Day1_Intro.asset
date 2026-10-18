@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e0ce3e543780b04dba488492949ce28, type: 3}
+  m_Name: Day1_Intro
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
+  lineArray:
+  - speaker: 1
+    text: Good morning! You must be the one who works this field. I've heard about you.
+    playerEmote: 0
+    npcEmote: 5
+  - speaker: 0
+    text: Heard what?
+    playerEmote: 0
+    npcEmote: 0
+  - speaker: 1
+    text: That you work harder than anyone in this village, and that the rain has not been kind to you.
+    playerEmote: 0
+    npcEmote: 1
+  - speaker: 1
+    text: I represent the Instansi. We help hard-working families get back on their feet. This is a Fabricator. It's yours.
+    playerEmote: 0
+    npcEmote: 0
+  - speaker: 0
+    text: Mine? Are you serious? How much does it cost?
+    playerEmote: 4
+    npcEmote: 0
+  - speaker: 1
+    text: Nothing. Not one coin.
+    playerEmote: 0
+    npcEmote: 14
+  - speaker: 1
+    text: Put plants in, and it gives you sawit seeds. Sawit grows fast and sells well. I'll buy every one.
+    playerEmote: 0
+    npcEmote: 0
+  - speaker: 0
+    text: Why would you give this away for free?
+    playerEmote: 0
+    npcEmote: 0
+  - speaker: 1
+    text: Because when you do well, we do well. Simple. Let's try it together. Bring me three plants from your field.
+    playerEmote: 0
+    npcEmote: 0
+  reward:
+    itemDataSO: {fileID: 0}
+    amount: 0

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-// Today's checklist. Every objective counts from the start; the house unlocks when all but "go home" are done.
+// Today's checklist. Every objective counts from the moment it is shown; the house unlocks when all but "go home" are done.
 public class TaskManager : MonoBehaviour
 {
     public static TaskManager Instance { get; private set; }
@@ -9,6 +9,8 @@ public class TaskManager : MonoBehaviour
     public event EventHandler<OnObjectiveProgressEventArgs> OnObjectiveProgress;
     public class OnObjectiveProgressEventArgs : EventArgs { public int index; public bool isComplete; }
     public event EventHandler OnRequiredTasksCompleted;
+    // the whole list was swapped (a new story beat)
+    public event EventHandler OnObjectivesChanged;
 
     [SerializeField] private TaskObjectiveSO[] objectiveSOArray;
 
@@ -45,6 +47,22 @@ public class TaskManager : MonoBehaviour
     private void FarmPlot_OnAnyPlanted(object sender, EventArgs e) => AddProgress(TaskObjectiveSO.Type.PlantCrop, null, 1);
 
     public void CompleteEnterHouse() => AddProgress(TaskObjectiveSO.Type.EnterHouse, null, 1);
+    public void CompleteStory() => AddProgress(TaskObjectiveSO.Type.Story, null, 1);
+
+    // replaces the list; items already in the bag count toward "collect" objectives
+    public void SetObjectives(TaskObjectiveSO[] newObjectiveSOArray)
+    {
+        objectiveSOArray = newObjectiveSOArray;
+        progressArray = new int[objectiveSOArray.Length];
+        areRequiredComplete = false;
+        for (int i = 0; i < objectiveSOArray.Length; i++)
+        {
+            if (objectiveSOArray[i].type != TaskObjectiveSO.Type.CollectItem) continue;
+            progressArray[i] = Mathf.Min(Inventory.Instance.GetCount(objectiveSOArray[i].itemDataSO), objectiveSOArray[i].requiredCount);
+        }
+        OnObjectivesChanged?.Invoke(this, EventArgs.Empty);
+        CheckRequiredComplete();
+    }
 
     public TaskObjectiveSO[] GetObjectiveSOArray() => objectiveSOArray;
     public int GetProgress(int index) => progressArray[index];

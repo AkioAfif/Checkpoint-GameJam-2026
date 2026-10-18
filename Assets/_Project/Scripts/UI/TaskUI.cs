@@ -20,6 +20,32 @@ public class TaskUI : MonoBehaviour
     {
         TaskManager.Instance.OnObjectiveProgress += TaskManager_OnObjectiveProgress;
         TaskManager.Instance.OnRequiredTasksCompleted += TaskManager_OnRequiredTasksCompleted;
+        TaskManager.Instance.OnObjectivesChanged += TaskManager_OnObjectivesChanged;
+        BuildRows();
+    }
+
+    private void OnDestroy()
+    {
+        if (TaskManager.Instance == null) return;
+        TaskManager.Instance.OnObjectiveProgress -= TaskManager_OnObjectiveProgress;
+        TaskManager.Instance.OnRequiredTasksCompleted -= TaskManager_OnRequiredTasksCompleted;
+        TaskManager.Instance.OnObjectivesChanged -= TaskManager_OnObjectivesChanged;
+    }
+
+    private void TaskManager_OnObjectiveProgress(object sender, TaskManager.OnObjectiveProgressEventArgs e) => RefreshAll(e.index);
+
+    private void TaskManager_OnRequiredTasksCompleted(object sender, EventArgs e) => headerPop.Play();
+
+    private void TaskManager_OnObjectivesChanged(object sender, EventArgs e)
+    {
+        foreach (TaskSingleUI row in rowList) Destroy(row.gameObject);
+        rowList.Clear();
+        BuildRows();
+        headerPop.Play();
+    }
+
+    private void BuildRows()
+    {
         foreach (TaskObjectiveSO objectiveSO in TaskManager.Instance.GetObjectiveSOArray())
         {
             TaskSingleUI row = Instantiate(rowTemplate, container);
@@ -28,17 +54,6 @@ public class TaskUI : MonoBehaviour
         }
         RefreshAll(-1);
     }
-
-    private void OnDestroy()
-    {
-        if (TaskManager.Instance == null) return;
-        TaskManager.Instance.OnObjectiveProgress -= TaskManager_OnObjectiveProgress;
-        TaskManager.Instance.OnRequiredTasksCompleted -= TaskManager_OnRequiredTasksCompleted;
-    }
-
-    private void TaskManager_OnObjectiveProgress(object sender, TaskManager.OnObjectiveProgressEventArgs e) => RefreshAll(e.index);
-
-    private void TaskManager_OnRequiredTasksCompleted(object sender, EventArgs e) => headerPop.Play();
 
     private void RefreshAll(int changedIndex)
     {

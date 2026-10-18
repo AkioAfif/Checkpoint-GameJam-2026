@@ -14,6 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   lineArray:
   - speaker: 1
+    text: That bridge creaks a little, but it's sturdy. Built it myself!
+    playerEmote: 0
+    npcEmote: 2
+  - speaker: 1
     text: Mind the river edge. It's deeper than it looks.
     playerEmote: 0
     npcEmote: 3

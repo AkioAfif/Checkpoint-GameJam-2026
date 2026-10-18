@@ -46,7 +46,9 @@ public static class ExtraScenesBuilder
         TextMeshProUGUI body = UiBuilder.Text(card, "Body", "The house interior (next level) isn't built yet.\nThis is where it will load.", 30, UiBuilder.Ink, TextAlignmentOptions.Center);
         UiBuilder.Place(body.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -200f), new Vector2(760f, 100f));
         Button replay = UiBuilder.Button(card, "ReplayButton", "Replay the village", new Vector2(0f, 50f), new Vector2(440f, 80f));
-        SetField(Root("StubSceneUI").AddComponent<StubSceneUI>(), "replayButton", replay);
+        StubSceneUI stubUI = Root("StubSceneUI").AddComponent<StubSceneUI>();
+        SetField(stubUI, "replayButton", replay);
+        SetField(stubUI, "bodyText", body);
         EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene(), $"{FOLDER}/{Loader.Scene.HouseInterior_Stub}.unity");
     }
 

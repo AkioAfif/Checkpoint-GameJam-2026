@@ -24,6 +24,6 @@ public class HudUI : MonoBehaviour
     private void GameManager_OnStateChanged(object sender, GameManager.OnStateChangedEventArgs e)
     {
         GameManager.State state = GameManager.Instance.GetState();
-        canvasGroup.SetVisible(state != GameManager.State.Dialogue && state != GameManager.State.Fabricating && state != GameManager.State.EnteringHouse);
+        canvasGroup.SetVisible(state != GameManager.State.Dialogue && state != GameManager.State.Fabricating && state != GameManager.State.EnteringHouse && state != GameManager.State.Cutscene);
     }
 }

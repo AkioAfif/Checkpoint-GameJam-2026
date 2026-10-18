@@ -10,28 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e0ce3e543780b04dba488492949ce28, type: 3}
-  m_Name: Distributor_First
+  m_Name: Day1_FirstPress
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   lineArray:
   - speaker: 1
-    text: Well, well. The little farmer pressing seeds in MY Fabricator.
+    text: Look at that! First try. You have a gift for this, partner.
     playerEmote: 0
-    npcEmote: 1
+    npcEmote: 6
   - speaker: 0
-    text: Your Fabricator? It's stood by my house for years!
+    text: That was easy.
     playerEmote: 4
     npcEmote: 0
   - speaker: 1
-    text: Every seed that machine makes is distributed... by me.
-    playerEmote: 0
-    npcEmote: 3
-  - speaker: 1
-    text: Plant them if you like. At harvest we'll discuss my share.
+    text: The best things usually are. Plant two seeds, and tomorrow you'll see what I mean.
     playerEmote: 0
     npcEmote: 1
-  - speaker: 0
-    text: ...
-    playerEmote: 7
+  - speaker: 1
+    text: Now, try gathering some water, plants, and flowers from around the village. Let's try making 3 more for today.
+    playerEmote: 0
     npcEmote: 0
   reward:
     itemDataSO: {fileID: 0}

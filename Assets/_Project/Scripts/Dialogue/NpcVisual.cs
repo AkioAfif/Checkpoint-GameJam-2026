@@ -6,10 +6,12 @@ public class NpcVisual : MonoBehaviour
     [SerializeField] private Npc npc;
     [SerializeField] private NpcWander npcWander;
     [SerializeField] private Animator animator;
+    [SerializeField] private CutsceneActor cutsceneActor;
 
     private void Start()
     {
         DialogueManager.Instance.OnLineChanged += DialogueManager_OnLineChanged;
+        if (cutsceneActor != null) cutsceneActor.OnEmoteRequested += CutsceneActor_OnEmoteRequested;
     }
 
     private void Update()
@@ -26,4 +28,6 @@ public class NpcVisual : MonoBehaviour
     {
         if (e.npc == npc) ChibiAnimation.PlayEmote(animator, e.line.npcEmote);
     }
+
+    private void CutsceneActor_OnEmoteRequested(object sender, CutsceneActor.OnEmoteRequestedEventArgs e) => ChibiAnimation.PlayEmote(animator, e.emote);
 }

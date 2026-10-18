@@ -42,8 +42,20 @@ public class FabricatorUI : MonoBehaviour
     {
         bool isOpen = e.state == FabricatorController.State.Puzzle || e.state == FabricatorController.State.Solved;
         canvasGroup.SetVisible(isOpen);
+        if (e.state == FabricatorController.State.Puzzle) ShowUsedBars();
         solvedBanner.alpha = e.state == FabricatorController.State.Solved ? 1f : 0f;
         if (e.state == FabricatorController.State.Solved) solvedPop.Play(0f);
+    }
+
+    // the tutorial puzzle has a single liquid: hide the bars of the unused ones
+    private void ShowUsedBars()
+    {
+        for (int i = 0; i < barFillArray.Length; i++)
+        {
+            bool isUsed = miniGame.IsLiquidUsed(i);
+            barLabelArray[i].gameObject.SetActive(isUsed);
+            barFillArray[i].transform.parent.gameObject.SetActive(isUsed);
+        }
     }
 
     private void Hide() => canvasGroup.SetVisible(false);
