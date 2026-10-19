@@ -1,50 +1,44 @@
 using System;
 using UnityEngine;
 
-// Runs "Day 1: The Crisis" from waking up to the front door at night. It listens to the existing systems (letter, truck,
-// Fabricator, tasks, dialogue) and moves the story on; characters, camera and lighting react to OnStateChanged.
+// Runs "Day 1: The Crisis" in the village, from the truck's arrival to the front door at night (the bedroom morning is
+// BedroomDirector in HouseInterior). It listens to the existing systems (truck, Fabricator, tasks, dialogue) and moves
+// the story on; characters, camera and lighting react to OnStateChanged.
 public class Day1Director : MonoBehaviour
 {
     public event EventHandler<OnStateChangedEventArgs> OnStateChanged;
     public class OnStateChangedEventArgs : EventArgs { public State state; }
 
-    // Letter: locked bedroom. Arrival: truck cutscene + intro. Tutorial1: gather 3 plants, first press.
+    // Arrival: truck cutscene + intro. Tutorial1: gather 3 plants, first press.
     // Tutorial2: plant, gather, press 3 more. Departure: Distributor leaves. Sari: warning. Night: back to the front door.
-    public enum State { Letter, Arrival, Tutorial1, Tutorial2, Departure, Sari, Night, Done }
+    public enum State { Arrival, Tutorial1, Tutorial2, Departure, Sari, Night, Done }
 
     // the sub-steps of the three cutscene-like states
     private enum Step { None, WaitingForTruck, Flipping, Intro, Delivering, Waving, Hopping, Leaving }
 
-    // what the screen fade is hiding right now
-    private enum FadeReason { None, LeaveBedroom, NightFalls }
-
     [SerializeField] private Day1SO day1SO;
-    [SerializeField] private BedsideLetter bedsideLetter;
-    [SerializeField] private BedroomDoor bedroomDoor;
     [SerializeField] private ScreenFadeUI screenFade;
     [SerializeField] private DistributorTruck truck;
     [SerializeField] private FabricatorController fabricator;
     [SerializeField] private FabricatorDelivery fabricatorDelivery;
     [SerializeField] private Npc distributorNpc;
     [SerializeField] private CutsceneActor distributorActor;
-    [SerializeField] private CutsceneActor playerActor;
     [SerializeField] private Npc sariNpc;
     [SerializeField] private GameObject motherGameObject;
     [SerializeField] private HouseDoor houseDoor;
     [SerializeField] private Transform yardPoint;
     [SerializeField] private Transform distributorStandPoint;
     [SerializeField] private Transform nightPlayerPoint;
-    [SerializeField] private float wakeUpDuration = 2.4f;
     [SerializeField] private float flipDuration = .9f;
     [SerializeField] private float waveDuration = 1.8f;
     [SerializeField] private float hopDuration = .8f;
 
     private State state;
     private Step step;
-    private FadeReason fadeReason;
     private float stepTimer = -1f;
-    private float wakeUpTimer;
     private bool hasStarted;
+    // the only fade in the village hides nightfall
+    private bool isNightFadePlaying;
     private bool isPressedDialoguePending;
     private bool isDeparturePending;
     private bool isPressedDialogueActive;
@@ -52,8 +46,6 @@ public class Day1Director : MonoBehaviour
 
     private void Start()
     {
-        bedsideLetter.OnClosed += BedsideLetter_OnClosed;
-        bedroomDoor.OnPassed += BedroomDoor_OnPassed;
         screenFade.OnBlack += ScreenFade_OnBlack;
         screenFade.OnFinished += ScreenFade_OnFinished;
         truck.OnStateChanged += Truck_OnStateChanged;
@@ -73,24 +65,18 @@ public class Day1Director : MonoBehaviour
         fabricator.SetPlaced(false);
         fabricatorDelivery.AttachTo(truck.GetCargoAnchor());
         houseDoor.SetLocked(true);
-        bedroomDoor.SetLocked(true);
+        // the letter was read in the bedroom (HouseInterior): show it ticked off until the tutorial list replaces it
         TaskManager.Instance.SetObjectives(day1SO.letterObjectiveArray);
+        TaskManager.Instance.CompleteStory();
     }
 
     private void Update()
     {
-        // GameManager.Start puts the game in Playing, so the wake-up cutscene begins on the first Update
+        // GameManager.Start puts the game in Playing, so the arrival cutscene begins on the first Update
         if (!hasStarted)
         {
             hasStarted = true;
-            wakeUpTimer = wakeUpDuration;
-            GameManager.Instance.SetState(GameManager.State.Cutscene);
-            playerActor.PlayEmote(Emote.WakeUp);
-        }
-        if (wakeUpTimer > 0f)
-        {
-            wakeUpTimer -= Time.deltaTime;
-            if (wakeUpTimer <= 0f) GameManager.Instance.SetState(GameManager.State.Playing);
+            BeginArrival();
         }
 
         if (stepTimer >= 0f)
@@ -122,54 +108,41 @@ public class Day1Director : MonoBehaviour
         if (TaskManager.Instance != null) TaskManager.Instance.OnRequiredTasksCompleted -= TaskManager_OnRequiredTasksCompleted;
     }
 
-    // ---------- Letter ----------
-
-    private void BedsideLetter_OnClosed(object sender, EventArgs e)
-    {
-        DialogueManager.Instance.StartDialogue(null, day1SO.monologueDialogueSO);
-    }
-
-    private void BedroomDoor_OnPassed(object sender, EventArgs e)
-    {
-        fadeReason = FadeReason.LeaveBedroom;
-        GameManager.Instance.SetState(GameManager.State.Cutscene);
-        screenFade.Play(string.Empty, .3f);
-    }
-
-    // ---------- fades ----------
+    // ---------- night fade ----------
 
     private void ScreenFade_OnBlack(object sender, EventArgs e)
     {
-        switch (fadeReason)
-        {
-            case FadeReason.LeaveBedroom:
-                Player.Instance.Teleport(yardPoint.position);
-                Player.Instance.FaceTowards(yardPoint.position + Vector3.left); // the truck comes from the west
-                truck.gameObject.SetActive(true);
-                step = Step.WaitingForTruck;
-                SetState(State.Arrival);
-                break;
-            case FadeReason.NightFalls:
-                Player.Instance.Teleport(nightPlayerPoint.position);
-                Player.Instance.FaceTowards(houseDoor.transform.position);
-                sariNpc.gameObject.SetActive(false);
-                motherGameObject.SetActive(true);
-                houseDoor.SetLocked(false);
-                houseDoor.SetEntryDialogue(day1SO.nightDialogueSO);
-                TaskManager.Instance.SetObjectives(day1SO.nightObjectiveArray);
-                SetState(State.Night);
-                break;
-        }
+        if (!isNightFadePlaying) return;
+        Player.Instance.Teleport(nightPlayerPoint.position);
+        Player.Instance.FaceTowards(houseDoor.transform.position);
+        sariNpc.gameObject.SetActive(false);
+        motherGameObject.SetActive(true);
+        houseDoor.SetLocked(false);
+        houseDoor.SetEntryDialogue(day1SO.nightDialogueSO);
+        TaskManager.Instance.SetObjectives(day1SO.nightObjectiveArray);
+        SetState(State.Night);
     }
 
     private void ScreenFade_OnFinished(object sender, EventArgs e)
     {
-        if (fadeReason == FadeReason.LeaveBedroom) truck.Drive();
-        else if (fadeReason == FadeReason.NightFalls) GameManager.Instance.SetState(GameManager.State.Playing);
-        fadeReason = FadeReason.None;
+        if (!isNightFadePlaying) return;
+        isNightFadePlaying = false;
+        GameManager.Instance.SetState(GameManager.State.Playing);
     }
 
     // ---------- Arrival ----------
+
+    // the player has just stepped out of the house (HouseInterior) as the truck comes in from the west
+    private void BeginArrival()
+    {
+        GameManager.Instance.SetState(GameManager.State.Cutscene);
+        Player.Instance.Teleport(yardPoint.position);
+        Player.Instance.FaceTowards(yardPoint.position + Vector3.left);
+        truck.gameObject.SetActive(true);
+        step = Step.WaitingForTruck;
+        SetState(State.Arrival);
+        truck.Drive();
+    }
 
     private void Truck_OnStateChanged(object sender, DistributorTruck.OnStateChangedEventArgs e)
     {
@@ -224,13 +197,7 @@ public class Day1Director : MonoBehaviour
 
     private void DialogueManager_OnDialogueEnded(object sender, DialogueManager.OnDialogueEventArgs e)
     {
-        if (state == State.Letter && e.npc == null && bedsideLetter.IsRead())
-        {
-            // the monologue is over: the door opens
-            bedroomDoor.SetLocked(false);
-            TaskManager.Instance.CompleteStory();
-        }
-        else if (state == State.Arrival && step == Step.Intro && e.npc == distributorNpc)
+        if (state == State.Arrival && step == Step.Intro && e.npc == distributorNpc)
         {
             step = Step.Delivering;
             GameManager.Instance.SetState(GameManager.State.Cutscene);
@@ -247,7 +214,7 @@ public class Day1Director : MonoBehaviour
         else if (state == State.Sari && e.npc == sariNpc)
         {
             TaskManager.Instance.CompleteStory();
-            fadeReason = FadeReason.NightFalls;
+            isNightFadePlaying = true;
             GameManager.Instance.SetState(GameManager.State.Cutscene);
             screenFade.Play(day1SO.nightCaption, 1.6f);
         }

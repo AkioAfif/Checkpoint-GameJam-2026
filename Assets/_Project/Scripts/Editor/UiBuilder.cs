@@ -54,12 +54,13 @@ public static class UiBuilder
         BuildInventory(hud);
         BuildPrompt(canvas);
         BuildQte(canvas);
-        BuildFabricatorHud(canvas, refs);
+        // scenes without a Fabricator or a house door (HouseInterior) skip the panels that listen to them
+        if (refs.fabricator != null) BuildFabricatorHud(canvas, refs);
         BuildDialogue(canvas, refs);
         BuildDiscovery(canvas);
         BuildPause(canvas);
-        BuildFlash(canvas, refs);
-        BuildIris(canvas, refs);
+        if (refs.fabricator != null) BuildFlash(canvas, refs);
+        if (refs.houseDoor != null) BuildIris(canvas, refs);
     }
 
     // ---------- panels ----------

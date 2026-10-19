@@ -7,22 +7,18 @@ using static GrayboxBuild;
 // Adds "Day 1: The Crisis" to the open Level01 scene. Re-runnable: it deletes and rebuilds only what it created
 // (the Day1_Graybox / Day1 roots and its UI panels) and re-points the few existing objects it has to touch.
 // The village, bridge and farm plots are reused as they are. After Tools > Level01 > Rebuild Scene, run it again.
+// The bedroom morning lives in its own scene: Tools > Day1 > Build House Interior (HouseInteriorBuilder).
 public static class Day1GrayboxBuilder
 {
     private const string GRAYBOX_ROOT = "Day1_Graybox";
     private const string DIRECTOR_ROOT = "Day1";
 
-    // the bedroom floats far below the map (inside the camera confiner's shadow, away from everything)
-    private static readonly Vector3 BedroomOrigin = new Vector3(0f, -60f, 0f);
-    private static readonly Vector3 BedSpawn = new Vector3(-1.6f, .56f, -.2f);
     private static readonly Vector3 TruckStart = new Vector3(-13f, 0f, .6f);
     private static readonly Vector3 TruckStop = new Vector3(9f, 0f, .6f);
     private static readonly Vector3 TruckExit = new Vector3(42f, 0f, .6f);
     private static readonly Vector3 DistributorStand = Level01SceneBuilder.FabricatorPosition + new Vector3(1.6f, 0f, -.7f);
     private static readonly Vector3 SariPosition = new Vector3(-17.2f, .34f, 0f);
     private static readonly Vector3 MotherPosition = Level01SceneBuilder.PlayerHousePosition + new Vector3(0f, .14f, -3.1f);
-
-    private static int InteractableLayer => LayerMask.NameToLayer("Interactable");
 
     [MenuItem("Tools/Day1/Build Graybox")]
     public static void Build()
@@ -40,10 +36,6 @@ public static class Day1GrayboxBuilder
         Transform graybox = Root(GRAYBOX_ROOT).transform;
         Transform director = Root(DIRECTOR_ROOT).transform;
 
-        BedsideLetter letter;
-        BedroomDoor bedroomDoor;
-        BuildBedroom(graybox, out letter, out bedroomDoor);
-
         FabricatorController fabricator = ReplaceFabricator();
         FabricatorDelivery delivery = fabricator.GetComponent<FabricatorDelivery>();
         Transform placePoint = Point(graybox, "FabricatorPlacePoint", Level01SceneBuilder.FabricatorPosition, 180f);
@@ -57,8 +49,8 @@ public static class Day1GrayboxBuilder
 
         DistributorTruck truck = SpawnTruck(graybox, points);
         Player player = Object.FindAnyObjectByType<Player>(FindObjectsInactive.Include);
-        CutsceneActor playerActor = EnsureActor(player.gameObject, player.GetComponentInChildren<PlayerVisual>());
-        player.transform.SetPositionAndRotation(BedroomOrigin + BedSpawn, Quaternion.Euler(0f, 180f, 0f));
+        EnsureActor(player.gameObject, player.GetComponentInChildren<PlayerVisual>());
+        player.transform.SetPositionAndRotation(Level01SceneBuilder.PlayerSpawn, Quaternion.Euler(0f, -90f, 0f));
 
         Npc distributorNpc = FindNpc("Npc_Distributor");
         CutsceneActor distributorActor = EnsureActor(distributorNpc.gameObject, distributorNpc.GetComponentInChildren<NpcVisual>());
@@ -69,24 +61,19 @@ public static class Day1GrayboxBuilder
         HouseDoor houseDoor = Object.FindAnyObjectByType<HouseDoor>(FindObjectsInactive.Include);
         PatchDialogueUi();
         Transform hud = Object.FindAnyObjectByType<HudUI>(FindObjectsInactive.Include).transform.parent;
-        ScreenFadeUI fade = Day1UiBuilder.Build(hud, letter, Day1DataBuilder.Day1, Object.FindAnyObjectByType<FabricatorMiniGame>(FindObjectsInactive.Include));
+        ScreenFadeUI fade = Day1UiBuilder.BuildVillage(hud, Object.FindAnyObjectByType<FabricatorMiniGame>(FindObjectsInactive.Include));
 
-        CinemachineCamera bedroomCamera = FixedCamera(director, "CM_Bedroom", BedroomOrigin + new Vector3(.9f, 3.3f, -4.6f), BedroomOrigin + new Vector3(-.2f, .6f, .3f), 46f);
         CinemachineCamera truckCamera = FixedCamera(director, "CM_Truck", new Vector3(9f, 4.2f, -8.5f), new Vector3(10f, 1.1f, 3f), 38f);
-        bedroomCamera.enabled = false;
         truckCamera.enabled = false;
 
         Day1Director day1 = director.gameObject.AddComponent<Day1Director>();
         SetField(day1, "day1SO", Day1DataBuilder.Day1);
-        SetField(day1, "bedsideLetter", letter);
-        SetField(day1, "bedroomDoor", bedroomDoor);
         SetField(day1, "screenFade", fade);
         SetField(day1, "truck", truck);
         SetField(day1, "fabricator", fabricator);
         SetField(day1, "fabricatorDelivery", delivery);
         SetField(day1, "distributorNpc", distributorNpc);
         SetField(day1, "distributorActor", distributorActor);
-        SetField(day1, "playerActor", playerActor);
         SetField(day1, "sariNpc", sari);
         SetField(day1, "motherGameObject", mother);
         SetField(day1, "houseDoor", houseDoor);
@@ -96,7 +83,6 @@ public static class Day1GrayboxBuilder
 
         Day1CameraVisual cameraVisual = director.gameObject.AddComponent<Day1CameraVisual>();
         SetField(cameraVisual, "director", day1);
-        SetField(cameraVisual, "bedroomCamera", bedroomCamera);
         SetField(cameraVisual, "truckCamera", truckCamera);
 
         NightVisual night = director.gameObject.AddComponent<NightVisual>();
@@ -108,7 +94,7 @@ public static class Day1GrayboxBuilder
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
         AssetDatabase.SaveAssets();
-        Debug.Log("Day 1 graybox built. Press Play: you wake up in the bedroom.");
+        Debug.Log("Day 1 graybox built. Press Play: the truck arrives (the bedroom is the HouseInterior scene).");
     }
 
     // ---------- clean-up ----------
@@ -166,7 +152,7 @@ public static class Day1GrayboxBuilder
     }
 
     // characters get a CutsceneActor so the director can hop them around and ask for emotes
-    private static CutsceneActor EnsureActor(GameObject character, Component visualComponent)
+    public static CutsceneActor EnsureActor(GameObject character, Component visualComponent)
     {
         CutsceneActor actor = character.GetComponent<CutsceneActor>();
         if (actor == null) actor = character.AddComponent<CutsceneActor>();
@@ -180,84 +166,6 @@ public static class Day1GrayboxBuilder
             if (npc.name == objectName) return npc;
         Debug.LogError($"{objectName} is not in the scene: run Tools > Level01 > Rebuild Scene first");
         return null;
-    }
-
-    // ---------- bedroom ----------
-
-    private static void BuildBedroom(Transform parent, out BedsideLetter letter, out BedroomDoor bedroomDoor)
-    {
-        Transform room = Root("Bedroom", parent).transform;
-        room.position = BedroomOrigin;
-        Material wall = GrayboxPalette.Wall, floor = GrayboxPalette.Wood, wood = GrayboxPalette.WoodDark;
-
-        Part(room, "Floor", GrayboxMeshFactory.RoundedBox(new Vector3(5.6f, .3f, 4.6f), .06f), floor, new Vector3(0f, -.3f, 0f));
-        Box(room.gameObject, new Vector3(0f, -.15f, 0f), new Vector3(5.6f, .3f, 4.6f));
-        // walls: north, west, east are visible; the south side stays open for the camera (an invisible wall keeps the player in)
-        Wall(room, "WallNorth", wall, new Vector3(0f, 1.4f, 2.2f), new Vector3(5.2f, 2.8f, .2f));
-        Wall(room, "WallWest", wall, new Vector3(-2.6f, 1.4f, 0f), new Vector3(.2f, 2.8f, 4.6f));
-        Wall(room, "WallEast", wall, new Vector3(2.6f, 1.4f, 0f), new Vector3(.2f, 2.8f, 4.6f));
-        Box(room.gameObject, new Vector3(0f, 1.4f, -2.3f), new Vector3(5.2f, 2.8f, .2f));
-        Part(room, "Window", GrayboxMeshFactory.RoundedBox(new Vector3(.12f, 1f, 1.2f), .04f), GrayboxPalette.Window, new Vector3(2.5f, 1.2f, .4f));
-
-        // bed along the west wall, head to the north
-        Part(room, "BedFrame", GrayboxMeshFactory.RoundedBox(new Vector3(1.3f, .3f, 2.2f), .06f), wood, new Vector3(-1.6f, 0f, -.3f));
-        Part(room, "Mattress", GrayboxMeshFactory.RoundedBox(new Vector3(1.2f, .22f, 2f), .1f), GrayboxPalette.Lit("BedSheet", new Color(.70f, .82f, .92f)), new Vector3(-1.6f, .3f, -.3f));
-        Part(room, "Pillow", GrayboxMeshFactory.RoundedBox(new Vector3(.8f, .14f, .45f), .06f), GrayboxPalette.Wall, new Vector3(-1.6f, .52f, .62f));
-        Part(room, "Headboard", GrayboxMeshFactory.RoundedBox(new Vector3(1.3f, .9f, .12f), .05f), wood, new Vector3(-1.6f, 0f, .85f));
-        Box(room.gameObject, new Vector3(-1.6f, .26f, -.3f), new Vector3(1.3f, .52f, 2.2f));
-
-        // bedside table with the letter
-        GameObject table = Part(room, "BedsideTable", GrayboxMeshFactory.RoundedBox(new Vector3(.6f, .6f, .6f), .06f), wood, new Vector3(-1.6f, 0f, 1.6f));
-        Box(table, new Vector3(0f, .3f, 0f), new Vector3(.6f, .6f, .6f));
-        letter = BuildLetter(room, new Vector3(-1.6f, .6f, 1.6f));
-
-        // locked front door in the north wall
-        bedroomDoor = BuildDoor(room, new Vector3(1.2f, 0f, 2.1f), wood);
-
-        GameObject lightGo = Root("BedroomLight", room);
-        lightGo.transform.localPosition = new Vector3(0f, 2.3f, -.3f);
-        Light light = lightGo.AddComponent<Light>();
-        light.type = LightType.Point;
-        light.range = 8f;
-        light.intensity = 3.2f;
-        light.color = new Color(1f, .92f, .78f);
-    }
-
-    private static void Wall(Transform room, string name, Material material, Vector3 centre, Vector3 size)
-    {
-        GameObject wall = Part(room, name, GrayboxMeshFactory.RoundedBox(size, .05f), material, centre - new Vector3(0f, size.y * .5f, 0f));
-        Box(wall, new Vector3(0f, size.y * .5f, 0f), size);
-    }
-
-    private static BedsideLetter BuildLetter(Transform room, Vector3 localPosition)
-    {
-        GameObject go = Root("BedsideLetter", room);
-        go.transform.localPosition = localPosition;
-        go.layer = InteractableLayer;
-        BedsideLetter letter = go.AddComponent<BedsideLetter>();
-        Box(go, new Vector3(0f, .3f, 0f), new Vector3(1f, 1.2f, 1.1f), true);
-        Transform visual = Root("Visual", go.transform).transform;
-        Part(visual, "Paper", GrayboxMeshFactory.RoundedBox(new Vector3(.34f, .02f, .24f), .008f), GrayboxPalette.Lit("LetterPaper", new Color(.98f, .95f, .86f)), new Vector3(0f, .01f, 0f), new Vector3(0f, 18f, 0f));
-        Part(visual, "Seal", GrayboxMeshFactory.Blob(.04f, .03f, 8, 4), GrayboxPalette.Lit("LetterSeal", new Color(.78f, .22f, .20f)), new Vector3(.02f, .03f, 0f));
-        AddOutline(go, visual, GrayboxPalette.Outline, .02f);
-        SetField(letter, "promptAnchor", Anchor(go, "PromptAnchor", new Vector3(0f, 1.1f, 0f)));
-        return letter;
-    }
-
-    private static BedroomDoor BuildDoor(Transform room, Vector3 localPosition, Material wood)
-    {
-        GameObject go = Root("BedroomDoor", room);
-        go.transform.localPosition = localPosition;
-        go.layer = InteractableLayer;
-        BedroomDoor door = go.AddComponent<BedroomDoor>();
-        Box(go, new Vector3(0f, 1f, -.5f), new Vector3(1.6f, 2f, 1.6f), true);
-        Transform visual = Root("Visual", go.transform).transform;
-        Part(visual, "Frame", GrayboxMeshFactory.RoundedBox(new Vector3(1.4f, 2.15f, .16f), .06f), GrayboxPalette.WoodDark, Vector3.zero);
-        Part(visual, "Door", GrayboxMeshFactory.RoundedBox(new Vector3(1.1f, 1.95f, .16f), .06f), GrayboxPalette.Wood, new Vector3(0f, 0f, -.08f));
-        Part(visual, "Knob", GrayboxMeshFactory.Blob(.07f, .14f, 10, 5), GrayboxPalette.Accent, new Vector3(.38f, .95f, -.2f));
-        AddOutline(go, visual, GrayboxPalette.Outline, .05f);
-        SetField(door, "promptAnchor", Anchor(go, "PromptAnchor", new Vector3(0f, 2.1f, -.4f)));
-        return door;
     }
 
     // ---------- truck, Sari, Mother ----------
@@ -299,20 +207,6 @@ public static class Day1GrayboxBuilder
         GameObject go = Root(name, parent);
         go.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, yaw, 0f));
         return go.transform;
-    }
-
-    private static Transform Anchor(GameObject parent, string name, Vector3 localPosition)
-    {
-        GameObject anchor = Root(name, parent.transform);
-        anchor.transform.localPosition = localPosition;
-        return anchor.transform;
-    }
-
-    private static void AddOutline(GameObject root, Transform visual, Material material, float thickness)
-    {
-        InteractableOutlineVisual outline = root.AddComponent<InteractableOutlineVisual>();
-        SetField(outline, "interactableGameObject", root);
-        SetArray(outline, "outlineGameObjectArray", AddOutlineHulls(visual, material, thickness));
     }
 
     private static CinemachineCamera FixedCamera(Transform parent, string name, Vector3 position, Vector3 lookAt, float fov)

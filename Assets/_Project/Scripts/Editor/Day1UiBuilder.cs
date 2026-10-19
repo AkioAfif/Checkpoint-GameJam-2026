@@ -4,17 +4,23 @@ using UnityEngine.UI;
 using static GrayboxBuild;
 using static UiBuilder;
 
-// Day 1's extra HUD panels, added to the existing HUD canvas: the debt letter, the screen fade and the Fabricator's ghost-cursor hint.
+// Day 1's extra HUD panels, added to the existing HUD canvas: the debt letter (HouseInterior), the Fabricator's
+// ghost-cursor hint (Level01) and the screen fade (both).
 public static class Day1UiBuilder
 {
     private static readonly Color Paper = new Color(.98f, .95f, .86f);
     private static readonly Color Debt = new Color(.78f, .22f, .20f);
 
-    public static ScreenFadeUI Build(Transform canvas, BedsideLetter letter, Day1SO day1SO, FabricatorMiniGame miniGame)
+    public static ScreenFadeUI BuildVillage(Transform canvas, FabricatorMiniGame miniGame)
     {
-        BuildLetter(canvas, letter, day1SO);
         BuildHint(canvas, miniGame);
         return BuildFade(canvas); // last, so it draws over everything
+    }
+
+    public static ScreenFadeUI BuildBedroom(Transform canvas, BedsideLetter letter, Day1SO day1SO)
+    {
+        BuildLetter(canvas, letter, day1SO);
+        return BuildFade(canvas);
     }
 
     private static void BuildLetter(Transform canvas, BedsideLetter letter, Day1SO day1SO)

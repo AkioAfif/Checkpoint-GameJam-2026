@@ -12,7 +12,7 @@ public class StubSceneUI : MonoBehaviour
     private void Awake()
     {
         Time.timeScale = 1f;
-        replayButton.onClick.AddListener(() => Loader.Load(Loader.Scene.Level01_VillagePrototype));
+        replayButton.onClick.AddListener(() => Loader.Load(Loader.Scene.HouseInterior));
     }
 
     private void Start()

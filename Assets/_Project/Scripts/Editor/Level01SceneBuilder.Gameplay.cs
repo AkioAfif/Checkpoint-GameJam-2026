@@ -218,7 +218,7 @@ public static partial class Level01SceneBuilder
     }
 
     // hidden photo studio: copies of the player and the current NPC filmed into the dialogue portraits
-    private static void BuildPortraitBooth()
+    public static void BuildPortraitBooth()
     {
         int layer = LayerMask.NameToLayer("Portrait");
         GameObject booth = Root("PortraitBooth");
@@ -267,7 +267,7 @@ public static partial class Level01SceneBuilder
         return camera;
     }
 
-    private static RenderTexture PortraitTexture(string name)
+    public static RenderTexture PortraitTexture(string name)
     {
         string path = $"Assets/_Project/Art/RenderTextures/{name}.renderTexture";
         RenderTexture existing = AssetDatabase.LoadAssetAtPath<RenderTexture>(path);

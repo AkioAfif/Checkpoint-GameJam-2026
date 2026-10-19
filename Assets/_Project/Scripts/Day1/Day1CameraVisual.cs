@@ -1,11 +1,10 @@
 using Unity.Cinemachine;
 using UnityEngine;
 
-// The bedroom camera frames the wake-up; the truck camera films the arrival and the departure. Cinemachine blends to the newest enabled one.
+// The truck camera films the arrival and the departure. Cinemachine blends to the newest enabled one.
 public class Day1CameraVisual : MonoBehaviour
 {
     [SerializeField] private Day1Director director;
-    [SerializeField] private CinemachineCamera bedroomCamera;
     [SerializeField] private CinemachineCamera truckCamera;
 
     private void Start()
@@ -18,7 +17,6 @@ public class Day1CameraVisual : MonoBehaviour
 
     private void Apply(Day1Director.State state)
     {
-        bedroomCamera.enabled = state == Day1Director.State.Letter;
         truckCamera.enabled = state == Day1Director.State.Arrival || state == Day1Director.State.Departure;
     }
 }

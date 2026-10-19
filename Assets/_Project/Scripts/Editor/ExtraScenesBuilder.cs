@@ -15,8 +15,10 @@ public static class ExtraScenesBuilder
     {
         BuildLoadingScene();
         BuildStubScene();
+        // the game starts in the bedroom
         EditorBuildSettings.scenes = new[]
         {
+            new EditorBuildSettingsScene(HouseInteriorBuilder.SCENE_PATH, true),
             new EditorBuildSettingsScene(Level01SceneBuilder.SCENE_PATH, true),
             new EditorBuildSettingsScene($"{FOLDER}/{Loader.Scene.LoadingScene}.unity", true),
             new EditorBuildSettingsScene($"{FOLDER}/{Loader.Scene.HouseInterior_Stub}.unity", true),
