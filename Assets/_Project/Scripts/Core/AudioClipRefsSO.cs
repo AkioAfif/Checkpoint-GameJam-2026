@@ -13,4 +13,6 @@ public class AudioClipRefsSO : ScriptableObject
     public AudioClip[] plantFailArray;
     public AudioClip[] seedFabricatedArray;
     public AudioClip[] houseEnterArray;
+    public AudioClip[] truckSkidArray;
+    public AudioClip[] truckBurnoutArray;
 }

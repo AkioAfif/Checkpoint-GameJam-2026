@@ -1,12 +1,15 @@
 using UnityEngine;
 
 // Cartoon truck: wheels spin with the speed, the body squashes and slides on the skid, and shakes during the burnout.
+// However it tilts, the body is lifted so no tyre sinks below the road.
 public class DistributorTruckVisual : MonoBehaviour
 {
     [SerializeField] private DistributorTruck truck;
     [SerializeField] private Transform body;
     [SerializeField] private Transform[] wheelArray;
-    [SerializeField] private float wheelRadius = .42f;
+    [SerializeField] private float wheelRadius = .46f;
+    [Tooltip("The road strips sit a few cm above the grass.")]
+    [SerializeField] private float groundClearance = .04f;
     [SerializeField] private float skidYaw = 14f;
     [SerializeField] private float skidPitch = 7f;
     [SerializeField] private float shakeAmount = .06f;
@@ -57,5 +60,11 @@ public class DistributorTruckVisual : MonoBehaviour
         }
         body.SetLocalPositionAndRotation(localPosition, rotation);
         body.localScale = scale;
+
+        // the tilt swings one axle down: raise the body until the lowest tyre touches the road again
+        float lowestTyre = float.MaxValue;
+        foreach (Transform wheel in wheelArray) lowestTyre = Mathf.Min(lowestTyre, wheel.position.y - wheelRadius * wheel.lossyScale.y);
+        float road = truck.transform.position.y + groundClearance;
+        if (lowestTyre < road) body.position += Vector3.up * (road - lowestTyre);
     }
 }

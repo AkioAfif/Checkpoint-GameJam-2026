@@ -20,6 +20,7 @@ public class HouseDoor : MonoBehaviour, IInteractable
     private float timer;
     private bool isLocked;
     private bool isWaitingForDialogue;
+    private bool isHidden;
     private DialogueSO entryDialogueSO;
 
     private void Start()
@@ -53,7 +54,7 @@ public class HouseDoor : MonoBehaviour, IInteractable
         Enter();
     }
 
-    public bool IsSelectable() => state == State.Closed && !isWaitingForDialogue;
+    public bool IsSelectable() => state == State.Closed && !isWaitingForDialogue && !isHidden;
     public bool CanInteract(Player player) => !isLocked && TaskManager.Instance.AreRequiredTasksComplete();
 
     public void Interact(Player player)
@@ -77,6 +78,8 @@ public class HouseDoor : MonoBehaviour, IInteractable
 
     // the story can keep the door shut regardless of the checklist
     public void SetLocked(bool isLocked) => this.isLocked = isLocked;
+    // not targetable at all (no prompt), e.g. while the player has only just stepped out of it
+    public void SetHidden(bool isHidden) => this.isHidden = isHidden;
     public void SetEntryDialogue(DialogueSO dialogueSO) => entryDialogueSO = dialogueSO;
 
     private void Enter()

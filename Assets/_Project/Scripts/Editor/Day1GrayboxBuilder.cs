@@ -13,9 +13,13 @@ public static class Day1GrayboxBuilder
     private const string GRAYBOX_ROOT = "Day1_Graybox";
     private const string DIRECTOR_ROOT = "Day1";
 
-    private static readonly Vector3 TruckStart = new Vector3(-13f, 0f, .6f);
-    private static readonly Vector3 TruckStop = new Vector3(9f, 0f, .6f);
-    private static readonly Vector3 TruckExit = new Vector3(42f, 0f, .6f);
+    // comes from across the river, down the middle of the road (z 0) so it fits between the bridge rails; parks west of
+    // the yard (spun round to face west) so it stays out of the meeting shot, and leaves west the way it came
+    private static readonly Vector3 TruckStart = new Vector3(-34f, 0f, 0f);
+    private static readonly Vector3 TruckStop = new Vector3(6f, 0f, 0f);
+    // far enough west that the held departure shot has lost it before it is switched off
+    private static readonly Vector3 TruckExit = new Vector3(-45f, 0f, 0f);
+    private static readonly Vector3 YardPosition = Level01SceneBuilder.PlayerHousePosition + new Vector3(0f, 0f, -4.4f);
     private static readonly Vector3 DistributorStand = Level01SceneBuilder.FabricatorPosition + new Vector3(1.6f, 0f, -.7f);
     private static readonly Vector3 SariPosition = new Vector3(-17.2f, .34f, 0f);
     private static readonly Vector3 MotherPosition = Level01SceneBuilder.PlayerHousePosition + new Vector3(0f, .14f, -3.1f);
@@ -43,14 +47,14 @@ public static class Day1GrayboxBuilder
         PlaceFabricatorCamera();
 
         Transform points = Root("Points", graybox).transform;
-        Transform yardPoint = Point(points, "YardPoint", Level01SceneBuilder.PlayerSpawn, 0f);
-        Transform distributorStand = Point(points, "DistributorStandPoint", DistributorStand, 180f);
+        // in front of the door step, facing the camera (south)
+        Transform yardPoint = Point(points, "YardPoint", YardPosition, 180f);
         Transform nightPlayerPoint = Point(points, "NightPlayerPoint", Level01SceneBuilder.PlayerHousePosition + new Vector3(0f, 0f, -6.2f), 0f);
 
         DistributorTruck truck = SpawnTruck(graybox, points);
         Player player = Object.FindAnyObjectByType<Player>(FindObjectsInactive.Include);
         EnsureActor(player.gameObject, player.GetComponentInChildren<PlayerVisual>());
-        player.transform.SetPositionAndRotation(Level01SceneBuilder.PlayerSpawn, Quaternion.Euler(0f, -90f, 0f));
+        player.transform.SetPositionAndRotation(YardPosition, Quaternion.Euler(0f, 180f, 0f));
 
         Npc distributorNpc = FindNpc("Npc_Distributor");
         CutsceneActor distributorActor = EnsureActor(distributorNpc.gameObject, distributorNpc.GetComponentInChildren<NpcVisual>());
@@ -63,8 +67,24 @@ public static class Day1GrayboxBuilder
         Transform hud = Object.FindAnyObjectByType<HudUI>(FindObjectsInactive.Include).transform.parent;
         ScreenFadeUI fade = Day1UiBuilder.BuildVillage(hud, Object.FindAnyObjectByType<FabricatorMiniGame>(FindObjectsInactive.Include));
 
-        CinemachineCamera truckCamera = FixedCamera(director, "CM_Truck", new Vector3(9f, 4.2f, -8.5f), new Vector3(10f, 1.1f, 3f), 38f);
+        // CM_Truck follows a stand-in that Day1CameraVisual stops short of the river, so the bridge never shows
+        Transform truckCameraTarget = Root("TruckCameraTarget", director).transform;
+        truckCameraTarget.position = TruckStop;
+        // a little ahead of the truck (east) so the arrival shows its front corner, not a flat side view
+        CinemachineCamera truckCamera = ChaseCamera(director, "CM_Truck", truckCameraTarget, new Vector3(4f, 4.5f, -8.5f), 38f);
         truckCamera.enabled = false;
+        // frames the player and the Distributor wherever the player stopped; Day1CameraVisual keeps it side-on to the pair
+        CinemachineTargetGroup meetingGroup = Root("MeetingGroup", director).AddComponent<CinemachineTargetGroup>();
+        meetingGroup.AddMember(player.transform, 1f, .8f);
+        meetingGroup.AddMember(distributorNpc.transform, 1f, .8f);
+        CinemachineCamera meetingCamera = ChaseCamera(director, "CM_Meeting", meetingGroup.transform, new Vector3(0f, 2.8f, -6.5f), 40f);
+        // aim a little above the feet: both characters sit above the dialogue box
+        meetingCamera.GetComponent<CinemachineRotationComposer>().TargetOffset = new Vector3(0f, .4f, 0f);
+        meetingCamera.enabled = false;
+        // keeps the Distributor in shot while he fetches and carries the Fabricator, wherever the player stopped
+        CinemachineCamera deliveryCamera = ChaseCamera(director, "CM_Delivery", distributorNpc.transform, new Vector3(4f, 4f, -6f), 40f);
+        deliveryCamera.GetComponent<CinemachineRotationComposer>().TargetOffset = new Vector3(0f, .8f, 0f);
+        deliveryCamera.enabled = false;
 
         Day1Director day1 = director.gameObject.AddComponent<Day1Director>();
         SetField(day1, "day1SO", Day1DataBuilder.Day1);
@@ -74,16 +94,38 @@ public static class Day1GrayboxBuilder
         SetField(day1, "fabricatorDelivery", delivery);
         SetField(day1, "distributorNpc", distributorNpc);
         SetField(day1, "distributorActor", distributorActor);
+        SetField(day1, "playerActor", player.GetComponent<CutsceneActor>());
         SetField(day1, "sariNpc", sari);
         SetField(day1, "motherGameObject", mother);
         SetField(day1, "houseDoor", houseDoor);
         SetField(day1, "yardPoint", yardPoint);
-        SetField(day1, "distributorStandPoint", distributorStand);
+        SetField(day1, "distributorCarryPoint", CarryPoint(distributorNpc.transform));
         SetField(day1, "nightPlayerPoint", nightPlayerPoint);
 
         Day1CameraVisual cameraVisual = director.gameObject.AddComponent<Day1CameraVisual>();
         SetField(cameraVisual, "director", day1);
         SetField(cameraVisual, "truckCamera", truckCamera);
+        SetField(cameraVisual, "meetingCamera", meetingCamera);
+        SetField(cameraVisual, "deliveryCamera", deliveryCamera);
+        SetField(cameraVisual, "meetingFollow", meetingCamera.GetComponent<CinemachineFollow>());
+        SetField(cameraVisual, "distributor", distributorNpc.transform);
+        SetField(cameraVisual, "truck", truck);
+        SetField(cameraVisual, "truckCameraTarget", truckCameraTarget);
+        SetField(Object.FindAnyObjectByType<SoundManager>(FindObjectsInactive.Include), "truck", truck);
+
+        WorldGlitchVisual glitch = director.gameObject.AddComponent<WorldGlitchVisual>();
+        SetField(glitch, "director", day1);
+        Material voidMaterial = GrayboxPalette.Unlit("GlitchVoid", new Color(.02f, .02f, .03f));
+        SetField(glitch, "apparition", Apparition(director, voidMaterial, distributorNpc.GetComponentInChildren<Animator>(true).transform.lossyScale));
+        SetArray(glitch, "corruptMaterialArray", new Object[]
+        {
+            voidMaterial,
+            GrayboxPalette.Unlit("GlitchBlood", new Color(.42f, 0f, .03f)),
+            GrayboxPalette.Unlit("GlitchBone", new Color(.93f, .91f, .86f)),
+        });
+        SerializedObject glitchSo = new SerializedObject(glitch);
+        glitchSo.FindProperty("ignoredLayers").intValue = LayerMask.GetMask("Portrait", "Puzzle");
+        glitchSo.ApplyModifiedPropertiesWithoutUndo();
 
         NightVisual night = director.gameObject.AddComponent<NightVisual>();
         SetField(night, "director", day1);
@@ -160,6 +202,32 @@ public static class Day1GrayboxBuilder
         return actor;
     }
 
+    // the Distributor's rig, solid void-black, hidden until the glitch flickers him in
+    private static GameObject Apparition(Transform parent, Material voidMaterial, Vector3 scale)
+    {
+        GameObject apparition = (GameObject)PrefabUtility.InstantiatePrefab(CharacterBuilder.DistributorRigPrefab(), parent);
+        apparition.name = "GlitchApparition";
+        apparition.transform.localScale = scale;
+        foreach (Renderer renderer in apparition.GetComponentsInChildren<Renderer>(true))
+        {
+            Material[] materials = new Material[renderer.sharedMaterials.Length];
+            for (int i = 0; i < materials.Length; i++) materials[i] = voidMaterial;
+            renderer.sharedMaterials = materials;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
+        apparition.SetActive(false);
+        return apparition;
+    }
+
+    // in front of his belly, where the Fabricator rides while he carries it (reused on rebuilds)
+    private static Transform CarryPoint(Transform distributor)
+    {
+        Transform point = distributor.Find("CarryPoint");
+        if (point == null) point = Root("CarryPoint", distributor).transform;
+        point.SetLocalPositionAndRotation(new Vector3(0f, .45f, 1.35f), Quaternion.identity);
+        return point;
+    }
+
     private static Npc FindNpc(string objectName)
     {
         foreach (Npc npc in Object.FindObjectsByType<Npc>(FindObjectsInactive.Include))
@@ -178,6 +246,7 @@ public static class Day1GrayboxBuilder
         SetField(truck, "startPoint", Point(points, "TruckStartPoint", TruckStart, 90f));
         SetField(truck, "stopPoint", Point(points, "TruckStopPoint", TruckStop, 90f));
         SetField(truck, "exitPoint", Point(points, "TruckExitPoint", TruckExit, 90f));
+        SetField(truck, "bridge", GameObject.Find("Bridge").transform);
         return truck;
     }
 
@@ -207,6 +276,20 @@ public static class Day1GrayboxBuilder
         GameObject go = Root(name, parent);
         go.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, yaw, 0f));
         return go.transform;
+    }
+
+    // rides alongside the target at a fixed world offset and keeps it centred
+    private static CinemachineCamera ChaseCamera(Transform parent, string name, Transform target, Vector3 offset, float fov)
+    {
+        CinemachineCamera cam = FixedCamera(parent, name, target.position + offset, target.position, fov);
+        cam.Follow = target;
+        cam.LookAt = target;
+        CinemachineFollow follow = cam.gameObject.AddComponent<CinemachineFollow>();
+        follow.FollowOffset = offset;
+        follow.TrackerSettings.BindingMode = Unity.Cinemachine.TargetTracking.BindingMode.WorldSpace;
+        follow.TrackerSettings.PositionDamping = new Vector3(.6f, .6f, .6f);
+        cam.gameObject.AddComponent<CinemachineRotationComposer>().Damping = new Vector2(.3f, .3f);
+        return cam;
     }
 
     private static CinemachineCamera FixedCamera(Transform parent, string name, Vector3 position, Vector3 lookAt, float fov)

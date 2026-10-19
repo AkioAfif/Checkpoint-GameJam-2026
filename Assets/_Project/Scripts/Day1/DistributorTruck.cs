@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-// The Distributor's pickup: races in from the west, skids to a stop in front of the house, and later burns rubber out of the village.
+// The Distributor's pickup: races in from the west over the river bridge, handbrake-spins to a stop by the house facing back west, and later burns rubber out the way it came.
 // It only moves; DistributorTruckVisual does the squash, wheel spin and shaking.
 public class DistributorTruck : MonoBehaviour
 {
@@ -15,18 +15,31 @@ public class DistributorTruck : MonoBehaviour
     [SerializeField] private Transform exitPoint;
     [SerializeField] private Transform cargoAnchor;
     [SerializeField] private Transform doorPoint;
-    [Tooltip("Slow start, then flat out.")]
-    [SerializeField] private AnimationCurve driveCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
-    [SerializeField] private float driveDuration = 3.2f;
-    [SerializeField] private float skidDuration = .9f;
-    [SerializeField] private float skidDistance = 5f;
+    [SerializeField] private Transform tailgatePoint;
+    [Tooltip("The river bridge the road crosses; the truck rides up and over its arched deck.")]
+    [SerializeField] private Transform bridge;
+    // must match EnvironmentPrefabBuilder.Bridge(): 8 m long along x, plank tops at .14 + .45 * sin(pi * t)
+    [SerializeField] private float bridgeLength = 8f;
+    [SerializeField] private float bridgeBaseHeight = .14f;
+    [SerializeField] private float bridgeRise = .45f;
+    [Tooltip("Slow start, then still flat out when it hits the brakes (end slope > 1).")]
+    [SerializeField] private AnimationCurve driveCurve = new AnimationCurve(new Keyframe(0f, 0f, 0f, 0f), new Keyframe(1f, 1f, 1.6f, 1.6f));
+    [SerializeField] private float driveDuration = 3f;
+    // skid entry speed (2 * skidDistance / skidDuration) matches the drive's end speed, so the brake doesn't jolt
+    [SerializeField] private float skidDuration = 1.2f;
+    [SerializeField] private float skidDistance = 10f;
+    [Tooltip("Share of the skid spent spinning; the rest it slides on backwards, already turned round.")]
+    [SerializeField] private float skidSpinPortion = .65f;
+    [Tooltip("Yaw turned during the skid; -180 swings the nose toward the house and parks it facing the way it came.")]
+    [SerializeField] private float skidSpinAngle = -180f;
     [SerializeField] private float burnoutDuration = 1.1f;
-    [SerializeField] private float leaveDuration = 2.2f;
+    [SerializeField] private float leaveDuration = 2.8f;
 
     private State state = State.Hidden;
     private float timer;
     private float speedNormalized;
     private Vector3 lastPosition;
+    private Quaternion parkedRotation;
 
     private void Update()
     {
@@ -35,21 +48,28 @@ public class DistributorTruck : MonoBehaviour
         switch (state)
         {
             case State.Driving:
-                transform.position = Vector3.Lerp(startPoint.position, brakePoint, driveCurve.Evaluate(Mathf.Clamp01(timer / driveDuration)));
+                transform.position = OnRoad(Vector3.Lerp(startPoint.position, brakePoint, driveCurve.Evaluate(Mathf.Clamp01(timer / driveDuration))));
                 if (timer >= driveDuration) SetState(State.Skidding);
                 break;
             case State.Skidding:
-                // hard braking: fast at first, then dead stop
+                // handbrake: the momentum carries it on east while it whips round, then it slides on backwards to a stop
                 float skid = Mathf.Clamp01(timer / skidDuration);
-                transform.position = Vector3.Lerp(brakePoint, stopPoint.position, 1f - (1f - skid) * (1f - skid));
-                if (timer >= skidDuration) SetState(State.Parked);
+                float slide = 1f - (1f - skid) * (1f - skid);
+                float spin = Mathf.Clamp01(skid / skidSpinPortion);
+                spin = 1f - (1f - spin) * (1f - spin);
+                transform.SetPositionAndRotation(Vector3.Lerp(brakePoint, stopPoint.position, slide), Quaternion.AngleAxis(skidSpinAngle * spin, Vector3.up) * startPoint.rotation);
+                if (timer >= skidDuration)
+                {
+                    parkedRotation = transform.rotation;
+                    SetState(State.Parked);
+                }
                 break;
             case State.Burnout:
                 if (timer >= burnoutDuration) SetState(State.Leaving);
                 break;
             case State.Leaving:
                 float leave = Mathf.Clamp01(timer / leaveDuration);
-                transform.position = Vector3.Lerp(stopPoint.position, exitPoint.position, leave * leave);
+                transform.SetPositionAndRotation(OnRoad(Vector3.Lerp(stopPoint.position, exitPoint.position, leave * leave)), parkedRotation);
                 if (timer >= leaveDuration) SetState(State.Hidden);
                 break;
         }
@@ -76,6 +96,15 @@ public class DistributorTruck : MonoBehaviour
     public float GetBurnoutDuration() => burnoutDuration;
     public Transform GetCargoAnchor() => cargoAnchor;
     public Transform GetDoorPoint() => doorPoint;
+    public Transform GetTailgatePoint() => tailgatePoint;
+
+    // lifts a road position onto the bridge deck while it is over the river (the bridge runs along x)
+    private Vector3 OnRoad(Vector3 position)
+    {
+        float t = (position.x - bridge.position.x) / bridgeLength + .5f;
+        if (t > 0f && t < 1f) position.y += bridgeBaseHeight + bridgeRise * Mathf.Sin(Mathf.PI * t);
+        return position;
+    }
 
     private void SetState(State state)
     {

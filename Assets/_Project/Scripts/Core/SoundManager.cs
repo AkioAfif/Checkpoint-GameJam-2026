@@ -6,6 +6,7 @@ public class SoundManager : MonoBehaviour
 {
     [SerializeField] private AudioClipRefsSO audioClipRefsSO;
     [SerializeField] private HouseDoor houseDoor;
+    [SerializeField] private DistributorTruck truck;
     [SerializeField] private float volume = 1f;
 
     private void Start()
@@ -17,6 +18,7 @@ public class SoundManager : MonoBehaviour
         QTEManager.Instance.OnCheckResolved += QTEManager_OnCheckResolved;
         PlantingController.Instance.OnPlantingFinished += PlantingController_OnPlantingFinished;
         houseDoor.OnStateChanged += HouseDoor_OnStateChanged;
+        truck.OnStateChanged += Truck_OnStateChanged;
     }
 
     private void OnDestroy()
@@ -49,11 +51,17 @@ public class SoundManager : MonoBehaviour
         if (e.state == HouseDoor.State.IrisClosing) PlaySound(audioClipRefsSO.houseEnterArray, ListenerPosition());
     }
 
+    private void Truck_OnStateChanged(object sender, DistributorTruck.OnStateChangedEventArgs e)
+    {
+        if (e.state == DistributorTruck.State.Skidding) PlaySound(audioClipRefsSO.truckSkidArray, truck.transform.position);
+        else if (e.state == DistributorTruck.State.Burnout) PlaySound(audioClipRefsSO.truckBurnoutArray, truck.transform.position);
+    }
+
     private Vector3 ListenerPosition() => Camera.main.transform.position;
 
     private void PlaySound(AudioClip[] audioClipArray, Vector3 position)
     {
-        if (audioClipArray.Length == 0) return; // clips not assigned yet → stay silent instead of IndexOutOfRange
+        if (audioClipArray == null || audioClipArray.Length == 0) return; // clips not assigned yet (or a slot newer than the asset) → stay silent
         AudioSource.PlayClipAtPoint(audioClipArray[UnityEngine.Random.Range(0, audioClipArray.Length)], position, volume);
     }
 }

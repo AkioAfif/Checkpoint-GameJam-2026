@@ -14,6 +14,8 @@ public class Day1SO : ScriptableObject
     public DialogueSO monologueDialogueSO;
     public DialogueSO introDialogueSO;
     public DialogueSO pressedDialogueSO;
+    // the goodbye after the Tutorial 2 list; he leaves when it ends
+    public DialogueSO farewellDialogueSO;
     public DialogueSO nightDialogueSO;
     // what the Distributor says when talked to while he waits
     public DialogueSO waitingTutorial1DialogueSO;
@@ -23,6 +25,7 @@ public class Day1SO : ScriptableObject
     public TaskObjectiveSO[] letterObjectiveArray;
     public TaskObjectiveSO[] tutorialObjectiveArray;
     public TaskObjectiveSO[] gatherObjectiveArray;
+    public TaskObjectiveSO[] talkObjectiveArray;
     public TaskObjectiveSO[] sariObjectiveArray;
     public TaskObjectiveSO[] nightObjectiveArray;
 

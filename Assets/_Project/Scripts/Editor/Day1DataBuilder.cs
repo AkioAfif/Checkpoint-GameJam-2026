@@ -56,6 +56,12 @@ public static class Day1DataBuilder
         Day1.nightDialogueSO = Dialogue("Day1_Night",
             P("With this, I'm gonna be super rich someday.", Emote.Cheer));
 
+        Day1.farewellDialogueSO = Dialogue("Day1_Farewell",
+            N("Look at you, a natural! The village will be talking about this field soon.", Emote.Cheer),
+            P("I still can't believe it actually works.", Emote.WideSmile),
+            N("Believe it, partner. Keep the seeds coming and I'll be back to buy every one.", Emote.Nod),
+            N("Well, I've got other families to help. Until next time!", Emote.Wave));
+
         Day1.waitingTutorial1DialogueSO = Dialogue("Distributor_Waiting1", N("Whenever you're ready. No pressure.", Emote.Nod));
         Day1.waitingTutorial2DialogueSO = Dialogue("Distributor_Waiting2", N("Take your time, partner. The machine isn't going anywhere.", Emote.Nod));
 
@@ -68,11 +74,13 @@ public static class Day1DataBuilder
         TaskObjectiveSO gatherFlowers = GameDataBuilder.Task("D1_Gather3Flowers", TaskObjectiveSO.Type.CollectItem, "Gather 3 flowers", flower, 3);
         TaskObjectiveSO gatherPlants = GameDataBuilder.Task("D1_Gather3MorePlants", TaskObjectiveSO.Type.CollectItem, "Gather 3 more plants", crop, 3);
         TaskObjectiveSO fabricateMore = GameDataBuilder.Task("D1_Make3Seeds", TaskObjectiveSO.Type.FabricateSeed, "Make 3 more sawit seeds", null, 3);
+        TaskObjectiveSO talk = GameDataBuilder.Task("D1_TalkDistributor", TaskObjectiveSO.Type.Story, "Talk to the Distributor", null, 1);
         TaskObjectiveSO sari = GameDataBuilder.Task("D1_SaySari", TaskObjectiveSO.Type.Story, "Say hi to Sari on the bridge", null, 1);
         TaskObjectiveSO home = GameDataBuilder.Task("D1_GoHome", TaskObjectiveSO.Type.EnterHouse, "Go home", null, 1);
         Day1.letterObjectiveArray = new[] { read };
         Day1.tutorialObjectiveArray = new[] { collectCrops, fabricate, plant };
         Day1.gatherObjectiveArray = new[] { plant, gatherWater, gatherFlowers, gatherPlants, fabricateMore };
+        Day1.talkObjectiveArray = new[] { talk };
         Day1.sariObjectiveArray = new[] { sari };
         Day1.nightObjectiveArray = new[] { home };
         EditorUtility.SetDirty(Day1);

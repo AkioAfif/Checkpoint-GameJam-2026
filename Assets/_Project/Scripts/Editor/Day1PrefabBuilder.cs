@@ -33,8 +33,26 @@ public static class Day1PrefabBuilder
         SetField(truckVisual, "body", model.transform);
         SetArray(truckVisual, "wheelArray", new Object[] { model.transform.Find("WheelFL"), model.transform.Find("WheelFR"), model.transform.Find("WheelRL"), model.transform.Find("WheelRR") });
         SetField(truck, "cargoAnchor", Anchor(root, "CargoAnchor", new Vector3(0f, 1.05f, -1.55f)));
-        // the cab door on the left, where the Distributor tumbles out
-        SetField(truck, "doorPoint", Anchor(root, "DoorPoint", new Vector3(-1.9f, 0f, .1f)));
+        // the cab door on the right: the house side once the truck has spun round to face west
+        SetField(truck, "doorPoint", Anchor(root, "DoorPoint", new Vector3(1.9f, 0f, .1f)));
+        // behind the bed, where the Distributor stands to lift the machine out
+        SetField(truck, "tailgatePoint", Anchor(root, "TailgatePoint", new Vector3(0f, 0f, -3.4f)));
+
+        // solid to the player, and wandering villagers path around it while it is parked
+        Bounds bounds = new Bounds(root.transform.position, Vector3.zero);
+        foreach (Renderer renderer in model.GetComponentsInChildren<Renderer>()) bounds.Encapsulate(renderer.bounds);
+        Box(root, bounds.center - root.transform.position, bounds.size);
+        UnityEngine.AI.NavMeshObstacle obstacle = root.AddComponent<UnityEngine.AI.NavMeshObstacle>();
+        obstacle.center = bounds.center - root.transform.position;
+        obstacle.size = bounds.size;
+        obstacle.carving = true;
+
+        AudioSource engine = root.AddComponent<AudioSource>();
+        engine.loop = true;
+        engine.playOnAwake = false;
+        engine.spatialBlend = 1f;
+        DistributorTruckSound truckSound = root.AddComponent<DistributorTruckSound>();
+        SetField(truckSound, "truck", truck);
         return SavePrefab(root, "Day1", "DistributorTruck");
     }
 

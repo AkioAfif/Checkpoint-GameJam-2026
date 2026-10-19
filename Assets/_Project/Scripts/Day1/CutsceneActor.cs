@@ -16,11 +16,14 @@ public class CutsceneActor : MonoBehaviour
     private float arcHeight;
     private float timer;
     private bool isMoving;
+    private bool isCarrying;
     private NavMeshAgent agent;
+    private CharacterController characterController;
 
     private void Awake()
     {
         TryGetComponent(out agent);
+        TryGetComponent(out characterController);
     }
 
     private void Update()
@@ -32,7 +35,21 @@ public class CutsceneActor : MonoBehaviour
         if (t < 1f) return;
         isMoving = false;
         if (agent != null) agent.enabled = true; // re-seats the agent on the NavMesh at the new spot
+        if (characterController != null) characterController.enabled = true;
         OnMoveFinished?.Invoke(this, EventArgs.Empty);
+    }
+
+    public bool IsMoving() => isMoving;
+    public bool IsCarrying() => isCarrying;
+
+    // arms out in front, holding something (the visual poses them)
+    public void SetCarrying(bool isCarrying) => this.isCarrying = isCarrying;
+
+    public void FaceTowards(Vector3 worldPosition)
+    {
+        Vector3 direction = worldPosition - transform.position;
+        direction.y = 0f;
+        if (direction.sqrMagnitude > .0001f) transform.forward = direction.normalized;
     }
 
     public void PlayEmote(Emote emote) => OnEmoteRequested?.Invoke(this, new OnEmoteRequestedEventArgs { emote = emote });
@@ -47,6 +64,7 @@ public class CutsceneActor : MonoBehaviour
         timer = 0f;
         isMoving = true;
         if (agent != null) agent.enabled = false; // an enabled agent would overwrite the move
+        if (characterController != null) characterController.enabled = false; // same for the player's controller
         Vector3 direction = target - from;
         direction.y = 0f;
         if (direction.sqrMagnitude > .0001f) transform.forward = direction.normalized;
