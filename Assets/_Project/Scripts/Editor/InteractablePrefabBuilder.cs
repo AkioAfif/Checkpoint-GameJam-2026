@@ -110,7 +110,16 @@ public static class InteractablePrefabBuilder
         body.height = 1.3f;
         GameObject visual = Root("Visual", root.transform);
         Transform v = visual.transform;
-        Day1PrefabBuilder.ImportModel("Assets/_Project/Art/Models/Fabricator/Fabricator.fbx", v, FabricatorMaterial);
+        Transform model = Day1PrefabBuilder.ImportModel("Assets/_Project/Art/Models/Fabricator/Fabricator.fbx", v, FabricatorMaterial).transform;
+        // hand-tuned in the editor (2026-10-19): 1.5x bigger, with a taller tube and everything above it raised to match
+        root.transform.localScale = Vector3.one * 1.5f;
+        model.Find("Tube").localScale = new Vector3(1f, 1.416635f, 1f);
+        model.Find("Lid").localPosition = new Vector3(0f, 1.295f, 0f);
+        model.Find("RingHigh").localPosition = new Vector3(0f, 1.295f, 0f);
+        model.Find("Hopper").localPosition = new Vector3(0f, 1.435f, 0f);
+        model.Find("Lamp").localPosition = new Vector3(-.32f, 1.435f, 0f);
+        model.Find("HandleL").localPosition = new Vector3(.5f, 1.164f, 0f);
+        model.Find("HandleR").localPosition = new Vector3(-.5f, 1.164f, 0f);
         GameObject swirl = Part(v, "Swirl", GrayboxMeshFactory.Blob(.28f, .5f), GrayboxPalette.Lit("FabricatorSwirl", new Color(.75f, .9f, .6f), .8f), new Vector3(0f, .42f, 0f));
         FabricatorVisual fabricatorVisual = visual.AddComponent<FabricatorVisual>();
         SetField(fabricatorVisual, "fabricator", controller);

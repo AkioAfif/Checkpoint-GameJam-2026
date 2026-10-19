@@ -6,7 +6,26 @@ public static class EnvironmentPrefabBuilder
 {
     private const string FOLDER = "Environment";
 
-    public static GameObject VillagerHouse(string name, Material roof) => SavePrefab(BuildHouse(name, 5f, 2.8f, 5f, GrayboxPalette.Wall, roof), FOLDER, name);
+    public static GameObject VillagerHouse(string name, Material roof)
+    {
+        GameObject house = BuildHouse(name, 5f, 2.8f, 5f, GrayboxPalette.Wall, roof);
+        // hand-tuned in the editor (2026-10-19): steeper roof slabs set lower on the gable, slightly uneven per house
+        Transform visual = house.transform.Find("Visual");
+        switch (name)
+        {
+            case "VillagerHouse_A": SetRoof(visual, new Vector3(0f, 4.155389f, -1.27f), -44.808f, new Vector3(0f, 4.17f, 1.31f), 44.921f); break;
+            case "VillagerHouse_B": SetRoof(visual, new Vector3(0f, 4.12f, -1.2f), -47.024f, new Vector3(0f, 4.14f, 1.24f), 44.461f); break;
+            case "VillagerHouse_C": SetRoof(visual, new Vector3(0f, 4.13f, -1.21f), -46.186f, new Vector3(0f, 4.19f, 1.21f), 45.183f); break;
+            case "VillagerHouse_D": SetRoof(visual, new Vector3(0f, 4.1f, -1.31f), -43.88f, new Vector3(0f, 4.16f, 1.2f), 44.919f); break;
+        }
+        return SavePrefab(house, FOLDER, name);
+    }
+
+    private static void SetRoof(Transform visual, Vector3 frontPosition, float frontAngle, Vector3 backPosition, float backAngle)
+    {
+        visual.Find("RoofFront").SetLocalPositionAndRotation(frontPosition, Quaternion.Euler(frontAngle, 0f, 0f));
+        visual.Find("RoofBack").SetLocalPositionAndRotation(backPosition, Quaternion.Euler(backAngle, 0f, 0f));
+    }
 
     // gable house, ridge along X, door facing -Z; root has a solid collider and a DoorAnchor child in front of the door
     public static GameObject BuildHouse(string name, float width, float height, float depth, Material wall, Material roof)
