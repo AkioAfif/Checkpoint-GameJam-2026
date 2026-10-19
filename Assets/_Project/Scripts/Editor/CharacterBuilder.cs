@@ -31,7 +31,6 @@ public static class CharacterBuilder
     public static readonly Look DimasLook = new Look { name = "Dimas", cloth = new Color(.98f, .73f, .43f), hair = new Color(.2f, .18f, .18f), accessory = Accessory.None, scale = .85f };
     public static readonly Look IjahLook = new Look { name = "Ijah", cloth = new Color(.73f, .63f, .86f), hair = new Color(.93f, .93f, .93f), accessory = Accessory.Bun, scale = .95f };
     public static readonly Look SariLook = new Look { name = "Sari", cloth = new Color(.40f, .76f, .74f), hair = new Color(.15f, .12f, .13f), accessory = Accessory.None, scale = .92f };
-    public static readonly Look MotherLook = new Look { name = "Mother", cloth = new Color(.95f, .82f, .55f), hair = new Color(.45f, .35f, .30f), accessory = Accessory.Bun, scale = 1f };
 
     // rig prefab (Animator + body parts), nested inside the Player/NPC prefabs and spawned in the portrait booth
     public static GameObject RigPrefab(Look look)

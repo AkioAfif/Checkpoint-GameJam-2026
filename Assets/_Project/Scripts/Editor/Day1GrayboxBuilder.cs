@@ -22,7 +22,6 @@ public static class Day1GrayboxBuilder
     private static readonly Vector3 YardPosition = Level01SceneBuilder.PlayerHousePosition + new Vector3(0f, 0f, -4.4f);
     private static readonly Vector3 DistributorStand = Level01SceneBuilder.FabricatorPosition + new Vector3(1.6f, 0f, -.7f);
     private static readonly Vector3 SariPosition = new Vector3(-17.2f, .34f, 0f);
-    private static readonly Vector3 MotherPosition = Level01SceneBuilder.PlayerHousePosition + new Vector3(0f, .14f, -3.1f);
 
     [MenuItem("Tools/Day1/Build Graybox")]
     public static void Build()
@@ -60,7 +59,7 @@ public static class Day1GrayboxBuilder
         CutsceneActor distributorActor = EnsureActor(distributorNpc.gameObject, distributorNpc.GetComponentInChildren<NpcVisual>());
         distributorNpc.transform.position = DistributorStand;
         Npc sari = SpawnSari(graybox);
-        GameObject mother = SpawnMother(graybox, out GameObject doorLamp);
+        GameObject doorLamp = SpawnDoorLamp(graybox);
 
         HouseDoor houseDoor = Object.FindAnyObjectByType<HouseDoor>(FindObjectsInactive.Include);
         PatchDialogueUi();
@@ -96,7 +95,6 @@ public static class Day1GrayboxBuilder
         SetField(day1, "distributorActor", distributorActor);
         SetField(day1, "playerActor", player.GetComponent<CutsceneActor>());
         SetField(day1, "sariNpc", sari);
-        SetField(day1, "motherGameObject", mother);
         SetField(day1, "houseDoor", houseDoor);
         SetField(day1, "yardPoint", yardPoint);
         SetField(day1, "distributorCarryPoint", CarryPoint(distributorNpc.transform));
@@ -236,7 +234,7 @@ public static class Day1GrayboxBuilder
         return null;
     }
 
-    // ---------- truck, Sari, Mother ----------
+    // ---------- truck, Sari, door lamp ----------
 
     private static DistributorTruck SpawnTruck(Transform graybox, Transform points)
     {
@@ -256,17 +254,16 @@ public static class Day1GrayboxBuilder
         return go.GetComponent<Npc>();
     }
 
-    private static GameObject SpawnMother(Transform graybox, out GameObject doorLamp)
+    private static GameObject SpawnDoorLamp(Transform graybox)
     {
-        GameObject mother = Spawn(Day1PrefabBuilder.Mother(), graybox, MotherPosition, 180f);
-        doorLamp = Root("DoorLamp", graybox);
+        GameObject doorLamp = Root("DoorLamp", graybox);
         doorLamp.transform.position = Level01SceneBuilder.PlayerHousePosition + new Vector3(0f, 2.8f, -4.2f);
         Light light = doorLamp.AddComponent<Light>();
         light.type = LightType.Point;
         light.range = 9f;
         light.intensity = 4f;
         light.color = new Color(1f, .78f, .5f);
-        return mother;
+        return doorLamp;
     }
 
     // ---------- helpers ----------

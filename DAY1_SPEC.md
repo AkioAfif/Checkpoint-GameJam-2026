@@ -73,7 +73,7 @@ Implement a `Day1Director` or `QuestStateMachine` that strictly enforces the fol
   - SARI: "Then I hope it does." [Anim: Smile] "Just read the small print, okay?"
 
 ### State 6: Night - Ending the Day
-- **Trigger:** Player walks back to the front door at night. Mother stands in the doorway.
+- **Trigger:** Player walks back to the front door at night.
 - **Dialogue Sequence 4:**
   - [PLAYER]: "With this, I'm gonna be super rich someday."
 - Transition to end of Day 1 / Save World Changes (Fabricator remains in front of house, 2 sawit saplings in field).

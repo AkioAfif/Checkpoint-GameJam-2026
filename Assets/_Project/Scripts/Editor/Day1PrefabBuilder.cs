@@ -2,7 +2,7 @@ using UnityEditor;
 using UnityEngine;
 using static GrayboxBuild;
 
-// Day 1 prefabs: the pickup truck (Tools/Blender/build_truck.py), Sari on the bridge and Mother in the doorway.
+// Day 1 prefabs: the pickup truck (Tools/Blender/build_truck.py), Sari on the bridge.
 public static class Day1PrefabBuilder
 {
     private const string TRUCK_FBX = "Assets/_Project/Art/Models/Truck/DistributorTruck.fbx";
@@ -68,21 +68,6 @@ public static class Day1PrefabBuilder
         PrefabUtility.SaveAsPrefabAsset(contents, path);
         PrefabUtility.UnloadPrefabContents(contents);
         return AssetDatabase.LoadAssetAtPath<GameObject>(path);
-    }
-
-    // not interactable: no collider, not on the Interactable layer. She just nods now and then.
-    public static GameObject Mother()
-    {
-        GameObject root = Root("Npc_Mother");
-        GameObject visual = Root("Visual", root.transform);
-        GameObject rig = (GameObject)PrefabUtility.InstantiatePrefab(CharacterBuilder.RigPrefab(CharacterBuilder.MotherLook), visual.transform);
-        EmoteLoopVisual loop = visual.AddComponent<EmoteLoopVisual>();
-        SetField(loop, "animator", rig.GetComponent<Animator>());
-        SerializedObject so = new SerializedObject(loop);
-        so.FindProperty("emote").enumValueIndex = (int)Emote.Nod;
-        so.FindProperty("interval").floatValue = 3.6f;
-        so.ApplyModifiedPropertiesWithoutUndo();
-        return SavePrefab(root, "Day1", "Npc_Mother");
     }
 
     private static Material TruckMaterial(string slot)

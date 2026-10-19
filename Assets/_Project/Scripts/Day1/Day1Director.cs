@@ -25,7 +25,6 @@ public class Day1Director : MonoBehaviour
     [SerializeField] private CutsceneActor distributorActor;
     [SerializeField] private CutsceneActor playerActor;
     [SerializeField] private Npc sariNpc;
-    [SerializeField] private GameObject motherGameObject;
     [SerializeField] private HouseDoor houseDoor;
     [SerializeField] private Transform yardPoint;
     [Tooltip("Where the Fabricator rides in the Distributor's arms.")]
@@ -72,7 +71,6 @@ public class Day1Director : MonoBehaviour
         truck.gameObject.SetActive(false);
         distributorNpc.gameObject.SetActive(false);
         sariNpc.gameObject.SetActive(false);
-        motherGameObject.SetActive(false);
         fabricator.SetPlaced(false);
         fabricatorDelivery.AttachTo(truck.GetCargoAnchor());
         houseDoor.SetLocked(true);
@@ -132,7 +130,6 @@ public class Day1Director : MonoBehaviour
         Player.Instance.Teleport(nightPlayerPoint.position);
         Player.Instance.FaceTowards(houseDoor.transform.position);
         sariNpc.gameObject.SetActive(false);
-        motherGameObject.SetActive(true);
         houseDoor.SetLocked(false);
         houseDoor.SetEntryDialogue(day1SO.nightDialogueSO);
         TaskManager.Instance.SetObjectives(day1SO.nightObjectiveArray);
