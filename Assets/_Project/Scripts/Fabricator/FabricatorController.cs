@@ -28,6 +28,8 @@ public class FabricatorController : MonoBehaviour, IInteractable
     [SerializeField] private float enterDuration = .9f;
     [SerializeField] private float solvedDuration = 1.6f;
     [SerializeField] private float exitDuration = .5f;
+    [Tooltip("Extra seeds for a combo (all liquids into the mould at once).")]
+    [SerializeField] private int comboBonus = 1;
     [SerializeField] private string promptVerb = "use the Fabricator";
     [SerializeField] private Transform promptAnchor;
 
@@ -113,7 +115,7 @@ public class FabricatorController : MonoBehaviour, IInteractable
             Recipe recipe = GetRecipe();
             Inventory.Instance.RemoveItems(recipe.inputArray);
             if (recipe.returned.amount > 0) Inventory.Instance.AddItem(recipe.returned.itemDataSO, recipe.returned.amount);
-            Inventory.Instance.AddItem(recipe.output.itemDataSO, recipe.output.amount);
+            Inventory.Instance.AddItem(recipe.output.itemDataSO, recipe.output.amount + (miniGame.IsCombo() ? comboBonus : 0));
             completedRuns++;
         }
         miniGame.End();

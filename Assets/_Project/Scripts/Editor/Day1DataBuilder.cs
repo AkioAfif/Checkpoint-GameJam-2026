@@ -15,13 +15,16 @@ public static class Day1DataBuilder
 
         // Sari is a regular villager: her first line is Dialogue Sequence 3
         DialogueSO sariFirst = Dialogue("Sari_First",
+            N("Did you see that?! He nearly flattened me!", Emote.Surprised),
+            N("Who drives like that over a bridge? Reckless!", Emote.Shake),
             N("Hey! What's that giant tube in front of your house?", Emote.Wave),
             P("A Fabricator. A man from the Instansi gave it to me. For free."),
             N("For free?", Emote.TiltHead),
             N("Nothing's free. Not even my grandmother's advice, and she gives that to everyone."),
             P("It makes seeds. Good ones. It could pay off the debt, Sari."),
             N("Then I hope it does."),
-            N("Just read the small print, okay?", Emote.WideSmile));
+            N("Just read the small print, okay?", Emote.WideSmile),
+            P("I'll get back to work now.", Emote.Wave));
         DialogueSO sariRepeat = Dialogue("Sari_Repeat", N("Read the small print, okay?", Emote.Nod));
         Sari = GameDataBuilder.Npc("Sari", "Sari", CharacterBuilder.RigPrefab(CharacterBuilder.SariLook), sariFirst, sariRepeat, new Color(.80f, .94f, .92f));
 
@@ -53,8 +56,12 @@ public static class Day1DataBuilder
             N("The best things usually are. Plant two seeds, and tomorrow you'll see what I mean.", Emote.Nod),
             N("Now, try gathering some water, plants, and flowers from around the village. Let's try making 3 more for today."));
 
-        Day1.nightDialogueSO = Dialogue("Day1_Night",
-            P("With this, I'm gonna be super rich someday.", Emote.Cheer));
+        Day1.eveningWhatDialogueSO = Dialogue("Day1_EveningWhat", P("What?!", Emote.Surprised));
+        Day1.eveningMonologueDialogueSO = Dialogue("Day1_EveningMonologue",
+            P("They've sprouted already... in one afternoon?", Emote.TiltHead),
+            P("If sawit grows this fast, I'll earn way more than I thought."),
+            P("I could pay off the debt much sooner."),
+            P("I need to work even harder!", Emote.Cheer));
 
         Day1.farewellDialogueSO = Dialogue("Day1_Farewell",
             N("Look at you, a natural! The village will be talking about this field soon.", Emote.Cheer),
@@ -75,7 +82,7 @@ public static class Day1DataBuilder
         TaskObjectiveSO gatherPlants = GameDataBuilder.Task("D1_Gather3MorePlants", TaskObjectiveSO.Type.CollectItem, "Gather 3 more plants", crop, 3);
         TaskObjectiveSO fabricateMore = GameDataBuilder.Task("D1_Make3Seeds", TaskObjectiveSO.Type.FabricateSeed, "Make 3 more sawit seeds", null, 3);
         TaskObjectiveSO talk = GameDataBuilder.Task("D1_TalkDistributor", TaskObjectiveSO.Type.Story, "Talk to the Distributor", null, 1);
-        TaskObjectiveSO sari = GameDataBuilder.Task("D1_SaySari", TaskObjectiveSO.Type.Story, "Say hi to Sari on the bridge", null, 1);
+        TaskObjectiveSO sari = GameDataBuilder.Task("D1_SaySari", TaskObjectiveSO.Type.Story, "Check on Sari on the bridge", null, 1);
         TaskObjectiveSO home = GameDataBuilder.Task("D1_GoHome", TaskObjectiveSO.Type.EnterHouse, "Go home", null, 1);
         Day1.letterObjectiveArray = new[] { read };
         Day1.tutorialObjectiveArray = new[] { collectCrops, fabricate, plant };

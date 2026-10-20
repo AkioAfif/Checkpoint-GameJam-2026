@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: D1_SaySari
   m_EditorClassIdentifier: Assembly-CSharp::TaskObjectiveSO
   type: 4
-  description: Say hi to Sari on the bridge
+  description: Check on Sari on the bridge
   itemDataSO: {fileID: 0}
   requiredCount: 1

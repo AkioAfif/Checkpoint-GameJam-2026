@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-// One farm tile: starts with a basic crop to harvest, then accepts a fabricated seed (planted through a QTE).
+// One farm tile: starts with a basic crop to harvest, then accepts a fabricated seed (planted through a QTE) that grows by the evening.
 public class FarmPlot : MonoBehaviour, IInteractable
 {
     public static event EventHandler OnAnyPlanted;
@@ -9,7 +9,7 @@ public class FarmPlot : MonoBehaviour, IInteractable
 
     public event EventHandler<OnStateChangedEventArgs> OnStateChanged;
     public class OnStateChangedEventArgs : EventArgs { public State state; }
-    public enum State { Crop, Empty, Planted }
+    public enum State { Crop, Empty, Planted, Grown }
 
     [SerializeField] private State startState = State.Crop;
     [SerializeField] private ItemDataSO cropItemDataSO;
@@ -28,7 +28,7 @@ public class FarmPlot : MonoBehaviour, IInteractable
         SetState(startState);
     }
 
-    public bool IsSelectable() => state != State.Planted && !PlantingController.Instance.IsPlanting();
+    public bool IsSelectable() => (state == State.Crop || state == State.Empty) && !PlantingController.Instance.IsPlanting();
 
     public bool CanInteract(Player player) => state == State.Crop || Inventory.Instance.GetCount(plantableCropDataSO.seedItemDataSO) > 0;
 
@@ -53,6 +53,11 @@ public class FarmPlot : MonoBehaviour, IInteractable
         plantedCropDataSO = cropDataSO;
         SetState(State.Planted);
         OnAnyPlanted?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void Grow()
+    {
+        if (state == State.Planted) SetState(State.Grown);
     }
 
     public string GetPromptVerb() => state == State.Crop ? harvestVerb : plantVerb;

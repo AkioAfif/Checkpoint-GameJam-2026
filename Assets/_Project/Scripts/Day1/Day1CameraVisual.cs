@@ -3,7 +3,8 @@ using UnityEngine;
 
 // The truck camera chases the pickup in and out; the meeting camera frames the intro talk once it is parked,
 // side-on to the player and the Distributor so neither hides the other; the delivery camera follows him while he carries
-// the Fabricator over. Cinemachine blends to the newest enabled one.
+// the Fabricator over; the evening camera looks down on the house front and pans over to the grown field.
+// Cinemachine blends to the newest enabled one.
 public class Day1CameraVisual : MonoBehaviour
 {
     [SerializeField] private Day1Director director;
@@ -20,6 +21,14 @@ public class Day1CameraVisual : MonoBehaviour
     [SerializeField] private float meetingDistance = 6.5f;
     [SerializeField] private float meetingHeight = 2.8f;
     [SerializeField] private CinemachineCamera deliveryCamera;
+    [SerializeField] private CinemachineCamera eveningCamera;
+    [Tooltip("What CM_Evening follows: eased from the house front to the field when the director asks for the farm shot.")]
+    [SerializeField] private Transform eveningCameraTarget;
+    [SerializeField] private Transform houseShotPoint;
+    [SerializeField] private Transform farmShotPoint;
+    [SerializeField] private float panSmoothTime = .9f;
+
+    private Vector3 panVelocity;
 
     private void Start()
     {
@@ -34,6 +43,9 @@ public class Day1CameraVisual : MonoBehaviour
         float minX = director.GetState() == Day1Director.State.Departure ? departureMinTruckCameraX : arrivalMinTruckCameraX;
         truckCameraTarget.position = new Vector3(Mathf.Max(truckPosition.x, minX), 0f, truckPosition.z);
         deliveryCamera.enabled = director.IsDelivering();
+        eveningCamera.enabled = director.IsEveningCutscene();
+        Vector3 shot = director.IsFarmShot() ? farmShotPoint.position : houseShotPoint.position;
+        eveningCameraTarget.position = Vector3.SmoothDamp(eveningCameraTarget.position, shot, ref panVelocity, panSmoothTime);
 
         if (!meetingCamera.enabled) return;
         Vector3 pair = distributor.position - Player.Instance.transform.position;

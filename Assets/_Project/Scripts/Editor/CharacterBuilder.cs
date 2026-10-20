@@ -367,6 +367,7 @@ public static class CharacterBuilder
             { Emote.GoofySetup, SaveClip("GoofySetup", false, GoofySetupClip) },
             { Emote.TiltHead, SaveClip("TiltHead", false, clip => Rot(clip, "Hips/Head", new Vector4(0f, 0f, 0f, 0f), new Vector4(.25f, 4f, 0f, 24f), new Vector4(.8f, 4f, 0f, 24f), new Vector4(1.05f, 0f, 0f, 0f))) },
             { Emote.WideSmile, SaveClip("WideSmile", false, WideSmileClip) },
+            { Emote.Dodge, SaveClip("Dodge", false, DodgeClip) },
             { Emote.Dig, SaveClip("Dig", false, clip =>
                 {
                     PosY(clip, "Hips", new Vector2(0f, .2f), new Vector2(.4f, .2f));
@@ -421,6 +422,20 @@ public static class CharacterBuilder
         Rot(clip, "Hips/ArmL", new Vector4(0f, 0f, 0f, -6f), new Vector4(.35f, -75f, 0f, -12f), new Vector4(.9f, -170f, 0f, -12f), new Vector4(1.5f, -75f, 0f, -12f), new Vector4(2f, 0f, 0f, -6f));
         Rot(clip, "Hips/ArmR", new Vector4(0f, 0f, 0f, 6f), new Vector4(.35f, -75f, 0f, 12f), new Vector4(.9f, -170f, 0f, 12f), new Vector4(1.5f, -75f, 0f, 12f), new Vector4(2f, 0f, 0f, 6f));
         Rot(clip, "Hips/Head", new Vector4(0f, 0f, 0f, 0f), new Vector4(.9f, -14f, 0f, 0f), new Vector4(1.5f, 6f, 0f, 0f), new Vector4(2f, 0f, 0f, 0f));
+    }
+
+    // dives to the right (the arc comes from CutsceneActor), sprawls on the side, gets up and pats the dust off
+    private static void DodgeClip(AnimationClip clip)
+    {
+        PosY(clip, "Hips", new Vector2(0f, HIPS_Y), new Vector2(.08f, HIPS_Y - .08f), new Vector2(.35f, HIPS_Y - .16f), new Vector2(1f, HIPS_Y - .16f), new Vector2(1.35f, HIPS_Y), new Vector2(1.9f, HIPS_Y));
+        Rot(clip, "Hips", new Vector4(0f, 0f, 0f, 0f), new Vector4(.08f, 10f, 0f, 0f), new Vector4(.35f, 0f, 0f, -80f), new Vector4(1f, 0f, 0f, -78f), new Vector4(1.35f, 6f, 0f, 0f), new Vector4(1.5f, 0f, 0f, 0f));
+        Rot(clip, "LegL", new Vector4(0f, 0f, 0f, 0f), new Vector4(.35f, -20f, 0f, -70f), new Vector4(1f, -20f, 0f, -70f), new Vector4(1.35f, 0f, 0f, 0f));
+        Rot(clip, "LegR", new Vector4(0f, 0f, 0f, 0f), new Vector4(.35f, 10f, 0f, -80f), new Vector4(1f, 10f, 0f, -80f), new Vector4(1.35f, 0f, 0f, 0f));
+        Rot(clip, "Hips/ArmL", new Vector4(0f, 0f, 0f, -6f), new Vector4(.2f, 0f, 0f, -160f), new Vector4(1f, 0f, 0f, -150f), new Vector4(1.35f, -10f, 0f, -6f),
+            new Vector4(1.5f, -55f, 0f, -10f), new Vector4(1.6f, -25f, 0f, -10f), new Vector4(1.7f, -55f, 0f, -10f), new Vector4(1.9f, 0f, 0f, -6f));
+        Rot(clip, "Hips/ArmR", new Vector4(0f, 0f, 0f, 6f), new Vector4(.2f, 0f, 0f, 160f), new Vector4(1f, 0f, 0f, 150f), new Vector4(1.35f, -10f, 0f, 6f),
+            new Vector4(1.55f, -25f, 0f, 10f), new Vector4(1.65f, -55f, 0f, 10f), new Vector4(1.75f, -25f, 0f, 10f), new Vector4(1.9f, 0f, 0f, 6f));
+        Rot(clip, "Hips/Head", new Vector4(0f, 0f, 0f, 0f), new Vector4(.35f, -10f, 0f, 10f), new Vector4(1f, -10f, 0f, 10f), new Vector4(1.45f, 20f, 0f, 0f), new Vector4(1.75f, 20f, 0f, 0f), new Vector4(1.9f, 0f, 0f, 0f));
     }
 
     // a happy little bounce with the head thrown back, arms out

@@ -27,8 +27,11 @@ public class PlayerVisual : MonoBehaviour
 
     private void Update()
     {
-        bool isMoving = player.IsMoving();
-        animator.SetFloat(ChibiAnimation.SPEED, player.GetSpeedNormalized());
+        // the director walks the player through cutscenes without input
+        bool isCutsceneWalking = cutsceneActor != null && cutsceneActor.IsWalking();
+        bool isMoving = isCutsceneWalking || player.IsMoving();
+        float speedNormalized = isCutsceneWalking ? 1f : player.GetSpeedNormalized();
+        animator.SetFloat(ChibiAnimation.SPEED, speedNormalized);
 
         // a quick squash when starting to walk and a stretch when stopping
         if (isMoving != wasMoving) squash = isMoving ? -squashAmount : squashAmount;
@@ -37,7 +40,7 @@ public class PlayerVisual : MonoBehaviour
         transform.localScale = new Vector3(1f - squash * .5f, 1f + squash, 1f - squash * .5f);
 
         if (!isMoving) return;
-        dustTimer -= Time.deltaTime * player.GetSpeedNormalized();
+        dustTimer -= Time.deltaTime * speedNormalized;
         if (dustTimer > 0f) return;
         dustTimer = dustInterval;
         dustParticleSystem.Emit(1);

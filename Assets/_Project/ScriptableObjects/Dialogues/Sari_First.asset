@@ -14,6 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   lineArray:
   - speaker: 1
+    text: Did you see that?! He nearly flattened me!
+    playerEmote: 0
+    npcEmote: 4
+  - speaker: 1
+    text: Who drives like that over a bridge? Reckless!
+    playerEmote: 0
+    npcEmote: 3
+  - speaker: 1
     text: Hey! What's that giant tube in front of your house?
     playerEmote: 0
     npcEmote: 5
@@ -41,6 +49,10 @@ MonoBehaviour:
     text: Just read the small print, okay?
     playerEmote: 0
     npcEmote: 14
+  - speaker: 0
+    text: I'll get back to work now.
+    playerEmote: 5
+    npcEmote: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

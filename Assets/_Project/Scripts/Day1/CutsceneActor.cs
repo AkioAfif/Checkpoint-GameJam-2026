@@ -39,7 +39,8 @@ public class CutsceneActor : MonoBehaviour
         OnMoveFinished?.Invoke(this, EventArgs.Empty);
     }
 
-    public bool IsMoving() => isMoving;
+    // a flat move is a walk; one with an arc is a hop or a dive
+    public bool IsWalking() => isMoving && arcHeight == 0f;
     public bool IsCarrying() => isCarrying;
 
     // arms out in front, holding something (the visual poses them)

@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e0ce3e543780b04dba488492949ce28, type: 3}
-  m_Name: Day1_Night
+  m_Name: Day1_EveningWhat
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   lineArray:
   - speaker: 0
-    text: With this, I'm gonna be super rich someday.
-    playerEmote: 6
+    text: What?!
+    playerEmote: 4
     npcEmote: 0
   reward:
     itemDataSO: {fileID: 0}

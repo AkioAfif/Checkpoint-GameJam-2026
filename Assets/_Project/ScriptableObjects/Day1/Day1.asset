@@ -23,7 +23,8 @@ MonoBehaviour:
   introDialogueSO: {fileID: 11400000, guid: 476e66a86160bc045816884734ecc3d5, type: 2}
   pressedDialogueSO: {fileID: 11400000, guid: aa1c942a6790bf04ea9ece64b3682a45, type: 2}
   farewellDialogueSO: {fileID: 11400000, guid: ad6a89f3620839546a0efe5b6f996670, type: 2}
-  nightDialogueSO: {fileID: 11400000, guid: de873c9bee1e99949bbbac33164b1744, type: 2}
+  eveningWhatDialogueSO: {fileID: 11400000, guid: 1697decfe117acc4a8a51b1f49cd9d00, type: 2}
+  eveningMonologueDialogueSO: {fileID: 11400000, guid: 62ee59423e8cc4c4582e5bef9d0c6125, type: 2}
   waitingTutorial1DialogueSO: {fileID: 11400000, guid: 3af04db81241a904d8d8037a31fc91c1, type: 2}
   waitingTutorial2DialogueSO: {fileID: 11400000, guid: 003fdc46783756f42a3506d7e83459fb, type: 2}
   letterObjectiveArray:

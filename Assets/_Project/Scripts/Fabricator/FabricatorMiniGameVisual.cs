@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Draws the puzzle in 3D with GPU instancing: bevelled dirt/rock voxels, glossy liquid blobs and a glowing mould.
+// Whatever reaches the mould turns to oil, a hint of what the seeds really are.
 public class FabricatorMiniGameVisual : MonoBehaviour
 {
     [SerializeField] private FabricatorMiniGame miniGame;
@@ -14,13 +15,15 @@ public class FabricatorMiniGameVisual : MonoBehaviour
     [SerializeField] private Material rockMaterial;
     [SerializeField] private Material mouldMaterial;
     [SerializeField] private Material[] liquidMaterialArray;
+    [SerializeField] private Material oilMaterial;
     [Tooltip("Blobs are drawn bigger than their physics circle so neighbours merge into one liquid.")]
     [SerializeField] private float blobVisualScale = 1.45f;
 
     private readonly List<Matrix4x4> dirtMatrixList = new List<Matrix4x4>();
     private readonly List<Matrix4x4> rockMatrixList = new List<Matrix4x4>();
     private readonly List<Matrix4x4> blobMatrixList = new List<Matrix4x4>();
-    private RenderParams dirtParams, rockParams, mouldParams;
+    private readonly List<Matrix4x4> oilMatrixList = new List<Matrix4x4>();
+    private RenderParams dirtParams, rockParams, mouldParams, oilParams;
     private RenderParams[] liquidParamsArray;
     private bool isVisible;
 
@@ -29,6 +32,7 @@ public class FabricatorMiniGameVisual : MonoBehaviour
         dirtParams = Params(dirtMaterial);
         rockParams = Params(rockMaterial);
         mouldParams = Params(mouldMaterial);
+        oilParams = Params(oilMaterial);
         liquidParamsArray = new RenderParams[liquidMaterialArray.Length];
         for (int i = 0; i < liquidMaterialArray.Length; i++) liquidParamsArray[i] = Params(liquidMaterialArray[i]);
     }
@@ -53,16 +57,22 @@ public class FabricatorMiniGameVisual : MonoBehaviour
 
         float diameter = miniGame.GetParticleRadius() * 2f * blobVisualScale;
         Vector3 offset = -blobMesh.bounds.center * diameter / blobMesh.bounds.size.x;
+        // oil sits just in front of the mould's tinted glass (the camera looks along +z) so it reads dark, not washed out
+        Vector3 oilOffset = offset + Vector3.back * (mouldSize.z * .5f + diameter * .5f);
+        oilMatrixList.Clear();
         for (int i = 0; i < FabricatorMiniGame.LIQUID_COUNT; i++)
         {
             blobMatrixList.Clear();
             foreach (Rigidbody2D body in miniGame.GetParticleList(i))
             {
                 Vector3 position = body.transform.position;
-                blobMatrixList.Add(Matrix4x4.TRS(position + offset, Quaternion.identity, Vector3.one * diameter / blobMesh.bounds.size.x));
+                Vector3 scale = Vector3.one * diameter / blobMesh.bounds.size.x;
+                if (mould.Contains(body.position)) oilMatrixList.Add(Matrix4x4.TRS(position + oilOffset, Quaternion.identity, scale));
+                else blobMatrixList.Add(Matrix4x4.TRS(position + offset, Quaternion.identity, scale));
             }
             DrawInstanced(blobMesh, liquidParamsArray[i], blobMatrixList);
         }
+        DrawInstanced(blobMesh, oilParams, oilMatrixList);
     }
 
     private void MiniGame_OnTilesChanged(object sender, EventArgs e)

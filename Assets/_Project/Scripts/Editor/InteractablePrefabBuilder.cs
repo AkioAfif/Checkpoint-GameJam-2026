@@ -128,13 +128,15 @@ public static class InteractablePrefabBuilder
         SetField(fabricatorVisual, "bobTransform", swirl.transform);
         AddOutline(root, v, GrayboxPalette.Outline, .03f);
 
-        // press 1 (tutorial): 3 plants make 2 seeds. Presses 2+: water + flower + plant make 1 seed and hand the bottle back.
+        // press 1 (tutorial): 3 plants make 2 seeds. Presses 2+: water + flower + plant make 1 seed and hand the bottle back;
+        // each of presses 2-4 has its own puzzle, the last one repeats.
         SerializedObject so = new SerializedObject(controller);
         SerializedProperty recipes = so.FindProperty("recipeArray");
-        recipes.arraySize = 3;
+        recipes.arraySize = 4;
         SetRecipe(recipes.GetArrayElementAtIndex(0), new[] { (GameDataBuilder.Crop, 3) }, 2, null, GameDataBuilder.PuzzleIntro, "Bring 3 plants from your field");
         SetRecipe(recipes.GetArrayElementAtIndex(1), new[] { (GameDataBuilder.Water, 1), (GameDataBuilder.Flower, 1), (GameDataBuilder.Crop, 1) }, 1, GameDataBuilder.EmptyBottle, GameDataBuilder.PuzzleTutorial, "Needs water, a flower and a plant");
         SetRecipe(recipes.GetArrayElementAtIndex(2), new[] { (GameDataBuilder.Water, 1), (GameDataBuilder.Flower, 1), (GameDataBuilder.Crop, 1) }, 1, GameDataBuilder.EmptyBottle, GameDataBuilder.PuzzleNormal, "Needs water, a flower and a plant");
+        SetRecipe(recipes.GetArrayElementAtIndex(3), new[] { (GameDataBuilder.Water, 1), (GameDataBuilder.Flower, 1), (GameDataBuilder.Crop, 1) }, 1, GameDataBuilder.EmptyBottle, GameDataBuilder.PuzzleSplit, "Needs water, a flower and a plant");
         so.ApplyModifiedPropertiesWithoutUndo();
         SetField(controller, "promptAnchor", Anchor(root, "PromptAnchor", new Vector3(0f, 1.9f, 0f)));
         SetLayerRecursively(root, InteractableLayer);

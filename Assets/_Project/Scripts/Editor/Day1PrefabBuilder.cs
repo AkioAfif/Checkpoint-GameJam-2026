@@ -56,19 +56,8 @@ public static class Day1PrefabBuilder
         return SavePrefab(root, "Day1", "DistributorTruck");
     }
 
-    // a villager who keeps waving
-    public static GameObject Sari(NpcSO npcSO)
-    {
-        GameObject prefab = InteractablePrefabBuilder.Villager("Npc_Sari", CharacterBuilder.SariLook, npcSO);
-        string path = AssetDatabase.GetAssetPath(prefab);
-        GameObject contents = PrefabUtility.LoadPrefabContents(path);
-        Transform visual = contents.transform.Find("Visual");
-        EmoteLoopVisual loop = visual.gameObject.AddComponent<EmoteLoopVisual>();
-        SetField(loop, "animator", visual.GetComponentInChildren<Animator>());
-        PrefabUtility.SaveAsPrefabAsset(contents, path);
-        PrefabUtility.UnloadPrefabContents(contents);
-        return AssetDatabase.LoadAssetAtPath<GameObject>(path);
-    }
+    // a plain villager; the director makes her dive out of the truck's way
+    public static GameObject Sari(NpcSO npcSO) => InteractablePrefabBuilder.Villager("Npc_Sari", CharacterBuilder.SariLook, npcSO);
 
     private static Material TruckMaterial(string slot)
     {

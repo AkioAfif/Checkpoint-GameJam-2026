@@ -1,8 +1,8 @@
 using System;
 using UnityEngine;
 
-// Runs "Day 1: The Crisis" in the village, from the truck's arrival to the front door at night (the bedroom morning is
-// BedroomDirector in HouseInterior). It listens to the existing systems (truck, Fabricator, tasks, dialogue) and moves
+// Runs "Day 1: The Crisis" in the village, from the truck's arrival to the evening at the farm and the front door (the bedroom
+// morning is BedroomDirector in HouseInterior). It listens to the existing systems (truck, Fabricator, tasks, dialogue) and moves
 // the story on; characters, camera and lighting react to OnStateChanged.
 public class Day1Director : MonoBehaviour
 {
@@ -10,11 +10,16 @@ public class Day1Director : MonoBehaviour
     public class OnStateChangedEventArgs : EventArgs { public State state; }
 
     // Stroll: a few free steps out of the door. Arrival: truck cutscene + intro. Tutorial1: gather 3 plants, first press.
-    // Tutorial2: plant, gather, press 3 more, then say goodbye. Departure: Distributor leaves. Sari: warning. Night: back to the front door.
+    // Tutorial2: plant, gather, press 3 more, then say goodbye. Departure: Distributor leaves, Sari dives out of his way.
+    // Sari: her complaint and warning. Night: the evening cutscene at the grown field, then back to the front door.
     public enum State { Stroll, Arrival, Tutorial1, Tutorial2, Departure, Sari, Night, Done }
 
-    // the sub-steps of the three cutscene-like states
-    private enum Step { None, Startled, WaitingForTruck, Flipping, Intro, WalkingToTruck, Lifting, Carrying, Placing, Waving, Walking, Hopping, Leaving }
+    // the sub-steps of the cutscene-like states
+    private enum Step
+    {
+        None, Startled, WaitingForTruck, Flipping, Intro, WalkingToTruck, Lifting, Carrying, Placing, Waving, Walking, Hopping, Leaving,
+        EveningWalkIn, EveningWhat, EveningPan, EveningWalkToFarm, EveningMonologue,
+    }
 
     [SerializeField] private Day1SO day1SO;
     [SerializeField] private ScreenFadeUI screenFade;
@@ -25,11 +30,17 @@ public class Day1Director : MonoBehaviour
     [SerializeField] private CutsceneActor distributorActor;
     [SerializeField] private CutsceneActor playerActor;
     [SerializeField] private Npc sariNpc;
+    [SerializeField] private CutsceneActor sariActor;
     [SerializeField] private HouseDoor houseDoor;
     [SerializeField] private Transform yardPoint;
     [Tooltip("Where the Fabricator rides in the Distributor's arms.")]
     [SerializeField] private Transform distributorCarryPoint;
-    [SerializeField] private Transform nightPlayerPoint;
+    [Tooltip("Every plot: the planted ones have grown by the evening.")]
+    [SerializeField] private FarmPlot[] farmPlotArray;
+    [Tooltip("West of the house front, out of the evening shot; the MC walks in from here.")]
+    [SerializeField] private Transform eveningStartPoint;
+    [SerializeField] private Transform eveningStopPoint;
+    [SerializeField] private Transform farmInspectPoint;
     [SerializeField] private float strollDistance = 3f;
     [SerializeField] private float startleDuration = .7f;
     [SerializeField] private float flipDuration = .9f;
@@ -41,6 +52,12 @@ public class Day1Director : MonoBehaviour
     [SerializeField] private float waveDuration = 1.8f;
     [SerializeField] private float walkSpeed = 2.2f;
     [SerializeField] private float hopDuration = .6f;
+    [Tooltip("Sari dives once the leaving truck is this close to her.")]
+    [SerializeField] private float sariDodgeLeadDistance = 8f;
+    [SerializeField] private float sariDodgeSide = 1.1f;
+    [SerializeField] private float sariDodgeDuration = .35f;
+    [Tooltip("How long the camera takes to pan from the house to the field before the MC walks back into the shot.")]
+    [SerializeField] private float farmPanDuration = 2.5f;
 
     private State state;
     private Step step;
@@ -51,6 +68,7 @@ public class Day1Director : MonoBehaviour
     private bool isFarewellPending;
     private bool isFarewellReady;
     private bool isPressedDialogueActive;
+    private bool hasSariDodged;
     private int plantedCount;
 
     private void Start()
@@ -59,6 +77,7 @@ public class Day1Director : MonoBehaviour
         screenFade.OnFinished += ScreenFade_OnFinished;
         truck.OnStateChanged += Truck_OnStateChanged;
         distributorActor.OnMoveFinished += DistributorActor_OnMoveFinished;
+        playerActor.OnMoveFinished += PlayerActor_OnMoveFinished;
         fabricatorDelivery.OnPickedUp += FabricatorDelivery_OnPickedUp;
         fabricatorDelivery.OnDelivered += FabricatorDelivery_OnDelivered;
         DialogueManager.Instance.OnDialogueEnded += DialogueManager_OnDialogueEnded;
@@ -90,6 +109,10 @@ public class Day1Director : MonoBehaviour
         // a few free steps out of the door, then the truck comes roaring in
         if (state == State.Stroll && GameManager.Instance.IsGamePlaying() && Vector3.Distance(Player.Instance.transform.position, yardPoint.position) >= strollDistance)
             BeginArrival();
+
+        // the leaving truck is about to run Sari over
+        if (step == Step.Leaving && !hasSariDodged && truck.transform.position.x < sariNpc.transform.position.x + sariDodgeLeadDistance)
+            DodgeTruck();
 
         if (stepTimer >= 0f)
         {
@@ -127,20 +150,21 @@ public class Day1Director : MonoBehaviour
     private void ScreenFade_OnBlack(object sender, EventArgs e)
     {
         if (!isNightFadePlaying) return;
-        Player.Instance.Teleport(nightPlayerPoint.position);
-        Player.Instance.FaceTowards(houseDoor.transform.position);
+        Player.Instance.Teleport(eveningStartPoint.position);
+        Player.Instance.FaceTowards(eveningStopPoint.position);
         sariNpc.gameObject.SetActive(false);
-        houseDoor.SetLocked(false);
-        houseDoor.SetEntryDialogue(day1SO.nightDialogueSO);
-        TaskManager.Instance.SetObjectives(day1SO.nightObjectiveArray);
+        foreach (FarmPlot farmPlot in farmPlotArray) farmPlot.Grow();
+        // set before the state so the camera already frames the house front when Night begins
+        step = Step.EveningWalkIn;
         SetState(State.Night);
     }
 
+    // the screen clears on the house front, still a cutscene: the MC walks into the shot from the west
     private void ScreenFade_OnFinished(object sender, EventArgs e)
     {
         if (!isNightFadePlaying) return;
         isNightFadePlaying = false;
-        GameManager.Instance.SetState(GameManager.State.Playing);
+        WalkPlayerTo(eveningStopPoint.position);
     }
 
     // ---------- Arrival ----------
@@ -175,7 +199,6 @@ public class Day1Director : MonoBehaviour
         else if (e.state == DistributorTruck.State.Hidden && state == State.Departure)
         {
             truck.gameObject.SetActive(false);
-            sariNpc.gameObject.SetActive(true);
             TaskManager.Instance.SetObjectives(day1SO.sariObjectiveArray);
             step = Step.None;
             SetState(State.Sari);
@@ -218,6 +241,21 @@ public class Day1Director : MonoBehaviour
             distributorNpc.gameObject.SetActive(false);
             step = Step.Leaving;
             truck.Leave();
+        }
+    }
+
+    private void PlayerActor_OnMoveFinished(object sender, EventArgs e)
+    {
+        if (step == Step.EveningWalkIn)
+        {
+            step = Step.EveningWhat;
+            DialogueManager.Instance.StartDialogue(null, day1SO.eveningWhatDialogueSO);
+        }
+        else if (step == Step.EveningWalkToFarm)
+        {
+            step = Step.EveningMonologue;
+            Player.Instance.FaceTowards(farmInspectPoint.position + farmInspectPoint.forward);
+            DialogueManager.Instance.StartDialogue(null, day1SO.eveningMonologueDialogueSO);
         }
     }
 
@@ -277,6 +315,20 @@ public class Day1Director : MonoBehaviour
             GameManager.Instance.SetState(GameManager.State.Cutscene);
             screenFade.Play(day1SO.nightCaption, 1.6f);
         }
+        else if (state == State.Night && step == Step.EveningWhat)
+        {
+            // the camera leaves the MC and pans over to the field
+            step = Step.EveningPan;
+            GameManager.Instance.SetState(GameManager.State.Cutscene);
+            stepTimer = farmPanDuration;
+        }
+        else if (state == State.Night && step == Step.EveningMonologue)
+        {
+            // back in control: walk home to end the day
+            step = Step.None;
+            houseDoor.SetLocked(false);
+            TaskManager.Instance.SetObjectives(day1SO.nightObjectiveArray);
+        }
     }
 
     // ---------- tutorial ----------
@@ -298,6 +350,9 @@ public class Day1Director : MonoBehaviour
         GameManager.Instance.SetState(GameManager.State.Cutscene);
         Player.Instance.FaceTowards(distributorNpc.transform.position);
         step = Step.Waving;
+        // Sari has come onto the bridge, right in the truck's way out
+        sariNpc.gameObject.SetActive(true);
+        sariActor.FaceTowards(truck.transform.position);
         SetState(State.Departure);
         distributorActor.PlayEmote(Emote.Wave);
         stepTimer = waveDuration;
@@ -319,6 +374,25 @@ public class Day1Director : MonoBehaviour
             step = Step.Walking;
             distributorActor.MoveTo(door, Vector3.Distance(distributorNpc.transform.position, door) / walkSpeed, 0f);
         }
+        else if (step == Step.EveningPan)
+        {
+            step = Step.EveningWalkToFarm;
+            WalkPlayerTo(farmInspectPoint.position);
+        }
+    }
+
+    // she dives off the road (z 0) to the south side of the bridge, still facing the truck
+    private void DodgeTruck()
+    {
+        hasSariDodged = true;
+        sariActor.MoveTo(sariNpc.transform.position + Vector3.back * sariDodgeSide, sariDodgeDuration, .5f);
+        sariActor.FaceTowards(truck.transform.position);
+        sariActor.PlayEmote(Emote.Dodge);
+    }
+
+    private void WalkPlayerTo(Vector3 target)
+    {
+        playerActor.MoveTo(target, Vector3.Distance(Player.Instance.transform.position, target) / walkSpeed, 0f);
     }
 
     // ---------- night ----------
@@ -333,6 +407,9 @@ public class Day1Director : MonoBehaviour
     public State GetState() => state;
     // the Distributor is fetching, carrying or setting down the Fabricator
     public bool IsDelivering() => step == Step.WalkingToTruck || step == Step.Lifting || step == Step.Carrying || step == Step.Placing;
+    // the evening at the farm, filmed from above: first the house front, then the field
+    public bool IsEveningCutscene() => step == Step.EveningWalkIn || step == Step.EveningWhat || IsFarmShot();
+    public bool IsFarmShot() => step == Step.EveningPan || step == Step.EveningWalkToFarm || step == Step.EveningMonologue;
 
     private void SetState(State state)
     {

@@ -14,13 +14,16 @@ public class Npc : MonoBehaviour, IInteractable
 
     public void Interact(Player player)
     {
-        DialogueSO dialogueSO = overrideDialogueSO != null ? overrideDialogueSO : hasTalked && npcSO.repeatDialogueSO != null ? npcSO.repeatDialogueSO : npcSO.firstDialogueSO;
+        DialogueSO dialogueSO = GetNextDialogue();
         hasTalked = true;
         DialogueManager.Instance.StartDialogue(this, dialogueSO);
     }
 
     // story beats swap what this character says (null = back to first/repeat)
     public void SetOverrideDialogue(DialogueSO dialogueSO) => overrideDialogueSO = dialogueSO;
+
+    // what the next talk will play
+    public DialogueSO GetNextDialogue() => overrideDialogueSO != null ? overrideDialogueSO : hasTalked && npcSO.repeatDialogueSO != null ? npcSO.repeatDialogueSO : npcSO.firstDialogueSO;
 
     public string GetPromptVerb() => promptVerb;
     public string GetBlockedReason() => string.Empty;

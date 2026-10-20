@@ -11,7 +11,7 @@ public static class GameDataBuilder
 
     public static ItemDataSO EmptyBottle, Water, Flower, Crop, SawitSeed;
     public static CropDataSO SawitLv1;
-    public static FabricatorPuzzleSO PuzzleIntro, PuzzleTutorial, PuzzleNormal;
+    public static FabricatorPuzzleSO PuzzleIntro, PuzzleTutorial, PuzzleNormal, PuzzleSplit;
     public static TaskObjectiveSO[] Tasks;
     public static NpcSO Ratna, Darto, Dimas, Ijah, Distributor;
     public static AudioClipRefsSO AudioRefs;
@@ -38,6 +38,7 @@ public static class GameDataBuilder
         EditorUtility.SetDirty(SawitLv1);
 
         BuildIntroPuzzle();
+        BuildDay1Extras();
         PuzzleTutorial = Puzzle("Puzzle_01_Tutorial", "First Press",
             "RRRRRRRRRRRRRR\nRWWWRFFFFRCCCR\nRWWWRFFFFRCCCR\nR###R####R###R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR##RMMMMMMR##R\nR##RMMMMMMR##R\nR##RMMMMMMR##R\nR##RRRRRRRR##R\nRRRRRRRRRRRRRR");
         PuzzleNormal = Puzzle("Puzzle_02_Rocks", "Rocky Road",
@@ -82,6 +83,7 @@ public static class GameDataBuilder
         PuzzleNormal = Load<FabricatorPuzzleSO>("Puzzles", "Puzzle_02_Rocks");
         Distributor = Load<NpcSO>("Npcs", "Distributor");
         BuildIntroPuzzle();
+        BuildDay1Extras();
         BuildDialogues();
         AssetDatabase.SaveAssets();
     }
@@ -99,6 +101,16 @@ public static class GameDataBuilder
         PuzzleIntro.hintFromCell = new Vector2Int(6, 3);
         PuzzleIntro.hintToCell = new Vector2Int(6, 12);
         EditorUtility.SetDirty(PuzzleIntro);
+    }
+
+    // the evening's grown sawit and the 4th press's puzzle: new assets no scene instance sits on, so both build paths make them
+    private static void BuildDay1Extras()
+    {
+        SawitLv1.grownPrefab = GrownSaplingModel().transform;
+        EditorUtility.SetDirty(SawitLv1);
+        // a rock cap splits the middle liquid onto the side streams, which meet again in a funnel over the mould
+        PuzzleSplit = Puzzle("Puzzle_03_Split", "Split Pipe",
+            "RRRRRRRRRRRRRR\nRWWWRFFFFRCCCR\nRWWWRFFFFRCCCR\nR###R####R###R\nR###R####R###R\nR###RR##RR###R\nR####R##R####R\nRRR##R##R##RRR\nR############R\nR####RRRR####R\nR############R\nR##RRR##RRR##R\nR############R\nRR##########RR\nRRR########RRR\nRRRRMMMMMMRRRR\nRRRRMMMMMMRRRR\nRRRRMMMMMMRRRR\nRRRRRRRRRRRRRR\nRRRRRRRRRRRRRR");
     }
 
     // Only the villagers' text (the assets keep their GUIDs). Safe to re-run on a hand-built scene.
@@ -242,6 +254,24 @@ public static class GameDataBuilder
         }
         Part(root.transform, "Glow", GrayboxMeshFactory.Blob(.09f, .12f), GrayboxPalette.Accent, new Vector3(0f, .5f, 0f));
         return SavePrefab(root, "Items", "Sapling_SawitLv1");
+    }
+
+    // the same palm one evening later: twice as tall, more and longer fronds
+    private static GameObject GrownSaplingModel()
+    {
+        GameObject root = Root("Sapling_SawitLv2");
+        Material leaf = GrayboxPalette.Lit("SawitLeaf", new Color(.56f, .74f, .36f));
+        Part(root.transform, "Trunk", GrayboxMeshFactory.Taper(.2f, .12f, 1.15f, .05f, 10), GrayboxPalette.Trunk, Vector3.zero);
+        Mesh frond = GrayboxMeshFactory.RoundedBox(new Vector3(.2f, .045f, 1.15f), .02f);
+        for (int i = 0; i < 11; i++)
+        {
+            Transform pivot = Root("Frond", root.transform).transform;
+            pivot.localPosition = new Vector3(0f, 1.1f, 0f);
+            pivot.localEulerAngles = new Vector3(i % 2 == 0 ? 32f : -8f, i * (360f / 11f), 0f);
+            PartCentered(pivot, "Leaf", frond, leaf, new Vector3(0f, 0f, .55f));
+        }
+        Part(root.transform, "Glow", GrayboxMeshFactory.Blob(.14f, .18f), GrayboxPalette.Accent, new Vector3(0f, 1.06f, 0f));
+        return SavePrefab(root, "Items", "Sapling_SawitLv2");
     }
 
     // ---------- asset helpers ----------

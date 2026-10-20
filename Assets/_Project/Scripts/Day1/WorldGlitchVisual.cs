@@ -12,7 +12,7 @@ public class WorldGlitchVisual : MonoBehaviour
     [SerializeField] private Day1Director director;
     [SerializeField] private Material[] corruptMaterialArray;
     [Tooltip("Seconds after Sari's objective appears, so the camera is back on the player.")]
-    [SerializeField] private float startDelay = 2.2f;
+    [SerializeField] private float startDelay = 1f;
     [SerializeField] private float duration = 1f;
     [Tooltip("The world updates in choppy steps, like a bad signal.")]
     [SerializeField] private float tickInterval = .05f;
@@ -155,6 +155,8 @@ public class WorldGlitchVisual : MonoBehaviour
 
     private void Tick(GlitchTarget target, float strength)
     {
+        // destroyed mid-glitch (e.g. a sapling swapped for its grown palm)
+        if (target.renderer == null) return;
         target.renderer.enabled = Random.value > .35f * strength;
         if (Random.value < .7f * strength)
         {

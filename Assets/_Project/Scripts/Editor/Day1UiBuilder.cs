@@ -5,7 +5,7 @@ using static GrayboxBuild;
 using static UiBuilder;
 
 // Day 1's extra HUD panels, added to the existing HUD canvas: the debt letter (HouseInterior), the Fabricator's
-// ghost-cursor hint (Level01) and the screen fade (both).
+// ghost-cursor hint and combo label (Level01) and the screen fade (both).
 public static class Day1UiBuilder
 {
     private static readonly Color Paper = new Color(.98f, .95f, .86f);
@@ -14,6 +14,7 @@ public static class Day1UiBuilder
     public static ScreenFadeUI BuildVillage(Transform canvas, FabricatorMiniGame miniGame)
     {
         BuildHint(canvas, miniGame);
+        BuildCombo(canvas, miniGame);
         return BuildFade(canvas); // last, so it draws over everything
     }
 
@@ -61,6 +62,20 @@ public static class Day1UiBuilder
         FabricatorHintUI ui = root.gameObject.AddComponent<FabricatorHintUI>();
         SetField(ui, "miniGame", miniGame);
         SetField(ui, "ring", ring.rectTransform);
+    }
+
+    private static void BuildCombo(Transform canvas, FabricatorMiniGame miniGame)
+    {
+        RectTransform root = Rect(canvas, "FabricatorComboUI", Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero);
+        root.gameObject.AddComponent<CanvasGroup>();
+        TextMeshProUGUI label = Text(root, "Label", "COMBO! +1 seed", 72, Accent, TextAlignmentOptions.Center, FontStyles.Bold);
+        // under the "Seed ready!" banner (UiBuilder: centre + (-150, 330)), outlined the same way
+        Place(label.rectTransform, Centre, new Vector2(-150f, 220f), new Vector2(900f, 100f));
+        label.outlineWidth = .22f;
+        label.outlineColor = new Color32(70, 55, 50, 255);
+        FabricatorComboUI ui = root.gameObject.AddComponent<FabricatorComboUI>();
+        SetField(ui, "miniGame", miniGame);
+        SetField(ui, "labelPop", label.gameObject.AddComponent<UIPop>());
     }
 
     private static ScreenFadeUI BuildFade(Transform canvas)

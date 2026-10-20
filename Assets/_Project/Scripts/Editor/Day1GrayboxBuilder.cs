@@ -21,7 +21,14 @@ public static class Day1GrayboxBuilder
     private static readonly Vector3 TruckExit = new Vector3(-45f, 0f, 0f);
     private static readonly Vector3 YardPosition = Level01SceneBuilder.PlayerHousePosition + new Vector3(0f, 0f, -4.4f);
     private static readonly Vector3 DistributorStand = Level01SceneBuilder.FabricatorPosition + new Vector3(1.6f, 0f, -.7f);
-    private static readonly Vector3 SariPosition = new Vector3(-17.2f, .34f, 0f);
+    // at the east end of the bridge, on the road: right in the leaving truck's way
+    private static readonly Vector3 SariPosition = new Vector3(-15.3f, 0f, -.4f);
+    // the house shot sits far enough west that no grown palm peeks in; the MC stops mid-field, clear of the dialogue box
+    private static readonly Vector3 EveningStart = new Vector3(.5f, 0f, 2.5f);
+    private static readonly Vector3 EveningStop = new Vector3(11.5f, 0f, 2.5f);
+    private static readonly Vector3 FarmInspect = new Vector3(18.6f, 0f, 6.5f);
+    private static readonly Vector3 HouseShot = new Vector3(10f, 0f, 4.5f);
+    private static readonly Vector3 FarmShot = new Vector3(22.5f, 0f, 4.5f);
 
     [MenuItem("Tools/Day1/Build Graybox")]
     public static void Build()
@@ -48,7 +55,12 @@ public static class Day1GrayboxBuilder
         Transform points = Root("Points", graybox).transform;
         // in front of the door step, facing the camera (south)
         Transform yardPoint = Point(points, "YardPoint", YardPosition, 180f);
-        Transform nightPlayerPoint = Point(points, "NightPlayerPoint", Level01SceneBuilder.PlayerHousePosition + new Vector3(0f, 0f, -6.2f), 0f);
+        // the evening walk: in from the west along the front of the house (south of the Fabricator), then over to the field
+        Transform eveningStartPoint = Point(points, "EveningStartPoint", EveningStart, 90f);
+        Transform eveningStopPoint = Point(points, "EveningStopPoint", EveningStop, 90f);
+        Transform farmInspectPoint = Point(points, "FarmInspectPoint", FarmInspect, 90f);
+        Transform houseShotPoint = Point(points, "HouseShotPoint", HouseShot, 0f);
+        Transform farmShotPoint = Point(points, "FarmShotPoint", FarmShot, 0f);
 
         DistributorTruck truck = SpawnTruck(graybox, points);
         Player player = Object.FindAnyObjectByType<Player>(FindObjectsInactive.Include);
@@ -59,10 +71,12 @@ public static class Day1GrayboxBuilder
         CutsceneActor distributorActor = EnsureActor(distributorNpc.gameObject, distributorNpc.GetComponentInChildren<NpcVisual>());
         distributorNpc.transform.position = DistributorStand;
         Npc sari = SpawnSari(graybox);
+        CutsceneActor sariActor = EnsureActor(sari.gameObject, sari.GetComponentInChildren<NpcVisual>());
         GameObject doorLamp = SpawnDoorLamp(graybox);
 
         HouseDoor houseDoor = Object.FindAnyObjectByType<HouseDoor>(FindObjectsInactive.Include);
         PatchDialogueUi();
+        PatchMiniGameVisual();
         Transform hud = Object.FindAnyObjectByType<HudUI>(FindObjectsInactive.Include).transform.parent;
         ScreenFadeUI fade = Day1UiBuilder.BuildVillage(hud, Object.FindAnyObjectByType<FabricatorMiniGame>(FindObjectsInactive.Include));
 
@@ -84,6 +98,11 @@ public static class Day1GrayboxBuilder
         CinemachineCamera deliveryCamera = ChaseCamera(director, "CM_Delivery", distributorNpc.transform, new Vector3(4f, 4f, -6f), 40f);
         deliveryCamera.GetComponent<CinemachineRotationComposer>().TargetOffset = new Vector3(0f, .8f, 0f);
         deliveryCamera.enabled = false;
+        // the evening at the usual gameplay angle (CM_Follow's offset and lens): the house front, then a pan over to the grown field
+        Transform eveningCameraTarget = Root("EveningCameraTarget", director).transform;
+        eveningCameraTarget.position = HouseShot;
+        CinemachineCamera eveningCamera = ChaseCamera(director, "CM_Evening", eveningCameraTarget, new Vector3(0f, 11f, -10.5f), 35f);
+        eveningCamera.enabled = false;
 
         Day1Director day1 = director.gameObject.AddComponent<Day1Director>();
         SetField(day1, "day1SO", Day1DataBuilder.Day1);
@@ -95,10 +114,14 @@ public static class Day1GrayboxBuilder
         SetField(day1, "distributorActor", distributorActor);
         SetField(day1, "playerActor", player.GetComponent<CutsceneActor>());
         SetField(day1, "sariNpc", sari);
+        SetField(day1, "sariActor", sariActor);
         SetField(day1, "houseDoor", houseDoor);
         SetField(day1, "yardPoint", yardPoint);
         SetField(day1, "distributorCarryPoint", CarryPoint(distributorNpc.transform));
-        SetField(day1, "nightPlayerPoint", nightPlayerPoint);
+        SetArray(day1, "farmPlotArray", Object.FindObjectsByType<FarmPlot>(FindObjectsInactive.Include));
+        SetField(day1, "eveningStartPoint", eveningStartPoint);
+        SetField(day1, "eveningStopPoint", eveningStopPoint);
+        SetField(day1, "farmInspectPoint", farmInspectPoint);
 
         Day1CameraVisual cameraVisual = director.gameObject.AddComponent<Day1CameraVisual>();
         SetField(cameraVisual, "director", day1);
@@ -109,6 +132,10 @@ public static class Day1GrayboxBuilder
         SetField(cameraVisual, "distributor", distributorNpc.transform);
         SetField(cameraVisual, "truck", truck);
         SetField(cameraVisual, "truckCameraTarget", truckCameraTarget);
+        SetField(cameraVisual, "eveningCamera", eveningCamera);
+        SetField(cameraVisual, "eveningCameraTarget", eveningCameraTarget);
+        SetField(cameraVisual, "houseShotPoint", houseShotPoint);
+        SetField(cameraVisual, "farmShotPoint", farmShotPoint);
         SetField(Object.FindAnyObjectByType<SoundManager>(FindObjectsInactive.Include), "truck", truck);
 
         WorldGlitchVisual glitch = director.gameObject.AddComponent<WorldGlitchVisual>();
@@ -141,7 +168,7 @@ public static class Day1GrayboxBuilder
 
     private static void RemovePreviousBuild()
     {
-        foreach (string name in new[] { GRAYBOX_ROOT, DIRECTOR_ROOT, "LetterUI", "FabricatorHintUI", "ScreenFadeUI" })
+        foreach (string name in new[] { GRAYBOX_ROOT, DIRECTOR_ROOT, "LetterUI", "FabricatorHintUI", "FabricatorComboUI", "ScreenFadeUI" })
         {
             GameObject old = GameObject.Find(name);
             while (old != null)
@@ -153,6 +180,7 @@ public static class Day1GrayboxBuilder
         // UI panels live on an inactive-safe canvas child: GameObject.Find skips inactive objects, so sweep those too
         foreach (LetterUI ui in Object.FindObjectsByType<LetterUI>(FindObjectsInactive.Include)) Object.DestroyImmediate(ui.gameObject);
         foreach (FabricatorHintUI ui in Object.FindObjectsByType<FabricatorHintUI>(FindObjectsInactive.Include)) Object.DestroyImmediate(ui.gameObject);
+        foreach (FabricatorComboUI ui in Object.FindObjectsByType<FabricatorComboUI>(FindObjectsInactive.Include)) Object.DestroyImmediate(ui.gameObject);
         foreach (ScreenFadeUI ui in Object.FindObjectsByType<ScreenFadeUI>(FindObjectsInactive.Include)) Object.DestroyImmediate(ui.gameObject);
     }
 
@@ -189,6 +217,13 @@ public static class Day1GrayboxBuilder
         DialogueUI ui = Object.FindAnyObjectByType<DialogueUI>(FindObjectsInactive.Include);
         foreach (Transform t in ui.GetComponentsInChildren<Transform>(true))
             if (t.name == "NpcPortrait") SetField(ui, "npcPortraitFrame", t.gameObject);
+    }
+
+    // whatever reaches the mould turns to oil
+    private static void PatchMiniGameVisual()
+    {
+        FabricatorMiniGameVisual visual = Object.FindAnyObjectByType<FabricatorMiniGameVisual>(FindObjectsInactive.Include);
+        SetField(visual, "oilMaterial", GrayboxPalette.Lit("LiquidOil", new Color(.07f, .11f, .06f), .95f));
     }
 
     // characters get a CutsceneActor so the director can hop them around and ask for emotes

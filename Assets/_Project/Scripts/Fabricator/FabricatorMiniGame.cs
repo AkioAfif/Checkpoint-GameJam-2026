@@ -26,11 +26,15 @@ public class FabricatorMiniGame : MonoBehaviour
     [SerializeField] private Camera puzzleCamera;
     [SerializeField] private float particleRadius = .12f;
     [SerializeField] private float digRadius = .55f;
+    [Tooltip("All three liquids finishing within this many seconds of each other is a combo.")]
+    [SerializeField] private float comboWindow = 1.5f;
 
     private FabricatorPuzzleSO puzzleSO;
     private readonly List<Rigidbody2D>[] particleListArray = { new List<Rigidbody2D>(), new List<Rigidbody2D>(), new List<Rigidbody2D>() };
     private readonly int[] inMouldCountArray = new int[LIQUID_COUNT];
     private readonly bool[] isLiquidUsedArray = new bool[LIQUID_COUNT];
+    // when each liquid first reached its target (-1 = not yet)
+    private readonly float[] doneTimeArray = new float[LIQUID_COUNT];
     private Rect mouldRect;
     private bool isRunning;
     private bool isSolved;
@@ -52,6 +56,8 @@ public class FabricatorMiniGame : MonoBehaviour
         if (countTimer > 0f) return;
         countTimer = COUNT_INTERVAL;
         CountMould();
+        for (int i = 0; i < LIQUID_COUNT; i++)
+            if (doneTimeArray[i] < 0f && GetLiquidProgress(i) >= 1f) doneTimeArray[i] = Time.time;
         if (IsEveryLiquidDone())
         {
             isSolved = true;
@@ -102,6 +108,19 @@ public class FabricatorMiniGame : MonoBehaviour
     // a puzzle may use only some of the liquids (the tutorial has just one)
     public bool IsLiquidUsed(int liquidIndex) => isLiquidUsedArray[liquidIndex];
 
+    // every liquid in play reached the mould at nearly the same moment (one-liquid puzzles never combo)
+    public bool IsCombo()
+    {
+        float first = float.MaxValue, last = float.MinValue;
+        for (int i = 0; i < LIQUID_COUNT; i++)
+        {
+            if (!isLiquidUsedArray[i] || doneTimeArray[i] < 0f) return false;
+            first = Mathf.Min(first, doneTimeArray[i]);
+            last = Mathf.Max(last, doneTimeArray[i]);
+        }
+        return last - first <= comboWindow;
+    }
+
     // 0..1 progress of one liquid toward its required amount
     public float GetLiquidProgress(int liquidIndex)
     {
@@ -117,6 +136,7 @@ public class FabricatorMiniGame : MonoBehaviour
         isSolved = false;
         hasPlayerDug = false;
         Array.Clear(inMouldCountArray, 0, LIQUID_COUNT);
+        for (int i = 0; i < LIQUID_COUNT; i++) doneTimeArray[i] = -1f;
 
         string[] rows = puzzleSO.GetRows();
         List<Vector3Int>[] sourceCellListArray = { new List<Vector3Int>(), new List<Vector3Int>(), new List<Vector3Int>() };
