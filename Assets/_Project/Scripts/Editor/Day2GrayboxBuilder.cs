@@ -153,7 +153,7 @@ public static class Day2GrayboxBuilder
         return doorLamp;
     }
 
-    private static void AddToBuildProfile(string scenePath)
+    public static void AddToBuildProfile(string scenePath)
     {
         EditorBuildSettingsScene[] scenes = EditorBuildSettings.scenes;
         if (scenes.Any(s => s.path == scenePath)) return;
@@ -211,7 +211,7 @@ public static class Day2GrayboxBuilder
     }
 
     // the shared environment/VFX prefabs as they are (re-saving them would reset every instance already in the scene)
-    private static GameObject Existing(string pathInPrefabs, System.Func<GameObject> build)
+    public static GameObject Existing(string pathInPrefabs, System.Func<GameObject> build)
     {
         GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{PREFABS}/{pathInPrefabs}.prefab");
         return prefab != null ? prefab : build();
@@ -282,7 +282,7 @@ public static class Day2GrayboxBuilder
 
     // ---------- helpers ----------
 
-    private static void RemoveRoots(params string[] names)
+    public static void RemoveRoots(params string[] names)
     {
         foreach (string name in names)
         {
@@ -303,7 +303,7 @@ public static class Day2GrayboxBuilder
         return null;
     }
 
-    private static Transform Point(Transform parent, string name, Vector3 position, float yaw)
+    public static Transform Point(Transform parent, string name, Vector3 position, float yaw)
     {
         GameObject go = Root(name, parent);
         go.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, yaw, 0f));

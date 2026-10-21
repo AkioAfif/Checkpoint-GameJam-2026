@@ -6135,6 +6135,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BedroomDirector
   day1SO: {fileID: 11400000, guid: f1df287a559b8f94b898ee1361d2022b, type: 2}
   day2SO: {fileID: 11400000, guid: 4b1391ae856a8df42a3accd56dd29c77, type: 2}
+  day3SO: {fileID: 11400000, guid: 259186b704d89cf478d20f5e457fe541, type: 2}
   bedsideLetter: {fileID: 2037318580}
   savingsBook: {fileID: 1887145974}
   savingsBookUI: {fileID: 1814996806}
@@ -6142,6 +6143,8 @@ MonoBehaviour:
   screenFade: {fileID: 544636502}
   playerActor: {fileID: 2096221894}
   wakeUpDuration: 2.4
+  isTestingDay2: 0
+  isTestingDay3: 0
 --- !u!4 &1225975154
 Transform:
   m_ObjectHideFlags: 0

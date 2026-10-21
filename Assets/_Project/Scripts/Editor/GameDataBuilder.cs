@@ -346,7 +346,7 @@ public static class GameDataBuilder
         AssetDatabase.RenameAsset(oldPath, newName);
     }
 
-    private static T Load<T>(string folder, string file) where T : Object
+    public static T Load<T>(string folder, string file) where T : Object
     {
         T asset = AssetDatabase.LoadAssetAtPath<T>($"{SO}/{folder}/{file}.asset");
         if (asset == null) Debug.LogError($"{folder}/{file}.asset is missing: run Tools > Level01 > Rebuild Scene first");

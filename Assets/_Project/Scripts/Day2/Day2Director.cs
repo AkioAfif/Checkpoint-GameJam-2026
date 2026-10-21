@@ -67,7 +67,7 @@ public class Day2Director : MonoBehaviour
         houseDoor.SetLocked(true);
         // no "Finish today's tasks first" over the player's head all day
         houseDoor.SetHidden(true);
-        houseDoor.SetNextScene(Loader.Scene.HouseInterior_Stub);
+        houseDoor.SetNextScene(Loader.Scene.HouseInterior);
         TaskManager.Instance.SetObjectives(day2SO.harvestObjectiveArray);
         Player.Instance.Teleport(morningPoint.position);
         Player.Instance.FaceTowards(morningPoint.position + morningPoint.forward);

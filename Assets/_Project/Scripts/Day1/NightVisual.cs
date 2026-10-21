@@ -6,6 +6,7 @@ public class NightVisual : MonoBehaviour
 {
     [SerializeField] private Day1Director director;
     [SerializeField] private Day2Director day2Director;
+    [SerializeField] private Day3Director day3Director;
     [SerializeField] private Light sun;
     [SerializeField] private Camera worldCamera;
     [SerializeField] private GameObject doorLamp;
@@ -24,6 +25,7 @@ public class NightVisual : MonoBehaviour
     {
         if (director != null) director.OnStateChanged += Director_OnStateChanged;
         if (day2Director != null) day2Director.OnStateChanged += Day2Director_OnStateChanged;
+        if (day3Director != null) day3Director.OnStateChanged += Day3Director_OnStateChanged;
         doorLamp.SetActive(false);
     }
 
@@ -60,6 +62,11 @@ public class NightVisual : MonoBehaviour
     private void Day2Director_OnStateChanged(object sender, Day2Director.OnStateChangedEventArgs e)
     {
         if (e.state == Day2Director.State.Night) BeginNight();
+    }
+
+    private void Day3Director_OnStateChanged(object sender, Day3Director.OnStateChangedEventArgs e)
+    {
+        if (e.state == Day3Director.State.Night) BeginNight();
     }
 
     private void BeginNight()

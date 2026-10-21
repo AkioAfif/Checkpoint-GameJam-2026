@@ -2,11 +2,13 @@ using System;
 using UnityEngine;
 
 // The morning in the HouseInterior scene: wake up, read what lies on the bedside table, think it over, then the door
-// leads out to that day's village scene. Day 1 is the debt letter; from Day 2 on it is the savings book.
+// leads out to that day's village scene. Day 1 is the debt letter; from Day 2 on it is the savings book. Day 3 opens two
+// weeks later, on a caption.
 public class BedroomDirector : MonoBehaviour
 {
     [SerializeField] private Day1SO day1SO;
     [SerializeField] private Day2SO day2SO;
+    [SerializeField] private Day3SO day3SO;
     [SerializeField] private BedsideLetter bedsideLetter;
     [SerializeField] private BedsideLetter savingsBook;
     [SerializeField] private SavingsBookUI savingsBookUI;
@@ -16,28 +18,36 @@ public class BedroomDirector : MonoBehaviour
     [SerializeField] private float wakeUpDuration = 2.4f;
     [Tooltip("Testing: play the Day 2 morning even though Day 1 wasn't played (Day 2's scene then fakes yesterday's palms).")]
     [SerializeField] private bool isTestingDay2;
+    [Tooltip("Testing: play the Day 3 morning even though Days 1 and 2 weren't played.")]
+    [SerializeField] private bool isTestingDay3;
 
     private float wakeUpTimer;
     private bool hasStarted;
-    private bool isDay2;
+    // 1, 2 or 3: which morning this is
+    private int day;
+    private bool isSkipCaptionPlaying;
     // today's thing to read on the bedside table
     private BedsideLetter readable;
 
     private void Start()
     {
-        if (isTestingDay2 && !WorldState.IsDay1Complete()) WorldState.CompleteDay1(new Vector3[0]);
-        isDay2 = WorldState.IsDay1Complete();
-        readable = isDay2 ? savingsBook : bedsideLetter;
-        (isDay2 ? bedsideLetter : savingsBook).gameObject.SetActive(false);
+        if ((isTestingDay2 || isTestingDay3) && !WorldState.IsDay1Complete()) WorldState.CompleteDay1(new Vector3[0]);
+        if (isTestingDay3 && !WorldState.IsDay2Complete()) WorldState.CompleteDay2();
+        day = WorldState.IsDay2Complete() ? 3 : WorldState.IsDay1Complete() ? 2 : 1;
+        readable = day > 1 ? savingsBook : bedsideLetter;
+        (day > 1 ? bedsideLetter : savingsBook).gameObject.SetActive(false);
         readable.OnClosed += Readable_OnClosed;
         savingsBook.OnOpened += SavingsBook_OnOpened;
         bedroomDoor.OnPassed += BedroomDoor_OnPassed;
         screenFade.OnBlack += ScreenFade_OnBlack;
+        screenFade.OnFinished += ScreenFade_OnFinished;
         DialogueManager.Instance.OnDialogueEnded += DialogueManager_OnDialogueEnded;
 
         bedroomDoor.SetLocked(true);
-        if (isDay2) WorldState.OpenAccounts(day2SO.startingSavings, day2SO.startingDebt, day2SO.daysUntilDue);
-        TaskManager.Instance.SetObjectives(isDay2 ? day2SO.morningObjectiveArray : day1SO.letterObjectiveArray);
+        if (day > 1) WorldState.OpenAccounts(day2SO.startingSavings, day2SO.startingDebt, day2SO.daysUntilDue);
+        if (day == 3) WorldState.SkipTime(day3SO.paidDuringSkip, day3SO.daysUntilDue);
+        isSkipCaptionPlaying = day == 3;
+        TaskManager.Instance.SetObjectives(day > 1 ? day2SO.morningObjectiveArray : day1SO.letterObjectiveArray);
     }
 
     private void Update()
@@ -46,9 +56,9 @@ public class BedroomDirector : MonoBehaviour
         if (!hasStarted)
         {
             hasStarted = true;
-            wakeUpTimer = wakeUpDuration;
             GameManager.Instance.SetState(GameManager.State.Cutscene);
-            playerActor.PlayEmote(Emote.WakeUp);
+            if (isSkipCaptionPlaying) screenFade.Play(day3SO.skipCaption, 2f);
+            else WakeUp();
         }
         if (wakeUpTimer <= 0f) return;
         wakeUpTimer -= Time.deltaTime;
@@ -64,7 +74,7 @@ public class BedroomDirector : MonoBehaviour
 
     private void Readable_OnClosed(object sender, EventArgs e)
     {
-        DialogueManager.Instance.StartDialogue(null, isDay2 ? day2SO.morningDialogueSO : day1SO.monologueDialogueSO);
+        DialogueManager.Instance.StartDialogue(null, day == 3 ? day3SO.morningDialogueSO : day == 2 ? day2SO.morningDialogueSO : day1SO.monologueDialogueSO);
     }
 
     private void DialogueManager_OnDialogueEnded(object sender, DialogueManager.OnDialogueEventArgs e)
@@ -81,5 +91,23 @@ public class BedroomDirector : MonoBehaviour
         screenFade.Play(string.Empty, .3f);
     }
 
-    private void ScreenFade_OnBlack(object sender, EventArgs e) => Loader.Load(isDay2 ? Loader.Scene.Level01_Day2 : Loader.Scene.Level01_VillagePrototype);
+    private void ScreenFade_OnBlack(object sender, EventArgs e)
+    {
+        // the same fade shows the time-skip caption first thing in the morning
+        if (isSkipCaptionPlaying) return;
+        Loader.Load(day == 3 ? Loader.Scene.Level01_Day3 : day == 2 ? Loader.Scene.Level01_Day2 : Loader.Scene.Level01_VillagePrototype);
+    }
+
+    private void ScreenFade_OnFinished(object sender, EventArgs e)
+    {
+        if (!isSkipCaptionPlaying) return;
+        isSkipCaptionPlaying = false;
+        WakeUp();
+    }
+
+    private void WakeUp()
+    {
+        wakeUpTimer = wakeUpDuration;
+        playerActor.PlayEmote(Emote.WakeUp);
+    }
 }

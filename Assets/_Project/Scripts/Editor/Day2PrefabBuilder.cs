@@ -60,6 +60,9 @@ public static class Day2PrefabBuilder
     // one evening later: taller than Day 1's palms, more fronds, the red heart showing
     public static GameObject GrownPalmLv2() => Palm("Palm_SawitLv2_Grown", .26f, .15f, 1.55f, new Vector3(.22f, .05f, 1.45f), 13, SawitLeafLv2, GlowLv2, false);
 
+    // Day 3, two weeks on: the Lv.2 palm heavy with fruit
+    public static GameObject RipePalmLv2() => Palm("Palm_SawitLv2_Ripe", .26f, .15f, 1.55f, new Vector3(.22f, .05f, 1.45f), 13, SawitLeafLv2, GlowLv2, true);
+
     private static GameObject Palm(string name, float trunkBottom, float trunkTop, float trunkHeight, Vector3 frondSize, int frondCount, Material leaf, Material glow, bool hasFruit)
     {
         GameObject root = Root(name);

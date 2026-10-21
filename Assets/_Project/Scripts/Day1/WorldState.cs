@@ -10,6 +10,8 @@ public static class WorldState
 
     private static bool isDay1Complete;
     private static bool isDay2Complete;
+    private static bool isDay3Complete;
+    private static bool hasSkippedTime;
     private static bool isFabricatorPlaced;
     // where Day 1's saplings stand; they are ripe the next morning
     private static readonly List<Vector3> plantedPositionList = new List<Vector3>();
@@ -29,6 +31,7 @@ public static class WorldState
     }
 
     public static void CompleteDay2() => isDay2Complete = true;
+    public static void CompleteDay3() => isDay3Complete = true;
 
     // later calls keep the running totals
     public static void OpenAccounts(long startingSavings, long startingDebt, int startingDaysUntilDue)
@@ -47,8 +50,26 @@ public static class WorldState
         debt = System.Math.Max(0L, debt - amount);
     }
 
+    // the weeks between Day 2 and Day 3: the harvests in between went to the lender (applied once)
+    public static void SkipTime(long paidMeanwhile, int newDaysUntilDue)
+    {
+        if (hasSkippedTime) return;
+        hasSkippedTime = true;
+        debt = System.Math.Max(0L, debt - paidMeanwhile);
+        daysUntilDue = newDaysUntilDue;
+        earnedToday = 0L;
+    }
+
+    // paid out of today's sales, so that much less reaches the lender
+    public static void Spend(long amount)
+    {
+        earnedToday -= amount;
+        debt += amount;
+    }
+
     public static bool IsDay1Complete() => isDay1Complete;
     public static bool IsDay2Complete() => isDay2Complete;
+    public static bool IsDay3Complete() => isDay3Complete;
     public static bool IsFabricatorPlaced() => isFabricatorPlaced;
     public static int GetSaplingCount() => plantedPositionList.Count;
 
@@ -71,6 +92,8 @@ public static class WorldState
     {
         isDay1Complete = false;
         isDay2Complete = false;
+        isDay3Complete = false;
+        hasSkippedTime = false;
         isFabricatorPlaced = false;
         plantedPositionList.Clear();
         hasAccounts = false;

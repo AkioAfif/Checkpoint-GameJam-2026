@@ -28,7 +28,7 @@ public static class Day2DataBuilder
         lv1.harvestItemDataSO = SawitBunch;
         EditorUtility.SetDirty(lv1);
 
-        // shortcut: no ripe model or harvest yet, Day 3 (Chapter 2) adds them when these palms first bear fruit
+        // the ripe model and harvest come with Day 3 (Day3DataBuilder), when these palms first bear fruit
         SawitLv2 = GameDataBuilder.Asset<CropDataSO>("Crops", "SawitLv2");
         SawitLv2.cropName = "Sawit Lv.2";
         SawitLv2.seedItemDataSO = SawitSeedLv2;
@@ -95,6 +95,17 @@ public static class Day2DataBuilder
         Day2.nightObjectiveArray = new[] { home };
         EditorUtility.SetDirty(Day2);
         AssetDatabase.SaveAssets();
+    }
+
+    // Day 2's assets as they are, for later days' builders (Build would re-save their prefabs and reset the scene instances)
+    public static void LoadAll()
+    {
+        Day2 = GameDataBuilder.Load<Day2SO>("Day2", "Day2");
+        Rigel = GameDataBuilder.Load<NpcSO>("Npcs", "Rigel");
+        Resin = GameDataBuilder.Load<ItemDataSO>("Items", "Resin");
+        SawitBunch = GameDataBuilder.Load<ItemDataSO>("Items", "SawitBunch");
+        SawitSeedLv2 = GameDataBuilder.Load<ItemDataSO>("Items", "SawitSeedLv2");
+        SawitLv2 = GameDataBuilder.Load<CropDataSO>("Crops", "SawitLv2");
     }
 
     public static void BakeIcons() => GrayboxIconBaker.BakeIcons(new[] { Resin, SawitBunch, SawitSeedLv2 });
