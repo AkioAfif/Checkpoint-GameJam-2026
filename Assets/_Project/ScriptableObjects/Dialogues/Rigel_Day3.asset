@@ -17,14 +17,17 @@ MonoBehaviour:
     text: Fine. You won the bet.
     playerEmote: 0
     npcEmote: 0
+    isShaking: 0
   - speaker: 1
     text: ...This week.
     playerEmote: 0
     npcEmote: 13
+    isShaking: 0
   - speaker: 0
     text: Next week too.
     playerEmote: 14
     npcEmote: 0
+    isShaking: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

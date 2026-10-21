@@ -12,16 +12,23 @@ public class Day3SO : ScriptableObject
     [Tooltip("Debt when Level01_Day3 is played without the days before it.")]
     public long testStartingDebt = 46000000;
 
-    [Header("Land")]
-    public long landPrice = 4000000;
-
     [Header("Dialogue")]
     // after the savings book in the bedroom
     public DialogueSO morningDialogueSO;
-    // after the first sale at the ICAN crate
-    public DialogueSO soldDialogueSO;
-    // Darto at the For Sale sign; the purchase happens when it ends
-    public DialogueSO dartoSellsLandDialogueSO;
+    // the new land, after the first sale: looking at the empty grass
+    public DialogueSO landWishDialogueSO;
+    // the grayscale flashback (the Distributor speaks)
+    public DialogueSO flashbackDialogueSO;
+    // back in the present, before eating
+    public DialogueSO tryEatDialogueSO;
+    // [Interact] to eat with no Lv.2 bunch left
+    public DialogueSO noBunchDialogueSO;
+    // Rigel, sprinting over (a shaking line)
+    public DialogueSO rigelShoutDialogueSO;
+    // after the glitch (Rigel speaks too)
+    public DialogueSO buffDialogueSO;
+    // Rigel, backing off toward his house
+    public DialogueSO rigelPretendDialogueSO;
     // optional talks while the player works
     public DialogueSO ratnaDialogueSO;
     public DialogueSO ijahDialogueSO;
@@ -33,7 +40,8 @@ public class Day3SO : ScriptableObject
 
     [Header("Checklists")]
     public TaskObjectiveSO[] harvestObjectiveArray;
-    public TaskObjectiveSO[] buyLandObjectiveArray;
+    public TaskObjectiveSO[] eatObjectiveArray;
+    public TaskObjectiveSO[] smashObjectiveArray;
     public TaskObjectiveSO[] plantObjectiveArray;
     public TaskObjectiveSO[] nightObjectiveArray;
 

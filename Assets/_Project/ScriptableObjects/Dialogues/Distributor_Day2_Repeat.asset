@@ -17,6 +17,7 @@ MonoBehaviour:
     text: Keep pressing, farmer. I'm counting every seed.
     playerEmote: 0
     npcEmote: 1
+    isShaking: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

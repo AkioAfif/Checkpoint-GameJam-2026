@@ -14,17 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   lineArray:
   - speaker: 0
-    text: A good day... and half of it went straight back into the land.
+    text: A good day. And the new strip cost me nothing but one sawit.
     playerEmote: 0
     npcEmote: 0
+    isShaking: 0
   - speaker: 0
     text: Two weeks of harvests barely moved the debt. Sixteen more days won't do it either.
     playerEmote: 0
     npcEmote: 0
+    isShaking: 0
   - speaker: 0
-    text: The field is too small. Even with Darto's strip.
+    text: The field is still too small.
     playerEmote: 10
     npcEmote: 0
+    isShaking: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

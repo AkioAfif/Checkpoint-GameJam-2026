@@ -2,16 +2,17 @@ using System;
 using UnityEngine;
 
 // Runs "Day 3: Room to Grow" in the village (the morning savings book is BedroomDirector in HouseInterior).
-// Two weeks after Day 2: harvest the Lv.2 field, sell it, buy Darto's strip by the forest, press seeds and plant it.
+// Two weeks after Day 2: harvest the Lv.2 field, sell it, raise a new strip by the forest with your bare fists (LandSequence),
+// press seeds and plant it.
 // The evening's savings book shows it still isn't enough, and the camera turns to the trees.
 public class Day3Director : MonoBehaviour
 {
     public event EventHandler<OnStateChangedEventArgs> OnStateChanged;
     public class OnStateChangedEventArgs : EventArgs { public State state; }
 
-    // Harvest: pick the ripe field and sell it at the ICAN crate. BuyLand: Darto waits at his For Sale sign.
+    // Harvest: pick the ripe field and sell it at the ICAN crate. NewLand: the LandSequence (eat a sawit, smash the ground).
     // Plant: press seeds and fill the new strip. Night: the savings book, the math, the forest, then home.
-    public enum State { Harvest, BuyLand, Plant, Night, Done }
+    public enum State { Harvest, NewLand, Plant, Night, Done }
 
     // the sub-steps of the evening
     private enum Step { None, Book, Math, ForestShot, Hook }
@@ -28,11 +29,9 @@ public class Day3Director : MonoBehaviour
     [SerializeField] private CropDataSO oldFieldCropDataSO;
     [SerializeField] private FarmPlot[] fieldPlotArray;
     [SerializeField] private FarmPlot[] landPlotArray;
-    [Tooltip("Hidden until the strip is bought (the new plots).")]
+    [Tooltip("Hidden until the MC pounds it out of the ground (the new plots).")]
     [SerializeField] private GameObject landPlotsRoot;
-    [Tooltip("Shown until the strip is bought.")]
-    [SerializeField] private GameObject forSaleSign;
-    [SerializeField] private Npc dartoNpc;
+    [SerializeField] private LandSequence landSequence;
     [SerializeField] private Npc ratnaNpc;
     [SerializeField] private Npc ijahNpc;
     [SerializeField] private Npc rigelNpc;
@@ -50,8 +49,7 @@ public class Day3Director : MonoBehaviour
     private float stepTimer = -1f;
     private bool hasStarted;
     private bool isNightFadePlaying;
-    private bool isSoldPending;
-    private bool isSoldDialogueActive;
+    private bool isNewLandPending;
     private bool isNightPending;
 
     private void Start()
@@ -62,6 +60,7 @@ public class Day3Director : MonoBehaviour
         TaskManager.Instance.OnRequiredTasksCompleted += TaskManager_OnRequiredTasksCompleted;
         houseDoor.OnStateChanged += HouseDoor_OnStateChanged;
         SellCrate.OnAnySold += SellCrate_OnAnySold;
+        landSequence.OnFinished += LandSequence_OnFinished;
 
         // both no-ops when the bedroom already did them this morning
         WorldState.OpenAccounts(testStartingSavings, day3SO.testStartingDebt, day3SO.daysUntilDue);
@@ -101,11 +100,11 @@ public class Day3Director : MonoBehaviour
 
         // beats triggered during free play wait until nothing else (a discovery card, a planting) holds the player
         if (GameManager.Instance.GetState() != GameManager.State.Playing) return;
-        if (isSoldPending)
+        if (isNewLandPending)
         {
-            isSoldPending = false;
-            isSoldDialogueActive = true;
-            DialogueManager.Instance.StartDialogue(null, day3SO.soldDialogueSO);
+            isNewLandPending = false;
+            SetState(State.NewLand);
+            landSequence.Play();
         }
         else if (isNightPending)
         {
@@ -132,31 +131,13 @@ public class Day3Director : MonoBehaviour
 
     private void TaskManager_OnRequiredTasksCompleted(object sender, EventArgs e)
     {
-        if (state == State.Harvest) isSoldPending = true;
+        if (state == State.Harvest) isNewLandPending = true;
         else if (state == State.Plant) isNightPending = true;
     }
 
     private void DialogueManager_OnDialogueEnded(object sender, DialogueManager.OnDialogueEventArgs e)
     {
-        if (state == State.Harvest && isSoldDialogueActive)
-        {
-            isSoldDialogueActive = false;
-            dartoNpc.SetOverrideDialogue(day3SO.dartoSellsLandDialogueSO);
-            TaskManager.Instance.SetObjectives(day3SO.buyLandObjectiveArray);
-            SetState(State.BuyLand);
-        }
-        else if (state == State.BuyLand && e.npc == dartoNpc)
-        {
-            // the handshake: paid out of today's sales, and the strip is the MC's
-            TaskManager.Instance.CompleteStory();
-            WorldState.Spend(day3SO.landPrice);
-            dartoNpc.SetOverrideDialogue(null);
-            forSaleSign.SetActive(false);
-            landPlotsRoot.SetActive(true);
-            TaskManager.Instance.SetObjectives(day3SO.plantObjectiveArray);
-            SetState(State.Plant);
-        }
-        else if (state == State.Night && step == Step.Math)
+        if (state == State.Night && step == Step.Math)
         {
             step = Step.ForestShot;
             GameManager.Instance.SetState(GameManager.State.Cutscene);
@@ -170,6 +151,13 @@ public class Day3Director : MonoBehaviour
             houseDoor.SetLocked(false);
             TaskManager.Instance.SetObjectives(day3SO.nightObjectiveArray);
         }
+    }
+
+    // the strip is out of the ground and the player is free again
+    private void LandSequence_OnFinished(object sender, EventArgs e)
+    {
+        TaskManager.Instance.SetObjectives(day3SO.plantObjectiveArray);
+        SetState(State.Plant);
     }
 
     // ---------- night ----------

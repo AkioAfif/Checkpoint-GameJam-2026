@@ -16,10 +16,14 @@ MonoBehaviour:
   paidDuringSkip: 9000000
   daysUntilDue: 16
   testStartingDebt: 46000000
-  landPrice: 4000000
   morningDialogueSO: {fileID: 11400000, guid: 30f9d65e07195f04c86406036dcae6de, type: 2}
-  soldDialogueSO: {fileID: 11400000, guid: 2d2d0fd6e42e1da4a88b468bf36c086d, type: 2}
-  dartoSellsLandDialogueSO: {fileID: 11400000, guid: 96accdfb348b17c4d87fae4e2d5cea9d, type: 2}
+  landWishDialogueSO: {fileID: 11400000, guid: 9d56d1c239f460a4cb15aad9ed740576, type: 2}
+  flashbackDialogueSO: {fileID: 11400000, guid: cfa70dd720be69342a5de55581c60d58, type: 2}
+  tryEatDialogueSO: {fileID: 11400000, guid: 98a74d4c01f9f504487d8ff46e0cc876, type: 2}
+  noBunchDialogueSO: {fileID: 11400000, guid: 023f235343e77d245a9d4ef0cc5ceb1a, type: 2}
+  rigelShoutDialogueSO: {fileID: 11400000, guid: c88b3ee8a10ac544ba09adfe321e83c2, type: 2}
+  buffDialogueSO: {fileID: 11400000, guid: af21fbc927a43dd4cb58f52fdf4a08bd, type: 2}
+  rigelPretendDialogueSO: {fileID: 11400000, guid: afc978386c00df041a781203504b26bf, type: 2}
   ratnaDialogueSO: {fileID: 11400000, guid: 4095af28314aa4340a35cede109848c1, type: 2}
   ijahDialogueSO: {fileID: 11400000, guid: 90ae6ac4f78deff4aa4fa51aff0ae0d8, type: 2}
   rigelDialogueSO: {fileID: 11400000, guid: 5569c480d615cac47a0c4788bc380313, type: 2}
@@ -28,8 +32,10 @@ MonoBehaviour:
   harvestObjectiveArray:
   - {fileID: 11400000, guid: a9a705c3405917349aac435c2a900e61, type: 2}
   - {fileID: 11400000, guid: 45164ad1c95bc494f91f2c76d28792c9, type: 2}
-  buyLandObjectiveArray:
-  - {fileID: 11400000, guid: 371e2d49f75bbe8428a0d4eaecff2f87, type: 2}
+  eatObjectiveArray:
+  - {fileID: 11400000, guid: 12c71c9c545b900449f6389917e6d61d, type: 2}
+  smashObjectiveArray:
+  - {fileID: 11400000, guid: 44a1e88822927d444adb04fc546c1fda, type: 2}
   plantObjectiveArray:
   - {fileID: 11400000, guid: f765a24f12d9968489174bb2fa7a4f23, type: 2}
   - {fileID: 11400000, guid: 8edcbf1090b9f0542b1cab12f8241a07, type: 2}

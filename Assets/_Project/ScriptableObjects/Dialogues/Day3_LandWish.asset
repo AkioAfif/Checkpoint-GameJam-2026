@@ -10,17 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e0ce3e543780b04dba488492949ce28, type: 3}
-  m_Name: Day3_Sold
+  m_Name: Day3_LandWish
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   lineArray:
   - speaker: 0
-    text: The resin palms sell for even more than the old ones.
-    playerEmote: 4
+    text: If only I could add more land there...
+    playerEmote: 0
     npcEmote: 0
+    isShaking: 0
   - speaker: 0
-    text: If I had more field, I could double it.
-    playerEmote: 6
+    text: But I don't have the strength or the time to build a new field.
+    playerEmote: 10
     npcEmote: 0
+    isShaking: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

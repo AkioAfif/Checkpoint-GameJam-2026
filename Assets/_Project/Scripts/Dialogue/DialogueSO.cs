@@ -14,6 +14,8 @@ public class DialogueSO : ScriptableObject
         // reactions played on the 3D portraits when this line appears (None = no animation)
         public Emote playerEmote;
         public Emote npcEmote;
+        // every letter trembles (a shout in shock)
+        public bool isShaking;
     }
 
     public DialogueLine[] lineArray;

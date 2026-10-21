@@ -60,13 +60,6 @@ public static class WorldState
         earnedToday = 0L;
     }
 
-    // paid out of today's sales, so that much less reaches the lender
-    public static void Spend(long amount)
-    {
-        earnedToday -= amount;
-        debt += amount;
-    }
-
     public static bool IsDay1Complete() => isDay1Complete;
     public static bool IsDay2Complete() => isDay2Complete;
     public static bool IsDay3Complete() => isDay3Complete;

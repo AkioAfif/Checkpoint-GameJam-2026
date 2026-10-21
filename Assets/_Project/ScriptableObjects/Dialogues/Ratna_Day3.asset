@@ -17,10 +17,12 @@ MonoBehaviour:
     text: The whole village is talking about your sawit! My boy wants to be a farmer now.
     playerEmote: 0
     npcEmote: 14
+    isShaking: 0
   - speaker: 0
     text: Thank you, Bu Ratna!
     playerEmote: 1
     npcEmote: 0
+    isShaking: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

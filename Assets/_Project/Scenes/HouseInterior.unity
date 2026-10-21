@@ -998,6 +998,7 @@ MonoBehaviour:
   boxPop: {fileID: 1603277356}
   playerName: You
   playerTagColor: {r: 0.52, g: 0.67, b: 0.88, a: 1}
+  shakeAmount: 2.5
 --- !u!225 &186395878
 CanvasGroup:
   m_ObjectHideFlags: 0

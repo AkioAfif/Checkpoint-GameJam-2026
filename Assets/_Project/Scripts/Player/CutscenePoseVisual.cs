@@ -1,0 +1,93 @@
+using UnityEngine;
+
+// Bends the Chibi rig into the cutscene poses it has no clip for (eating, pounding the ground, adjusting glasses), after the
+// Animator so the pose wins over idle/walk. A punch slams the raised arms down and lets them swing back up.
+public class CutscenePoseVisual : MonoBehaviour
+{
+    [SerializeField] private CutsceneActor cutsceneActor;
+    [SerializeField] private Animator animator;
+    [SerializeField] private float blendSpeed = 6f;
+    [SerializeField] private float punchDuration = .3f;
+    [Tooltip("How far the hips drop in a crouch (metres).")]
+    [SerializeField] private float crouchDrop = .22f;
+
+    private Transform hips;
+    private Transform head;
+    private Transform armL;
+    private Transform armR;
+    private Vector3 hipsRestLocalPosition;
+    private CutscenePose shownPose;
+    private float weight;
+    private float punchTimer;
+    private int punchCount;
+
+    private void Start()
+    {
+        hips = animator.transform.Find("Hips");
+        head = animator.transform.Find("Hips/Head");
+        armL = animator.transform.Find("Hips/ArmL");
+        armR = animator.transform.Find("Hips/ArmR");
+        hipsRestLocalPosition = hips.localPosition;
+        cutsceneActor.OnPunch += CutsceneActor_OnPunch;
+    }
+
+    private void LateUpdate()
+    {
+        CutscenePose pose = cutsceneActor.GetPose();
+        // fade out of the last pose before showing a new one
+        if (pose != shownPose && weight <= 0f) shownPose = pose;
+        weight = Mathf.MoveTowards(weight, pose == shownPose && pose != CutscenePose.None ? 1f : 0f, blendSpeed * Time.deltaTime);
+        punchTimer = Mathf.Max(0f, punchTimer - Time.deltaTime);
+        if (weight <= 0f) return;
+
+        // 1 the instant a punch lands, back to 0 as the arm swings up again
+        float punch = punchTimer / punchDuration;
+        bool isLeftPunch = punchCount % 2 == 0;
+        Vector3 headEuler = Vector3.zero, armLEuler = new Vector3(0f, 0f, -6f), armREuler = new Vector3(0f, 0f, 6f);
+        float drop = 0f;
+        switch (shownPose)
+        {
+            case CutscenePose.Realise:
+                // looks up, one hand raised in front: an idea
+                headEuler = new Vector3(-12f, 0f, 0f);
+                armREuler = new Vector3(-125f, 0f, -12f);
+                break;
+            case CutscenePose.Eat:
+                // both hands at the mouth, chewing
+                headEuler = new Vector3(Mathf.Sin(Time.time * 18f) * 7f, 0f, 0f);
+                armLEuler = new Vector3(-120f, 0f, 18f);
+                armREuler = new Vector3(-120f, 0f, -18f);
+                break;
+            case CutscenePose.Crouch:
+                // fists raised, one slams the ground per punch (left, right, left...)
+                drop = crouchDrop;
+                headEuler = new Vector3(18f, 0f, 0f);
+                armLEuler = new Vector3(Mathf.Lerp(-150f, -25f, isLeftPunch ? punch : 0f), 0f, -10f);
+                armREuler = new Vector3(Mathf.Lerp(-150f, -25f, isLeftPunch ? 0f : punch), 0f, 10f);
+                break;
+            case CutscenePose.OverheadSmash:
+                // both fists high over the head, then the double-handed slam
+                drop = crouchDrop * .5f;
+                headEuler = new Vector3(Mathf.Lerp(-10f, 22f, punch), 0f, 0f);
+                armLEuler = new Vector3(Mathf.Lerp(-178f, -30f, punch), 0f, -4f);
+                armREuler = new Vector3(Mathf.Lerp(-178f, -30f, punch), 0f, 4f);
+                break;
+            case CutscenePose.AdjustGlasses:
+                // one finger pushing the glasses up the nose
+                headEuler = new Vector3(6f, 0f, 0f);
+                armREuler = new Vector3(-150f, 0f, -28f);
+                break;
+        }
+        head.localRotation = Quaternion.Slerp(head.localRotation, Quaternion.Euler(headEuler), weight);
+        armL.localRotation = Quaternion.Slerp(armL.localRotation, Quaternion.Euler(armLEuler), weight);
+        armR.localRotation = Quaternion.Slerp(armR.localRotation, Quaternion.Euler(armREuler), weight);
+        Vector3 crouched = hipsRestLocalPosition + hips.parent.InverseTransformVector(Vector3.down * drop);
+        hips.localPosition = Vector3.Lerp(hips.localPosition, crouched, weight);
+    }
+
+    private void CutsceneActor_OnPunch(object sender, System.EventArgs e)
+    {
+        punchCount++;
+        punchTimer = punchDuration;
+    }
+}

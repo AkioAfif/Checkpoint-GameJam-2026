@@ -15,9 +15,12 @@ public class DialogueUI : MonoBehaviour
     [SerializeField] private UIPop boxPop;
     [SerializeField] private string playerName = "You";
     [SerializeField] private Color playerTagColor = new Color(.52f, .67f, .88f);
+    [Tooltip("How far (pixels) each letter of a shaking line trembles.")]
+    [SerializeField] private float shakeAmount = 2.5f;
 
     private CanvasGroup canvasGroup;
     private Color npcTagColor;
+    private bool isShaking;
 
     private void Awake()
     {
@@ -39,6 +42,7 @@ public class DialogueUI : MonoBehaviour
         bool isRevealed = DialogueManager.Instance.IsLineFullyRevealed();
         continueIndicator.SetActive(isRevealed);
         if (isRevealed) continueIndicator.transform.localPosition = new Vector3(0f, Mathf.Sin(Time.unscaledTime * 6f) * 4f, 0f);
+        if (isShaking) ShakeLetters();
     }
 
     private void OnDestroy()
@@ -67,6 +71,23 @@ public class DialogueUI : MonoBehaviour
         nameTagImage.color = isPlayer ? playerTagColor : npcTagColor;
         lineText.text = e.line.text;
         lineText.maxVisibleCharacters = 0;
+        isShaking = e.line.isShaking;
+    }
+
+    // jitters every visible letter's vertices from the freshly generated mesh, so the offsets never pile up
+    private void ShakeLetters()
+    {
+        lineText.ForceMeshUpdate();
+        TMP_TextInfo textInfo = lineText.textInfo;
+        for (int i = 0; i < textInfo.characterCount; i++)
+        {
+            TMP_CharacterInfo character = textInfo.characterInfo[i];
+            if (!character.isVisible) continue;
+            Vector3 offset = new Vector3(UnityEngine.Random.Range(-shakeAmount, shakeAmount), UnityEngine.Random.Range(-shakeAmount, shakeAmount), 0f);
+            Vector3[] vertices = textInfo.meshInfo[character.materialReferenceIndex].vertices;
+            for (int v = 0; v < 4; v++) vertices[character.vertexIndex + v] += offset;
+        }
+        lineText.UpdateVertexData(TMP_VertexDataUpdateFlags.Vertices);
     }
 
     private void Hide() => canvasGroup.SetVisible(false);

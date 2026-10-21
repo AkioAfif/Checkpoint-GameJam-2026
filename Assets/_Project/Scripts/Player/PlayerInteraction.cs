@@ -51,6 +51,8 @@ public class PlayerInteraction : MonoBehaviour
         selected.Interact(player);
     }
 
+    public bool HasSelected() => selected != null;
+
     // best = most in front of the player, then closest
     private IInteractable FindBest()
     {

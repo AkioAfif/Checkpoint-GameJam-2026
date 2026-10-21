@@ -17,10 +17,12 @@ MonoBehaviour:
     text: Two weeks of harvests... and it barely dents the number.
     playerEmote: 10
     npcEmote: 0
+    isShaking: 0
   - speaker: 0
     text: Sixteen days left. I need more land.
     playerEmote: 0
     npcEmote: 0
+    isShaking: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

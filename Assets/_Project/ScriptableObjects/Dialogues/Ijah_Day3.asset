@@ -17,10 +17,12 @@ MonoBehaviour:
     text: Ah, the young one who saved the farm. Come eat with us sometime.
     playerEmote: 0
     npcEmote: 1
+    isShaking: 0
   - speaker: 0
     text: I will, Nek Ijah. Once the debt is paid.
     playerEmote: 0
     npcEmote: 0
+    isShaking: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

@@ -15,6 +15,10 @@ public static class GrayboxTextures
     // 9-sliced rounded panel for every UI box
     public static Sprite RoundedPanel => GetOrCreate("RoundedPanel", 64, 24, (x, y) => Edge(RoundedRect(x, y, 24f / 32f), 64));
 
+    // Day 3's crater: a dark pit with a ragged rim and cracks running out of it
+    public static Sprite Crater => GetOrCreate("Crater", 256, 0, CraterAlpha);
+    // Day 3's glasses glint: a four-point anime star
+    public static Sprite Glint => GetOrCreate("Glint", 128, 0, (x, y) => Mathf.Clamp01(Star(x, y) + Star(y, x) + Mathf.Pow(Mathf.Clamp01(1f - Dist(x, y) * 2.5f), 2f)));
     public static Texture2D SoftCircleTexture => AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GetAssetPath(SoftCircle));
 
     // x, y in -1..1
@@ -28,6 +32,20 @@ public static class GrayboxTextures
     }
 
     // signed distance (in -1..1 units) → anti-aliased 0..1 coverage
+    private static float Star(float x, float y) => Mathf.Exp(-Mathf.Abs(x) * 22f) * Mathf.Clamp01(1f - Mathf.Abs(y));
+
+    private static float CraterAlpha(float x, float y)
+    {
+        float r = Dist(x, y);
+        float angle = Mathf.Atan2(y, x);
+        float rim = .55f + Mathf.Sin(angle * 7f) * .04f + Mathf.Sin(angle * 13f) * .02f;
+        float pit = Mathf.Clamp01((rim - r) * 12f) * .92f;
+        // eight cracks that wobble outward and thin toward the edge
+        float spoke = Mathf.Abs(Mathf.Sin(angle * 4f + Mathf.Sin(r * 9f) * .3f));
+        float crack = r < .97f && spoke < .07f * (1.1f - r) ? .85f : 0f;
+        return Mathf.Max(pit, crack);
+    }
+
     private static float Edge(float signedDistance, int size) => Mathf.Clamp01(signedDistance * size * .5f + .5f);
 
     private static Sprite GetOrCreate(string name, int size, int border, System.Func<float, float, float> alpha)

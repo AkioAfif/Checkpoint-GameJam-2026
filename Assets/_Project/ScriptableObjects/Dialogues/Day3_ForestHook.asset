@@ -17,10 +17,12 @@ MonoBehaviour:
     text: All that land... just sitting there.
     playerEmote: 0
     npcEmote: 0
+    isShaking: 0
   - speaker: 0
-    text: Darto said stop at the trees. But the trees don't pay debts.
+    text: With this strength... the trees wouldn't take long.
     playerEmote: 0
     npcEmote: 0
+    isShaking: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

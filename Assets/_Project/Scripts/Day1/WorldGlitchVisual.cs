@@ -4,12 +4,15 @@ using UnityEngine;
 // A one-second tear in the world, for the player's eyes only: once the Distributor has gone, everything on the right of the
 // screen flickers out, turns void-black / blood-red / bone-white, jolts sideways, and the villagers there stare into the
 // camera, and a pitch-black Distributor flickers in among them. Then it all snaps back. The protagonist never reacts.
-// World objects only, no HUD.
+// World objects only, no HUD. Day 3 reuses it (full screen, no apparition) when the MC eats the Lv.2 sawit.
 public class WorldGlitchVisual : MonoBehaviour
 {
     private const int UI_LAYER = 5;
 
+    [Tooltip("Day 1: plays after Sari's objective appears. Leave empty elsewhere.")]
     [SerializeField] private Day1Director director;
+    [Tooltip("Day 3: plays for the sequence's glitch step. Leave empty elsewhere.")]
+    [SerializeField] private LandSequence landSequence;
     [SerializeField] private Material[] corruptMaterialArray;
     [Tooltip("Seconds after Sari's objective appears, so the camera is back on the player.")]
     [SerializeField] private float startDelay = 1f;
@@ -20,7 +23,7 @@ public class WorldGlitchVisual : MonoBehaviour
     [SerializeField] private float screenSplit = .53f;
     [SerializeField] private float maxJolt = .45f;
     [SerializeField] private LayerMask ignoredLayers;
-    [Tooltip("A void-black copy of the Distributor's rig, hidden until the glitch peaks.")]
+    [Tooltip("A void-black copy of the Distributor's rig, hidden until the glitch peaks (optional).")]
     [SerializeField] private GameObject apparition;
     [Tooltip("Where on screen he stands (viewport x, y), projected onto the ground.")]
     [SerializeField] private Vector2 apparitionViewport = new Vector2(.8f, .62f);
@@ -44,7 +47,8 @@ public class WorldGlitchVisual : MonoBehaviour
 
     private void Start()
     {
-        director.OnStateChanged += Director_OnStateChanged;
+        if (director != null) director.OnStateChanged += Director_OnStateChanged;
+        if (landSequence != null) landSequence.OnStepChanged += LandSequence_OnStepChanged;
     }
 
     private void Update()
@@ -69,7 +73,7 @@ public class WorldGlitchVisual : MonoBehaviour
         float strength = Mathf.Clamp01(Mathf.Sin(glitchTimer / duration * Mathf.PI) * 1.3f + Random.Range(-.2f, .3f));
         foreach (GlitchTarget target in targetList) Tick(target, strength);
         // only near the peak, and never for long
-        apparition.SetActive(strength > .7f && Random.value < .6f);
+        if (apparition != null) apparition.SetActive(strength > .7f && Random.value < .6f);
     }
 
     // after the NavMesh agents have turned them: they look at the player, through the screen
@@ -90,6 +94,13 @@ public class WorldGlitchVisual : MonoBehaviour
         if (e.state != Day1Director.State.Sari || hasPlayed) return;
         hasPlayed = true;
         delayTimer = startDelay;
+    }
+
+    private void LandSequence_OnStepChanged(object sender, LandSequence.OnStepChangedEventArgs e)
+    {
+        if (e.step != LandSequence.Step.Glitch) return;
+        duration = landSequence.GetGlitchDuration();
+        Begin();
     }
 
     private void Begin()
@@ -123,7 +134,7 @@ public class WorldGlitchVisual : MonoBehaviour
             Vector3 viewport = camera.WorldToViewportPoint(npc.transform.position);
             if (viewport.z > 0f && viewport.x >= screenSplit && viewport.x <= 1f && viewport.y >= 0f && viewport.y <= 1f) starerList.Add(npc.transform);
         }
-        PlaceApparition(camera);
+        if (apparition != null) PlaceApparition(camera);
         glitchTimer = 0f;
         tickTimer = 0f;
     }
@@ -177,7 +188,7 @@ public class WorldGlitchVisual : MonoBehaviour
     private void End()
     {
         glitchTimer = -1f;
-        apparition.SetActive(false);
+        if (apparition != null) apparition.SetActive(false);
         foreach (GlitchTarget target in targetList)
         {
             if (target.renderer == null) continue;

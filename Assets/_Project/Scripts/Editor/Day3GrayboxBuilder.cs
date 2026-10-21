@@ -1,13 +1,20 @@
 using System.Linq;
+using TMPro;
 using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.UI;
 using static GrayboxBuild;
+using static UiBuilder;
 
 // Builds "Day 3: Room to Grow" as its own scene, Level01_Day3 (Tools > Day3 > Build Day 3 Scene). It copies Level01_Day2,
-// keeps its village, crate, Rigel and resin stumps (Day2_Graybox), swaps Day 2's director for Day 3's (Day3), and adds
-// Darto's strip between the field and the forest with its For Sale sign and hidden plots (Day3_World). Re-runnable;
+// keeps its village, crate, Rigel and resin stumps (Day2_Graybox), swaps Day 2's director for Day 3's (Day3), removes Darto,
+// and adds the empty grass between the field and the forest, where the MC pounds four plots out of the ground: the sunk
+// plots, their blinking ghosts, the crater, the flashback's Distributor and grayscale Volume, the cutscene cameras and the
+// sequence's UI (Day3_World + Day3). Re-runnable;
 // Level01_Day3 is regenerated each time, so run it after rebuilding Day 2. It also wires Day 3 into the HouseInterior bedroom.
 public static class Day3GrayboxBuilder
 {
@@ -17,16 +24,18 @@ public static class Day3GrayboxBuilder
     private const string DAY2_DIRECTOR_ROOT = "Day2";
     private const string BEDROOM_DIRECTOR_PATH = "BedroomDirector";
 
-    // Darto's strip: between the field's north edge (z 9.8) and the forest edge (z 14.5)
+    private const string FLASHBACK_PROFILE_PATH = "Assets/_Project/Art/Day3_FlashbackProfile.asset";
+
+    // the new strip: between the field's north edge (z 9.8) and the forest edge (z 14.5)
     private static readonly Vector3 StripCentre = new Vector3(23f, 0f, 12.3f);
-    private static readonly Vector3 StripSize = new Vector3(9f, .1f, 3f);
     private const float PLOT_SPACING = 2.25f;
     private const int PLOT_COUNT = 4;
-    // the strip's front edge, clear of the house corner, facing the field
-    private static readonly Vector3 SignPosition = new Vector3(20.6f, 0f, 10.4f);
-    private static readonly Vector3 DartoPosition = new Vector3(19.4f, 0f, 10.2f);
     // the strip's west end, looking along it toward the trees
     private static readonly Vector3 EveningPosition = new Vector3(18.4f, 0f, 12.3f);
+    // just south of the strip, facing it (north)
+    private static readonly Vector3 SmashPosition = new Vector3(23f, 0f, 10.5f);
+    // in front of Rigel's door (his house at (25, -16) faces north)
+    private static readonly Vector3 RigelHouseDoorPosition = new Vector3(25f, 0f, -13.8f);
 
     [MenuItem("Tools/Day3/Build Day 3 Scene")]
     public static void Build()
@@ -47,35 +56,41 @@ public static class Day3GrayboxBuilder
         FarmPlot[] fieldPlots = Object.FindObjectsByType<FarmPlot>(FindObjectsInactive.Include);
         Transform world = Root(WORLD_ROOT).transform;
         Transform director = Root(DIRECTOR_ROOT).transform;
-        (GameObject plotsRoot, FarmPlot[] landPlots, GameObject sign) = BuildStrip(world);
-
-        Npc darto = FindNpc("Npc_Darto");
-        darto.transform.SetPositionAndRotation(DartoPosition, Quaternion.Euler(0f, 160f, 0f));
-        // he waits by his sign all day
-        SetArray(darto.GetComponent<NpcWander>(), "wanderPointArray", new Object[0]);
+        (GameObject plotsRoot, FarmPlot[] landPlots, GameObject ghostPlots) = BuildStrip(world);
+        Renderer crater = BuildCrater(world);
+        // no land to sell any more
+        Object.DestroyImmediate(FindNpc("Npc_Darto").gameObject);
 
         SellCrate crate = Object.FindAnyObjectByType<SellCrate>(FindObjectsInactive.Include);
         SetArray(crate, "sellableItemDataSOArray", new Object[] { Day2DataBuilder.SawitBunch, Day3DataBuilder.SawitBunchLv2 });
 
         Transform points = Root("Points", director).transform;
         Transform eveningPoint = Day2GrayboxBuilder.Point(points, "EveningPoint", EveningPosition, 70f);
+        Transform landCentre = Day2GrayboxBuilder.Point(points, "LandCentre", StripCentre, 0f);
+        Transform smashPoint = Day2GrayboxBuilder.Point(points, "SmashPoint", SmashPosition, 0f);
+        Transform rigelHousePoint = Day2GrayboxBuilder.Point(points, "RigelHousePoint", RigelHouseDoorPosition, 180f);
+        Transform rigelWatchPoint = Day2GrayboxBuilder.Point(points, "RigelWatchPoint", SmashPosition + new Vector3(-3f, 0f, -1.2f), 70f);
+        // the flashback: the two of them beside the Fabricator, the day it arrived
+        FabricatorController fabricator = Object.FindAnyObjectByType<FabricatorController>(FindObjectsInactive.Include);
+        Vector3 distributorPosition = fabricator.transform.position + new Vector3(1.6f, 0f, -1.6f);
+        Transform flashbackDistributorPoint = Day2GrayboxBuilder.Point(points, "FlashbackDistributorPoint", distributorPosition, -90f);
+        Transform flashbackPlayerPoint = Day2GrayboxBuilder.Point(points, "FlashbackPlayerPoint", distributorPosition + new Vector3(-1.9f, 0f, 0f), 90f);
 
         Day3Director day3 = director.gameObject.AddComponent<Day3Director>();
         SetField(day3, "day3SO", Day3DataBuilder.Day3);
         SetField(day3, "screenFade", Object.FindAnyObjectByType<ScreenFadeUI>(FindObjectsInactive.Include));
         SetField(day3, "savingsBookUI", Object.FindAnyObjectByType<SavingsBookUI>(FindObjectsInactive.Include));
-        SetField(day3, "fabricator", Object.FindAnyObjectByType<FabricatorController>(FindObjectsInactive.Include));
+        SetField(day3, "fabricator", fabricator);
         SetRecipe(day3);
         SetField(day3, "lv2CropDataSO", Day2DataBuilder.SawitLv2);
         SetField(day3, "oldFieldCropDataSO", GameDataBuilder.SawitLv1);
         SetArray(day3, "fieldPlotArray", fieldPlots);
         SetArray(day3, "landPlotArray", landPlots);
         SetField(day3, "landPlotsRoot", plotsRoot);
-        SetField(day3, "forSaleSign", sign);
-        SetField(day3, "dartoNpc", darto);
         SetField(day3, "ratnaNpc", FindNpc("Npc_Ratna"));
         SetField(day3, "ijahNpc", FindNpc("Npc_Ijah"));
-        SetField(day3, "rigelNpc", FindNpc("Npc_Rigel"));
+        Npc rigel = FindNpc("Npc_Rigel");
+        SetField(day3, "rigelNpc", rigel);
         SetField(day3, "houseDoor", Object.FindAnyObjectByType<HouseDoor>(FindObjectsInactive.Include));
         SetField(day3, "morningPoint", GameObject.Find("Day2_Graybox/Points/MorningPoint").transform);
         SetField(day3, "eveningPoint", eveningPoint);
@@ -89,9 +104,33 @@ public static class Day3GrayboxBuilder
         lens.FarClipPlane = 200f;
         forestCamera.Lens = lens;
         forestCamera.enabled = false;
+
+        LandSequence landSequence = BuildLandSequence(director, plotsRoot, rigel, landCentre, smashPoint, rigelHousePoint, rigelWatchPoint,
+            flashbackPlayerPoint, flashbackDistributorPoint, out Npc distributor);
+        SetField(day3, "landSequence", landSequence);
+        BuildLandVisuals(director, landSequence, plotsRoot, ghostPlots, crater, smashPoint, distributor);
+
         Day3CameraVisual cameraVisual = director.gameObject.AddComponent<Day3CameraVisual>();
         SetField(cameraVisual, "director", day3);
+        SetField(cameraVisual, "landSequence", landSequence);
+        SetField(cameraVisual, "brain", Camera.main.GetComponent<CinemachineBrain>());
         SetField(cameraVisual, "forestCamera", forestCamera);
+        SetField(cameraVisual, "emptyLandCamera", FixedCamera(director, "CM_Day3EmptyLand", new Vector3(23f, 9.5f, 6.5f), StripCentre, 42f));
+        // side-on to the pair, close
+        CinemachineTargetGroup pair = Root("FlashbackPair", director).AddComponent<CinemachineTargetGroup>();
+        pair.AddMember(Object.FindAnyObjectByType<Player>(FindObjectsInactive.Include).transform, 1f, .6f);
+        pair.AddMember(distributor.transform, 1f, .6f);
+        CinemachineCamera two = ChaseCamera(director, "CM_Day3FlashbackTwo", pair.transform, new Vector3(0f, 1.8f, -5.6f), 34f);
+        two.GetComponent<CinemachineRotationComposer>().TargetOffset = new Vector3(0f, 1f, 0f);
+        SetField(cameraVisual, "flashbackTwoCamera", two);
+        // a close-up of his face, from the MC's side
+        SetField(cameraVisual, "flashbackDistributorCamera", FixedCamera(director, "CM_Day3FlashbackDistributor",
+            distributorPosition + new Vector3(-2.6f, 1.75f, -2.6f), distributorPosition + Vector3.up * 1.55f, 30f));
+        CinemachineCamera rigelCamera = ChaseCamera(director, "CM_Day3Rigel", rigel.transform, new Vector3(2.5f, 2.6f, -5f), 40f);
+        rigelCamera.GetComponent<CinemachineRotationComposer>().TargetOffset = new Vector3(0f, .8f, 0f);
+        SetField(cameraVisual, "rigelCamera", rigelCamera);
+        // low, between the MC and the new plots, looking back at them
+        SetField(cameraVisual, "smashFrontCamera", FixedCamera(director, "CM_Day3SmashFront", SmashPosition + new Vector3(-1.2f, 1.5f, 3f), SmashPosition + Vector3.up * .7f, 42f));
 
         NightVisual night = director.gameObject.AddComponent<NightVisual>();
         SetField(night, "day3Director", day3);
@@ -110,17 +149,10 @@ public static class Day3GrayboxBuilder
 
     // ---------- world ----------
 
-    // the soil strip, its fence (open toward the field and at the forest lane, x 19-22), the sign and the hidden plots
-    private static (GameObject plotsRoot, FarmPlot[] landPlots, GameObject sign) BuildStrip(Transform world)
+    // plain grass at first: the hidden plots (LandRiseVisual sinks them, the sequence shows them) and their see-through ghosts
+    private static (GameObject plotsRoot, FarmPlot[] landPlots, GameObject ghostPlots) BuildStrip(Transform world)
     {
-        Transform strip = Root("DartoStrip", world).transform;
-        Part(strip, "StripSoil", GrayboxMeshFactory.RoundedBox(StripSize, .05f), GrayboxPalette.Soil, new Vector3(StripCentre.x, -.04f, StripCentre.z));
-        GameObject span = Day2GrayboxBuilder.Existing("Environment/FenceSpan", EnvironmentPrefabBuilder.FenceSpan);
-        float west = StripCentre.x - StripSize.x * .5f, north = StripCentre.z + StripSize.z * .5f;
-        for (float z = StripCentre.z - 1f; z < north; z += 2f) Spawn(span, strip, new Vector3(west - .3f, 0f, z), -90f);
-        for (float x = 22.6f; x < StripCentre.x + StripSize.x * .5f; x += 2f) Spawn(span, strip, new Vector3(x, 0f, north + .2f), 0f);
-        GameObject sign = Spawn(Day3PrefabBuilder.ForSaleSign(), strip, SignPosition, 0f);
-
+        Transform strip = Root("NewStrip", world).transform;
         GameObject plotsRoot = Root("LandPlots", strip);
         GameObject plot = AssetDatabase.LoadAssetAtPath<GameObject>($"{PREFABS}/Interactables/FarmPlot.prefab");
         FarmPlot[] plots = new FarmPlot[PLOT_COUNT];
@@ -133,7 +165,227 @@ public static class Day3GrayboxBuilder
             so.FindProperty("startState").enumValueIndex = (int)FarmPlot.State.Empty;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
-        return (plotsRoot, plots, sign);
+        GameObject ghostPlots = Root("GhostPlots", strip);
+        Material hologram = GrayboxPalette.TransparentMapped("Hologram", new Color(.45f, .95f, 1f, .38f), null, true);
+        Mesh tile = GrayboxMeshFactory.RoundedBox(new Vector3(2f, .16f, 2f), .07f);
+        foreach (FarmPlot landPlot in plots)
+        {
+            GameObject ghost = Part(ghostPlots.transform, "GhostPlot", tile, hologram, landPlot.transform.position + new Vector3(0f, -.02f, 0f));
+            ghost.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+        }
+        plotsRoot.SetActive(false);
+        return (plotsRoot, plots, ghostPlots);
+    }
+
+    // a flat decal laid on the grass, hidden until the final blow
+    private static Renderer BuildCrater(Transform world)
+    {
+        Material material = GrayboxPalette.TransparentMapped("Crater", new Color(.22f, .16f, .12f, 1f), GrayboxTextures.Crater.texture, false);
+        GameObject crater = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        crater.name = "Crater";
+        crater.transform.SetParent(world, false);
+        crater.transform.localScale = Vector3.one * 2.6f;
+        Object.DestroyImmediate(crater.GetComponent<Collider>());
+        MeshRenderer renderer = crater.GetComponent<MeshRenderer>();
+        renderer.sharedMaterial = material;
+        renderer.shadowCastingMode = ShadowCastingMode.Off;
+        crater.SetActive(false);
+        return renderer;
+    }
+
+    // ---------- the new land ----------
+
+    private static LandSequence BuildLandSequence(Transform director, GameObject plotsRoot, Npc rigel, Transform landCentre, Transform smashPoint,
+        Transform rigelHousePoint, Transform rigelWatchPoint, Transform flashbackPlayerPoint, Transform flashbackDistributorPoint, out Npc distributor)
+    {
+        Player player = Object.FindAnyObjectByType<Player>(FindObjectsInactive.Include);
+        PlayerVisual playerVisual = player.GetComponentInChildren<PlayerVisual>(true);
+        NpcVisual rigelVisual = rigel.GetComponentInChildren<NpcVisual>(true);
+        CutsceneActor playerActor = Day1GrayboxBuilder.EnsureActor(player.gameObject, playerVisual);
+        CutsceneActor rigelActor = Day1GrayboxBuilder.EnsureActor(rigel.gameObject, rigelVisual);
+        AddPoseVisual(playerActor, playerVisual.gameObject);
+        AddPoseVisual(rigelActor, rigelVisual.gameObject);
+
+        // a copy of the Distributor (Day 1's is gone from this village), only shown in the flashback
+        GameObject distributorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{PREFABS}/Characters/Npc_Distributor.prefab");
+        GameObject distributorGo = Spawn(distributorPrefab, director, flashbackDistributorPoint.position, flashbackDistributorPoint.eulerAngles.y);
+        distributorGo.name = "Npc_DistributorFlashback";
+        distributor = distributorGo.GetComponent<Npc>();
+        NpcVisual distributorVisual = distributorGo.GetComponentInChildren<NpcVisual>(true);
+        CutsceneActor distributorActor = Day1GrayboxBuilder.EnsureActor(distributorGo, distributorVisual);
+        AddPoseVisual(distributorActor, distributorVisual.gameObject);
+        distributorGo.SetActive(false);
+
+        LandQTE landQTE = director.gameObject.AddComponent<LandQTE>();
+        LandSequence landSequence = director.gameObject.AddComponent<LandSequence>();
+        SetField(landSequence, "day3SO", Day3DataBuilder.Day3);
+        SetField(landSequence, "screenFade", Object.FindAnyObjectByType<ScreenFadeUI>(FindObjectsInactive.Include));
+        SetField(landSequence, "landQTE", landQTE);
+        SetField(landSequence, "bunchItemDataSO", Day3DataBuilder.SawitBunchLv2);
+        SetField(landSequence, "playerActor", playerActor);
+        SetField(landSequence, "rigelNpc", rigel);
+        SetField(landSequence, "rigelActor", rigelActor);
+        SetField(landSequence, "distributorNpc", distributor);
+        SetField(landSequence, "distributorActor", distributorActor);
+        SetField(landSequence, "landPlotsRoot", plotsRoot);
+        SetField(landSequence, "landCentre", landCentre);
+        SetField(landSequence, "flashbackPlayerPoint", flashbackPlayerPoint);
+        SetField(landSequence, "flashbackDistributorPoint", flashbackDistributorPoint);
+        SetField(landSequence, "smashPoint", smashPoint);
+        SetField(landSequence, "rigelHousePoint", rigelHousePoint);
+        SetField(landSequence, "rigelWatchPoint", rigelWatchPoint);
+        return landSequence;
+    }
+
+    private static void AddPoseVisual(CutsceneActor actor, GameObject visual)
+    {
+        CutscenePoseVisual pose = visual.GetComponent<CutscenePoseVisual>();
+        if (pose == null) pose = visual.AddComponent<CutscenePoseVisual>();
+        SetField(pose, "cutsceneActor", actor);
+        SetField(pose, "animator", visual.GetComponentInChildren<Animator>(true));
+    }
+
+    private static void BuildLandVisuals(Transform director, LandSequence landSequence, GameObject plotsRoot, GameObject ghostPlots, Renderer crater,
+        Transform smashPoint, Npc distributor)
+    {
+        GhostPlotVisual ghost = director.gameObject.AddComponent<GhostPlotVisual>();
+        SetField(ghost, "landSequence", landSequence);
+        SetField(ghost, "ghostPlotsGameObject", ghostPlots);
+
+        LandRiseVisual rise = director.gameObject.AddComponent<LandRiseVisual>();
+        SetField(rise, "landSequence", landSequence);
+        SetField(rise, "landPlotsRoot", plotsRoot.transform);
+
+        CraterVisual craterVisual = director.gameObject.AddComponent<CraterVisual>();
+        SetField(craterVisual, "landSequence", landSequence);
+        SetField(craterVisual, "craterRenderer", crater);
+        SetField(craterVisual, "smashPoint", smashPoint);
+
+        FlashbackVisual flashback = director.gameObject.AddComponent<FlashbackVisual>();
+        SetField(flashback, "landSequence", landSequence);
+        SetField(flashback, "grayscaleVolume", GrayscaleVolume(director));
+        SetField(flashback, "glint", Glint(distributor));
+
+        // the whole screen this time, and no apparition
+        WorldGlitchVisual glitch = director.gameObject.AddComponent<WorldGlitchVisual>();
+        SetField(glitch, "landSequence", landSequence);
+        SetValue(glitch, "screenSplit", 0f);
+        SetArray(glitch, "corruptMaterialArray", new Object[]
+        {
+            GrayboxPalette.Unlit("GlitchVoid", new Color(.02f, .02f, .03f)),
+            GrayboxPalette.Unlit("GlitchBlood", new Color(.42f, 0f, .03f)),
+            GrayboxPalette.Unlit("GlitchBone", new Color(.93f, .91f, .86f)),
+        });
+        SerializedObject glitchSo = new SerializedObject(glitch);
+        glitchSo.FindProperty("ignoredLayers").intValue = LayerMask.GetMask("Portrait", "Puzzle");
+        glitchSo.ApplyModifiedPropertiesWithoutUndo();
+
+        BuildUi(landSequence, director.GetComponent<LandQTE>());
+    }
+
+    // black and white at full weight, off until the flashback
+    private static Volume GrayscaleVolume(Transform director)
+    {
+        VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(FLASHBACK_PROFILE_PATH);
+        if (profile == null)
+        {
+            profile = ScriptableObject.CreateInstance<VolumeProfile>();
+            AssetDatabase.CreateAsset(profile, FLASHBACK_PROFILE_PATH);
+            ColorAdjustments color = profile.Add<ColorAdjustments>(true);
+            color.saturation.Override(-100f);
+            color.contrast.Override(15f);
+            foreach (VolumeComponent component in profile.components) AssetDatabase.AddObjectToAsset(component, profile);
+            EditorUtility.SetDirty(profile);
+        }
+        Volume volume = Root("FlashbackVolume", director).AddComponent<Volume>();
+        volume.isGlobal = true;
+        volume.priority = 10f;
+        volume.weight = 0f;
+        volume.sharedProfile = profile;
+        return volume;
+    }
+
+    // a white star at his right lens, hidden until FlashbackVisual flashes it
+    private static Transform Glint(Npc distributor)
+    {
+        Transform head = distributor.GetComponentInChildren<Animator>(true).transform.Find("Hips/Head");
+        GameObject glint = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        glint.name = "GlassesGlint";
+        Object.DestroyImmediate(glint.GetComponent<Collider>());
+        glint.transform.SetParent(head, false);
+        glint.transform.localPosition = new Vector3(.19f, .69f, .69f);
+        MeshRenderer renderer = glint.GetComponent<MeshRenderer>();
+        renderer.sharedMaterial = GrayboxPalette.TransparentMapped("Glint", Color.white, GrayboxTextures.Glint.texture, true);
+        renderer.shadowCastingMode = ShadowCastingMode.Off;
+        glint.SetActive(false);
+        return glint.transform;
+    }
+
+    // eyelids and the eat / smash ring, under the screen fade so the fade still covers everything
+    private static void BuildUi(LandSequence landSequence, LandQTE landQTE)
+    {
+        ScreenFadeUI fade = Object.FindAnyObjectByType<ScreenFadeUI>(FindObjectsInactive.Include);
+        Transform canvas = fade.transform.parent;
+
+        RectTransform blink = Rect(canvas, "EyeBlinkUI", Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero);
+        Image top = Img(blink, "TopLid", null, Color.black, new Vector2(0f, .5f), Vector2.one, new Vector2(.5f, 1f), Vector2.zero, Vector2.zero);
+        Image bottom = Img(blink, "BottomLid", null, Color.black, Vector2.zero, new Vector2(1f, .5f), new Vector2(.5f, 0f), Vector2.zero, Vector2.zero);
+        top.raycastTarget = false;
+        bottom.raycastTarget = false;
+        EyeBlinkUI eyeBlink = blink.gameObject.AddComponent<EyeBlinkUI>();
+        SetField(eyeBlink, "landSequence", landSequence);
+        SetField(eyeBlink, "topLid", top.rectTransform);
+        SetField(eyeBlink, "bottomLid", bottom.rectTransform);
+
+        RectTransform root = Rect(canvas, "LandQTEUI", Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero);
+        root.gameObject.AddComponent<CanvasGroup>();
+        RectTransform group = Rect(root, "Group", Centre, Centre, Centre, Vector2.zero, new Vector2(160f, 160f));
+        Image ringBack = Img(group, "Ring", GrayboxTextures.Circle, new Color(0f, 0f, 0f, .45f), Centre, Centre, Centre, Vector2.zero, new Vector2(110f, 110f));
+        Image fill = Img(ringBack.rectTransform, "Fill", GrayboxTextures.Circle, Accent, Centre, Centre, Centre, Vector2.zero, new Vector2(96f, 96f));
+        fill.type = Image.Type.Filled;
+        fill.fillMethod = Image.FillMethod.Radial360;
+        fill.fillOrigin = (int)Image.Origin360.Top;
+        fill.fillAmount = 0f;
+        TextMeshProUGUI label = Text(group, "Label", "Mash [E]!", 34, Color.white, TextAlignmentOptions.Center, FontStyles.Bold);
+        label.outlineWidth = .25f;
+        label.outlineColor = Color.black;
+        Place(label.rectTransform, Centre, new Vector2(0f, 90f), new Vector2(420f, 50f));
+        LandQTEUI ui = root.gameObject.AddComponent<LandQTEUI>();
+        SetField(ui, "landSequence", landSequence);
+        SetField(ui, "landQTE", landQTE);
+        SetField(ui, "group", group);
+        SetField(ui, "ringGameObject", ringBack.gameObject);
+        SetField(ui, "fillImage", fill);
+        SetField(ui, "labelText", label);
+
+        fade.transform.SetAsLastSibling();
+    }
+
+    private static CinemachineCamera FixedCamera(Transform parent, string name, Vector3 position, Vector3 lookAt, float fov)
+    {
+        CinemachineCamera cam = Root(name, parent).AddComponent<CinemachineCamera>();
+        cam.transform.position = position;
+        cam.transform.LookAt(lookAt);
+        LensSettings lens = LensSettings.Default;
+        lens.FieldOfView = fov;
+        lens.FarClipPlane = 200f;
+        cam.Lens = lens;
+        cam.enabled = false;
+        return cam;
+    }
+
+    // rides alongside the target at a fixed world offset and keeps it centred
+    private static CinemachineCamera ChaseCamera(Transform parent, string name, Transform target, Vector3 offset, float fov)
+    {
+        CinemachineCamera cam = FixedCamera(parent, name, target.position + offset, target.position, fov);
+        cam.Follow = target;
+        cam.LookAt = target;
+        CinemachineFollow follow = cam.gameObject.AddComponent<CinemachineFollow>();
+        follow.FollowOffset = offset;
+        follow.TrackerSettings.BindingMode = Unity.Cinemachine.TargetTracking.BindingMode.WorldSpace;
+        follow.TrackerSettings.PositionDamping = new Vector3(.3f, .3f, .3f);
+        cam.gameObject.AddComponent<CinemachineRotationComposer>().Damping = new Vector2(.2f, .2f);
+        return cam;
     }
 
     // ---------- data ----------

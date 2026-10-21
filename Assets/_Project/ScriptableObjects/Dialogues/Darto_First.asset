@@ -17,18 +17,22 @@ MonoBehaviour:
     text: Hm? Ah, it's you.
     playerEmote: 0
     npcEmote: 4
+    isShaking: 0
   - speaker: 0
     text: Hello, Pak Darto! Nice weather today.
     playerEmote: 5
     npcEmote: 0
+    isShaking: 0
   - speaker: 1
     text: Nice weather for a nap, yes.
     playerEmote: 0
     npcEmote: 1
+    isShaking: 0
   - speaker: 1
     text: That bridge creaks a little, but it's sturdy. Built it myself!
     playerEmote: 0
     npcEmote: 2
+    isShaking: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0
