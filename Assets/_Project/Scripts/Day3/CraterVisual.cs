@@ -42,7 +42,7 @@ public class CraterVisual : MonoBehaviour
     {
         if (!e.isFinal) return;
         // in front of the MC, where both fists landed
-        Vector3 position = smashPoint.position + smashPoint.forward * .55f;
+        Vector3 position = smashPoint.position + smashPoint.forward * .45f;
         craterRenderer.transform.SetPositionAndRotation(new Vector3(position.x, .03f, position.z), Quaternion.Euler(90f, Random.Range(0f, 360f), 0f));
         craterRenderer.gameObject.SetActive(true);
         SetAlpha(1f);

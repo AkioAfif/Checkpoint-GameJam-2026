@@ -14,6 +14,8 @@ public class Day3CameraVisual : MonoBehaviour
     [SerializeField] private CinemachineCamera flashbackDistributorCamera;
     [SerializeField] private CinemachineCamera rigelCamera;
     [SerializeField] private CinemachineCamera smashFrontCamera;
+    [Tooltip("The same spot zoomed in, for the last blow.")]
+    [SerializeField] private CinemachineCamera smashCloseCamera;
 
     private CinemachineBlendDefinition defaultBlend;
 
@@ -39,5 +41,6 @@ public class Day3CameraVisual : MonoBehaviour
         flashbackDistributorCamera.enabled = e.shot == LandSequence.Shot.FlashbackDistributor;
         rigelCamera.enabled = e.shot == LandSequence.Shot.Rigel;
         smashFrontCamera.enabled = e.shot == LandSequence.Shot.SmashFront;
+        smashCloseCamera.enabled = e.shot == LandSequence.Shot.SmashClose;
     }
 }

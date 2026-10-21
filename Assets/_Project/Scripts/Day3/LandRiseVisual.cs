@@ -8,8 +8,8 @@ public class LandRiseVisual : MonoBehaviour
     [Tooltip("How deep the plots start below the grass (just under a tile's height, so every blow shows).")]
     [SerializeField] private float sunkDepth = .18f;
     [SerializeField] private float riseSpeed = 4f;
-    [SerializeField] private float shudderDuration = .25f;
-    [SerializeField] private float shudderAmount = .05f;
+    [SerializeField] private float shudderDuration = .35f;
+    [SerializeField] private float shudderAmount = .12f;
 
     private float height;
     private float targetHeight;

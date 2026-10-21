@@ -13,7 +13,7 @@ public class LandSequence : MonoBehaviour
     public event EventHandler OnFinished;
 
     public enum Step { None, Inspect, Realise, Flashback, FlashbackSolo, Return, WaitEat, RigelAlarm, Eat, BlinkIn, Glitch, BlinkOut, BuffTalk, WaitSmash, Smash, FinalSmash, Retreat, Done }
-    public enum Shot { None, EmptyLand, FlashbackTwo, FlashbackDistributor, Rigel, SmashFront }
+    public enum Shot { None, EmptyLand, FlashbackTwo, FlashbackDistributor, Rigel, SmashFront, SmashClose }
 
     // Rigel's cutscene moves, in order
     private enum RigelMove { None, Hop, Sprint, StepBack, StepBackAgain, RunHome }
@@ -34,7 +34,7 @@ public class LandSequence : MonoBehaviour
     [SerializeField] private Transform landCentre;
     [SerializeField] private Transform flashbackPlayerPoint;
     [SerializeField] private Transform flashbackDistributorPoint;
-    [Tooltip("Where the MC kneels to pound the ground, facing the plots.")]
+    [Tooltip("Where the MC kneels to pound the ground, facing the camera (the plots rise behind them).")]
     [SerializeField] private Transform smashPoint;
     [SerializeField] private Transform rigelHousePoint;
     [Tooltip("Where Rigel has followed to, watching the MC pound the ground.")]
@@ -226,7 +226,7 @@ public class LandSequence : MonoBehaviour
         }
         // the last blow: wind up both fists, filmed from the front
         playerActor.SetPose(CutscenePose.OverheadSmash);
-        SetStep(Step.FinalSmash, Shot.SmashFront);
+        SetStep(Step.FinalSmash, Shot.SmashClose);
         timer = .7f;
     }
 
@@ -304,7 +304,8 @@ public class LandSequence : MonoBehaviour
         TaskManager.Instance.CompleteStory();
         Hold();
         Player.Instance.Teleport(smashPoint.position);
-        Player.Instance.FaceTowards(landCentre.position);
+        // toward the camera, so every blow lands in plain view
+        Player.Instance.FaceTowards(smashPoint.position + smashPoint.forward);
         playerActor.SetPose(CutscenePose.Crouch);
         landPlotsRoot.SetActive(true);
         // he followed at a safe distance, staring
@@ -313,7 +314,7 @@ public class LandSequence : MonoBehaviour
         rigelActor.transform.rotation = Quaternion.LookRotation(toPlayer);
         rigelActor.MoveTo(rigelWatchPoint.position, .05f, 0f, true);
         smashIndex = 0;
-        SetStep(Step.Smash, Shot.None);
+        SetStep(Step.Smash, Shot.SmashFront);
         landQTE.StartMash(pressesPerSmash, smashCount);
     }
 

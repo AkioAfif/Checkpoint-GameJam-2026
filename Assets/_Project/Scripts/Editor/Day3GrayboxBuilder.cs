@@ -32,8 +32,11 @@ public static class Day3GrayboxBuilder
     private const int PLOT_COUNT = 4;
     // the strip's west end, looking along it toward the trees
     private static readonly Vector3 EveningPosition = new Vector3(18.4f, 0f, 12.3f);
-    // just south of the strip, facing it (north)
-    private static readonly Vector3 SmashPosition = new Vector3(23f, 0f, 10.5f);
+    // just south of the strip, facing south (the camera), so the plots rise behind the MC
+    private static readonly Vector3 SmashPosition = new Vector3(23f, 0f, 10.8f);
+    // low under the canopy of the field's last palm row (trunks at x 20.5 / 23 / 25.5, z 8), looking the MC in the face
+    private static readonly Vector3 SmashCameraPosition = new Vector3(24.4f, 1.05f, 8.55f);
+    private static readonly Vector3 SmashCloseCameraPosition = new Vector3(24.2f, .75f, 8.9f);
     // in front of Rigel's door (his house at (25, -16) faces north)
     private static readonly Vector3 RigelHouseDoorPosition = new Vector3(25f, 0f, -13.8f);
 
@@ -67,9 +70,9 @@ public static class Day3GrayboxBuilder
         Transform points = Root("Points", director).transform;
         Transform eveningPoint = Day2GrayboxBuilder.Point(points, "EveningPoint", EveningPosition, 70f);
         Transform landCentre = Day2GrayboxBuilder.Point(points, "LandCentre", StripCentre, 0f);
-        Transform smashPoint = Day2GrayboxBuilder.Point(points, "SmashPoint", SmashPosition, 0f);
+        Transform smashPoint = Day2GrayboxBuilder.Point(points, "SmashPoint", SmashPosition, 180f);
         Transform rigelHousePoint = Day2GrayboxBuilder.Point(points, "RigelHousePoint", RigelHouseDoorPosition, 180f);
-        Transform rigelWatchPoint = Day2GrayboxBuilder.Point(points, "RigelWatchPoint", SmashPosition + new Vector3(-3f, 0f, -1.2f), 70f);
+        Transform rigelWatchPoint = Day2GrayboxBuilder.Point(points, "RigelWatchPoint", SmashPosition + new Vector3(-4.6f, 0f, -.3f), 90f);
         // the flashback: the two of them beside the Fabricator, the day it arrived
         FabricatorController fabricator = Object.FindAnyObjectByType<FabricatorController>(FindObjectsInactive.Include);
         Vector3 distributorPosition = fabricator.transform.position + new Vector3(1.6f, 0f, -1.6f);
@@ -130,7 +133,14 @@ public static class Day3GrayboxBuilder
         rigelCamera.GetComponent<CinemachineRotationComposer>().TargetOffset = new Vector3(0f, .8f, 0f);
         SetField(cameraVisual, "rigelCamera", rigelCamera);
         // low, between the MC and the new plots, looking back at them
-        SetField(cameraVisual, "smashFrontCamera", FixedCamera(director, "CM_Day3SmashFront", SmashPosition + new Vector3(-1.2f, 1.5f, 3f), SmashPosition + Vector3.up * .7f, 42f));
+        CinemachineCamera smashFront = FixedCamera(director, "CM_Day3SmashFront", SmashCameraPosition, SmashPosition + new Vector3(0f, .55f, .4f), 58f);
+        CinemachineCamera smashClose = FixedCamera(director, "CM_Day3SmashClose", SmashCloseCameraPosition, SmashPosition + Vector3.up * .45f, 58f);
+        SetField(cameraVisual, "smashFrontCamera", smashFront);
+        SetField(cameraVisual, "smashCloseCamera", smashClose);
+        SetArray(director.GetComponent<SmashImpactVisual>(), "punchCameraArray", new Object[] { smashFront, smashClose });
+        // every camera feels the blows
+        foreach (CinemachineCamera cam in Object.FindObjectsByType<CinemachineCamera>(FindObjectsInactive.Include))
+            if (cam.GetComponent<CinemachineImpulseListener>() == null) cam.gameObject.AddComponent<CinemachineImpulseListener>();
 
         NightVisual night = director.gameObject.AddComponent<NightVisual>();
         SetField(night, "day3Director", day3);
@@ -184,7 +194,7 @@ public static class Day3GrayboxBuilder
         GameObject crater = GameObject.CreatePrimitive(PrimitiveType.Quad);
         crater.name = "Crater";
         crater.transform.SetParent(world, false);
-        crater.transform.localScale = Vector3.one * 2.6f;
+        crater.transform.localScale = Vector3.one * 2.2f;
         Object.DestroyImmediate(crater.GetComponent<Collider>());
         MeshRenderer renderer = crater.GetComponent<MeshRenderer>();
         renderer.sharedMaterial = material;
@@ -260,6 +270,18 @@ public static class Day3GrayboxBuilder
         SetField(craterVisual, "landSequence", landSequence);
         SetField(craterVisual, "craterRenderer", crater);
         SetField(craterVisual, "smashPoint", smashPoint);
+
+        CinemachineImpulseSource impulse = director.gameObject.AddComponent<CinemachineImpulseSource>();
+        impulse.ImpulseDefinition.ImpulseShape = CinemachineImpulseDefinition.ImpulseShapes.Explosion;
+        impulse.ImpulseDefinition.ImpulseType = CinemachineImpulseDefinition.ImpulseTypes.Uniform;
+        impulse.ImpulseDefinition.ImpulseDuration = .35f;
+        // mostly sideways: the smash cameras sit under a metre off the grass, a big drop would sink them into it
+        impulse.DefaultVelocity = new Vector3(1f, -.3f, 0f);
+        SmashImpactVisual impact = director.gameObject.AddComponent<SmashImpactVisual>();
+        SetField(impact, "landSequence", landSequence);
+        SetField(impact, "impulseSource", impulse);
+        SetField(impact, "smashPoint", smashPoint);
+        SetField(impact, "dustPrefab", VfxBuilder.SmashDust().transform);
 
         FlashbackVisual flashback = director.gameObject.AddComponent<FlashbackVisual>();
         SetField(flashback, "landSequence", landSequence);

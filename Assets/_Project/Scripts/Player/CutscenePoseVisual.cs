@@ -16,6 +16,7 @@ public class CutscenePoseVisual : MonoBehaviour
     private Transform armL;
     private Transform armR;
     private Vector3 hipsRestLocalPosition;
+    private Quaternion hipsRestLocalRotation;
     private CutscenePose shownPose;
     private float weight;
     private float punchTimer;
@@ -28,6 +29,7 @@ public class CutscenePoseVisual : MonoBehaviour
         armL = animator.transform.Find("Hips/ArmL");
         armR = animator.transform.Find("Hips/ArmR");
         hipsRestLocalPosition = hips.localPosition;
+        hipsRestLocalRotation = hips.localRotation;
         cutsceneActor.OnPunch += CutsceneActor_OnPunch;
     }
 
@@ -45,6 +47,7 @@ public class CutscenePoseVisual : MonoBehaviour
         bool isLeftPunch = punchCount % 2 == 0;
         Vector3 headEuler = Vector3.zero, armLEuler = new Vector3(0f, 0f, -6f), armREuler = new Vector3(0f, 0f, 6f);
         float drop = 0f;
+        float lean = 0f;
         switch (shownPose)
         {
             case CutscenePose.Realise:
@@ -60,14 +63,18 @@ public class CutscenePoseVisual : MonoBehaviour
                 break;
             case CutscenePose.Crouch:
                 // fists raised, one slams the ground per punch (left, right, left...)
-                drop = crouchDrop;
-                headEuler = new Vector3(18f, 0f, 0f);
+                // the whole body drops into each blow
+                drop = crouchDrop + punch * .12f;
+                // hunched over the ground, thrown further forward by each blow
+                lean = 20f + punch * 12f;
+                headEuler = new Vector3(18f + punch * 12f, 0f, 0f);
                 armLEuler = new Vector3(Mathf.Lerp(-150f, -25f, isLeftPunch ? punch : 0f), 0f, -10f);
                 armREuler = new Vector3(Mathf.Lerp(-150f, -25f, isLeftPunch ? 0f : punch), 0f, 10f);
                 break;
             case CutscenePose.OverheadSmash:
                 // both fists high over the head, then the double-handed slam
-                drop = crouchDrop * .5f;
+                drop = crouchDrop * .5f + punch * .2f;
+                lean = Mathf.Lerp(-12f, 20f, punch);
                 headEuler = new Vector3(Mathf.Lerp(-10f, 22f, punch), 0f, 0f);
                 armLEuler = new Vector3(Mathf.Lerp(-178f, -30f, punch), 0f, -4f);
                 armREuler = new Vector3(Mathf.Lerp(-178f, -30f, punch), 0f, 4f);
@@ -83,6 +90,7 @@ public class CutscenePoseVisual : MonoBehaviour
         armR.localRotation = Quaternion.Slerp(armR.localRotation, Quaternion.Euler(armREuler), weight);
         Vector3 crouched = hipsRestLocalPosition + hips.parent.InverseTransformVector(Vector3.down * drop);
         hips.localPosition = Vector3.Lerp(hips.localPosition, crouched, weight);
+        hips.localRotation = Quaternion.Slerp(hips.localRotation, hipsRestLocalRotation * Quaternion.Euler(lean, 0f, 0f), weight);
     }
 
     private void CutsceneActor_OnPunch(object sender, System.EventArgs e)
