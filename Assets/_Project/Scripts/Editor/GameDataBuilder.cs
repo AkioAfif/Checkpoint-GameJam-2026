@@ -276,7 +276,7 @@ public static class GameDataBuilder
 
     // ---------- asset helpers ----------
 
-    private static ItemDataSO Item(string file, string itemName, string description, GameObject prefab, Color liquidColor)
+    public static ItemDataSO Item(string file, string itemName, string description, GameObject prefab, Color liquidColor)
     {
         ItemDataSO item = Asset<ItemDataSO>("Items", file);
         item.itemName = itemName;

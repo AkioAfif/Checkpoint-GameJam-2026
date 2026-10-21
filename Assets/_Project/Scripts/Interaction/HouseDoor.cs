@@ -81,6 +81,8 @@ public class HouseDoor : MonoBehaviour, IInteractable
     // not targetable at all (no prompt), e.g. while the player has only just stepped out of it
     public void SetHidden(bool isHidden) => this.isHidden = isHidden;
     public void SetEntryDialogue(DialogueSO dialogueSO) => entryDialogueSO = dialogueSO;
+    // where tonight's sleep leads (the next morning, or the end screen)
+    public void SetNextScene(Loader.Scene nextScene) => this.nextScene = nextScene;
 
     private void Enter()
     {

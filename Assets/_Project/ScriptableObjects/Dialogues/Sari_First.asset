@@ -26,7 +26,7 @@ MonoBehaviour:
     playerEmote: 0
     npcEmote: 5
   - speaker: 0
-    text: A Fabricator. A man from the Instansi gave it to me. For free.
+    text: A Fabricator. A man from ICAN gave it to me. For free.
     playerEmote: 0
     npcEmote: 0
   - speaker: 1

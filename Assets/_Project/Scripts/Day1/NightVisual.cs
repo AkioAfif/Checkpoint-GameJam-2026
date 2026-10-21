@@ -1,9 +1,11 @@
 using UnityEngine;
 
-// Dusk falls when the director reaches Night: sun, ambient light, fog and sky colour ease to their night values.
+// Dusk falls when the day's director reaches Night: sun, ambient light, fog and sky colour ease to their night values.
+// Each day's root has its own copy with only its own director set.
 public class NightVisual : MonoBehaviour
 {
     [SerializeField] private Day1Director director;
+    [SerializeField] private Day2Director day2Director;
     [SerializeField] private Light sun;
     [SerializeField] private Camera worldCamera;
     [SerializeField] private GameObject doorLamp;
@@ -20,7 +22,8 @@ public class NightVisual : MonoBehaviour
 
     private void Start()
     {
-        director.OnStateChanged += Director_OnStateChanged;
+        if (director != null) director.OnStateChanged += Director_OnStateChanged;
+        if (day2Director != null) day2Director.OnStateChanged += Day2Director_OnStateChanged;
         doorLamp.SetActive(false);
     }
 
@@ -51,7 +54,16 @@ public class NightVisual : MonoBehaviour
 
     private void Director_OnStateChanged(object sender, Day1Director.OnStateChangedEventArgs e)
     {
-        if (e.state != Day1Director.State.Night) return;
+        if (e.state == Day1Director.State.Night) BeginNight();
+    }
+
+    private void Day2Director_OnStateChanged(object sender, Day2Director.OnStateChangedEventArgs e)
+    {
+        if (e.state == Day2Director.State.Night) BeginNight();
+    }
+
+    private void BeginNight()
+    {
         daySunColor = sun.color;
         daySunIntensity = sun.intensity;
         dayAmbientSky = RenderSettings.ambientSkyColor;

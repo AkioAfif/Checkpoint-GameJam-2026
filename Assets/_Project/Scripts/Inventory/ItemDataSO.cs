@@ -10,4 +10,6 @@ public class ItemDataSO : ScriptableObject
     public Transform prefab;
     // colour of this item's liquid inside the Fabricator
     public Color liquidColor = Color.white;
+    // Koin the ICAN crate pays for one (0 = it doesn't buy it)
+    public long sellPrice;
 }

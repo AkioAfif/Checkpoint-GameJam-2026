@@ -105,6 +105,13 @@ public class FabricatorController : MonoBehaviour, IInteractable
     // false while the Distributor still carries it
     public void SetPlaced(bool isPlaced) => this.isPlaced = isPlaced;
 
+    // a later day brings its own recipes; the press count starts over
+    public void SetRecipeArray(Recipe[] recipeArray)
+    {
+        this.recipeArray = recipeArray;
+        completedRuns = 0;
+    }
+
     private Recipe GetRecipe() => recipeArray[Mathf.Min(completedRuns, recipeArray.Length - 1)];
 
     private void Leave(bool isSuccess)

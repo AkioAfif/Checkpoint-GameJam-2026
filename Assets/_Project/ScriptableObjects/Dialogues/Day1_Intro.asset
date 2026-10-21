@@ -26,7 +26,7 @@ MonoBehaviour:
     playerEmote: 0
     npcEmote: 1
   - speaker: 1
-    text: I represent the Instansi. We help hard-working families get back on their feet. This is a Fabricator. It's yours.
+    text: I represent ICAN. We help hard-working families get back on their feet. This is a Fabricator. It's yours.
     playerEmote: 0
     npcEmote: 0
   - speaker: 0

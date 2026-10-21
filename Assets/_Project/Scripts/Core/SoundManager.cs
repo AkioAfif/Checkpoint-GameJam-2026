@@ -6,6 +6,7 @@ public class SoundManager : MonoBehaviour
 {
     [SerializeField] private AudioClipRefsSO audioClipRefsSO;
     [SerializeField] private HouseDoor houseDoor;
+    [Tooltip("Day 1 only; empty in the Day 2 scene.")]
     [SerializeField] private DistributorTruck truck;
     [SerializeField] private float volume = 1f;
 
@@ -18,7 +19,7 @@ public class SoundManager : MonoBehaviour
         QTEManager.Instance.OnCheckResolved += QTEManager_OnCheckResolved;
         PlantingController.Instance.OnPlantingFinished += PlantingController_OnPlantingFinished;
         houseDoor.OnStateChanged += HouseDoor_OnStateChanged;
-        truck.OnStateChanged += Truck_OnStateChanged;
+        if (truck != null) truck.OnStateChanged += Truck_OnStateChanged;
     }
 
     private void OnDestroy()

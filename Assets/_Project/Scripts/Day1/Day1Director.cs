@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 // Runs "Day 1: The Crisis" in the village, from the truck's arrival to the evening at the farm and the front door (the bedroom
@@ -69,7 +70,6 @@ public class Day1Director : MonoBehaviour
     private bool isFarewellReady;
     private bool isPressedDialogueActive;
     private bool hasSariDodged;
-    private int plantedCount;
 
     private void Start()
     {
@@ -84,7 +84,6 @@ public class Day1Director : MonoBehaviour
         TaskManager.Instance.OnRequiredTasksCompleted += TaskManager_OnRequiredTasksCompleted;
         houseDoor.OnStateChanged += HouseDoor_OnStateChanged;
         FabricatorController.OnAnySeedFabricated += FabricatorController_OnAnySeedFabricated;
-        FarmPlot.OnAnyPlanted += FarmPlot_OnAnyPlanted;
 
         // everything that arrives later waits out of sight
         truck.gameObject.SetActive(false);
@@ -140,7 +139,6 @@ public class Day1Director : MonoBehaviour
     private void OnDestroy()
     {
         FabricatorController.OnAnySeedFabricated -= FabricatorController_OnAnySeedFabricated;
-        FarmPlot.OnAnyPlanted -= FarmPlot_OnAnyPlanted;
         if (DialogueManager.Instance != null) DialogueManager.Instance.OnDialogueEnded -= DialogueManager_OnDialogueEnded;
         if (TaskManager.Instance != null) TaskManager.Instance.OnRequiredTasksCompleted -= TaskManager_OnRequiredTasksCompleted;
     }
@@ -327,6 +325,8 @@ public class Day1Director : MonoBehaviour
             // back in control: walk home to end the day
             step = Step.None;
             houseDoor.SetLocked(false);
+            // to bed: Day 2 starts in the bedroom
+            houseDoor.SetNextScene(Loader.Scene.HouseInterior);
             TaskManager.Instance.SetObjectives(day1SO.nightObjectiveArray);
         }
     }
@@ -337,8 +337,6 @@ public class Day1Director : MonoBehaviour
     {
         if (state == State.Tutorial1) isPressedDialoguePending = true;
     }
-
-    private void FarmPlot_OnAnyPlanted(object sender, EventArgs e) => plantedCount++;
 
     private void TaskManager_OnRequiredTasksCompleted(object sender, EventArgs e)
     {
@@ -400,7 +398,11 @@ public class Day1Director : MonoBehaviour
     private void HouseDoor_OnStateChanged(object sender, HouseDoor.OnStateChangedEventArgs e)
     {
         if (state != State.Night || e.state != HouseDoor.State.IrisClosing) return;
-        WorldState.CompleteDay1(plantedCount);
+        // every sapling in the ground tonight, including any planted after dusk, stands ripe in the Day 2 scene
+        List<Vector3> plantedPositionList = new List<Vector3>();
+        foreach (FarmPlot farmPlot in farmPlotArray)
+            if (farmPlot.GetState() == FarmPlot.State.Planted || farmPlot.GetState() == FarmPlot.State.Grown) plantedPositionList.Add(farmPlot.transform.position);
+        WorldState.CompleteDay1(plantedPositionList);
         SetState(State.Done);
     }
 

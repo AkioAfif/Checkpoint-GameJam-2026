@@ -229,14 +229,14 @@ public static class InteractablePrefabBuilder
         return SavePrefab(root, "Environment", "PlayerHouse");
     }
 
-    private static void AddOutline(GameObject root, Transform visual, Material material, float thickness)
+    public static void AddOutline(GameObject root, Transform visual, Material material, float thickness)
     {
         InteractableOutlineVisual outline = root.AddComponent<InteractableOutlineVisual>();
         SetField(outline, "interactableGameObject", root);
         SetArray(outline, "outlineGameObjectArray", AddOutlineHulls(visual, material, thickness));
     }
 
-    private static Transform Anchor(GameObject parent, string name, Vector3 localPosition)
+    public static Transform Anchor(GameObject parent, string name, Vector3 localPosition)
     {
         GameObject anchor = Root(name, parent.transform);
         anchor.transform.localPosition = localPosition;
