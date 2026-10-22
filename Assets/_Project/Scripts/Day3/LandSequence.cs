@@ -314,7 +314,8 @@ public class LandSequence : MonoBehaviour
         rigelActor.transform.rotation = Quaternion.LookRotation(toPlayer);
         rigelActor.MoveTo(rigelWatchPoint.position, .05f, 0f, true);
         smashIndex = 0;
-        SetStep(Step.Smash, Shot.SmashFront);
+        // the ordinary blows play in the gameplay camera; only the last one cuts in close
+        SetStep(Step.Smash, Shot.None);
         landQTE.StartMash(pressesPerSmash, smashCount);
     }
 
