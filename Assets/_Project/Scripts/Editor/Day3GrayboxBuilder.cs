@@ -126,9 +126,9 @@ public static class Day3GrayboxBuilder
         CinemachineCamera two = ChaseCamera(director, "CM_Day3FlashbackTwo", pair.transform, new Vector3(0f, 1.8f, -5.6f), 34f);
         two.GetComponent<CinemachineRotationComposer>().TargetOffset = new Vector3(0f, 1f, 0f);
         SetField(cameraVisual, "flashbackTwoCamera", two);
-        // a close-up of his face, from the MC's side
+        // him head-on, from behind where the MC stands (FlashbackVisual hides the MC for this shot)
         SetField(cameraVisual, "flashbackDistributorCamera", FixedCamera(director, "CM_Day3FlashbackDistributor",
-            distributorPosition + new Vector3(-2.6f, 1.75f, -2.6f), distributorPosition + Vector3.up * 1.55f, 30f));
+            distributorPosition + new Vector3(-4.2f, 1.8f, 0f), distributorPosition + Vector3.up * 1.6f, 30f));
         CinemachineCamera rigelCamera = ChaseCamera(director, "CM_Day3Rigel", rigel.transform, new Vector3(2.5f, 2.6f, -5f), 40f);
         rigelCamera.GetComponent<CinemachineRotationComposer>().TargetOffset = new Vector3(0f, .8f, 0f);
         SetField(cameraVisual, "rigelCamera", rigelCamera);
@@ -287,6 +287,7 @@ public static class Day3GrayboxBuilder
         SetField(flashback, "landSequence", landSequence);
         SetField(flashback, "grayscaleVolume", GrayscaleVolume(director));
         SetField(flashback, "glint", Glint(distributor));
+        SetField(flashback, "playerVisual", Object.FindAnyObjectByType<Player>(FindObjectsInactive.Include).GetComponentInChildren<PlayerVisual>(true).transform);
 
         // the whole screen this time, and no apparition
         WorldGlitchVisual glitch = director.gameObject.AddComponent<WorldGlitchVisual>();

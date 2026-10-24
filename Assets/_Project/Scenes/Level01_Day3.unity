@@ -3197,13 +3197,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 106135340}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.025098398, y: 0.3825422, z: -0.010396096, w: 0.9235386}
-  m_LocalPosition: {x: 9.200001, y: 1.75, z: 0.4000001}
+  m_LocalRotation: {x: 0.0806402, y: 0.63759816, z: -0.096130796, w: 0.76008195}
+  m_LocalPosition: {x: 7.163, y: 2.055, z: 2.287}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2037973298}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 14.192, y: 79.66479, z: -2.56}
 --- !u!1001 &108450216
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12133,6 +12133,11 @@ MonoBehaviour:
   blendSpeed: 6
   punchDuration: 0.3
   crouchDrop: 0.22
+--- !u!4 &422986376 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6692739611331269740, guid: c406d71b150b3f746bd059e47e7d1708, type: 3}
+  m_PrefabInstance: {fileID: 422986368}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &423123533
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -56318,6 +56323,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FlashbackVisual
   landSequence: {fileID: 2037973295}
   grayscaleVolume: {fileID: 1332731900}
+  playerVisual: {fileID: 422986376}
   glint: {fileID: 280817857}
   glintDelay: 0.9
   glintDuration: 0.18
