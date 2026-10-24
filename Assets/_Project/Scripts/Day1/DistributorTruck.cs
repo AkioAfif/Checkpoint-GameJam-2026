@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 
 // The Distributor's pickup: races in along its road route (or the straight startPoint→stopPoint line when no route is set), handbrake-spins to a stop and later burns rubber out the way it came.
+// With a route and a TruckDriver the arrival is driven by physics instead, then eases into the parked pose; the departure stays scripted.
 // It only moves; DistributorTruckVisual does the squash, wheel spin and shaking.
 public class DistributorTruck : MonoBehaviour
 {
@@ -42,12 +43,19 @@ public class DistributorTruck : MonoBehaviour
     [SerializeField] private float skidSpinAngle = -180f;
     [SerializeField] private float burnoutDuration = 1.1f;
     [SerializeField] private float leaveDuration = 2.8f;
+    [Tooltip("Optional physics driver for the arrival; used only together with route points.")]
+    [SerializeField] private TruckDriver driver;
 
     private State state = State.Hidden;
     private float timer;
     private float speedNormalized;
     private Vector3 lastPosition;
     private Quaternion parkedRotation;
+    // where the physics arrival came to rest, eased from into the parked pose
+    private Vector3 settleFromPosition;
+    private Quaternion settleFromRotation;
+    // how far along the route the departing truck still is (it travels back toward the entrance)
+    private float leaveDistance;
     // distance along the route to each route point, built once (the route is fixed in the scene)
     private float[] routeDistances = Array.Empty<float>();
 
@@ -58,12 +66,19 @@ public class DistributorTruck : MonoBehaviour
             routeDistances[i] = routeDistances[i - 1] + Vector3.Distance(routePoints[i - 1].position, routePoints[i].position);
     }
 
+    private void Start()
+    {
+        if (driver != null) driver.OnArrived += Driver_OnArrived;
+    }
+
     private void Update()
     {
         timer += Time.deltaTime;
         switch (state)
         {
             case State.Driving:
+                // TruckDriver is at the wheel and reports back through OnArrived
+                if (UsesPhysics()) break;
                 float progress = driveCurve.Evaluate(Mathf.Clamp01(timer / driveDuration));
                 if (HasRoute())
                 {
@@ -80,9 +95,17 @@ public class DistributorTruck : MonoBehaviour
                 // handbrake: the momentum carries it on east while it whips round, then it slides on backwards to a stop
                 float skid = Mathf.Clamp01(timer / skidDuration);
                 float slide = 1f - (1f - skid) * (1f - skid);
-                float spin = Mathf.Clamp01(skid / skidSpinPortion);
-                spin = 1f - (1f - spin) * (1f - spin);
-                transform.SetPositionAndRotation(Vector3.Lerp(BrakePoint(), stopPoint.position, slide), Quaternion.AngleAxis(skidSpinAngle * spin, Vector3.up) * ArrivalRotation());
+                if (UsesPhysics())
+                {
+                    // the physics stop lands near the stop: ease the last bit into the exact parked pose
+                    transform.SetPositionAndRotation(Vector3.Lerp(settleFromPosition, stopPoint.position, slide), Quaternion.Slerp(settleFromRotation, stopPoint.rotation, slide));
+                }
+                else
+                {
+                    float spin = Mathf.Clamp01(skid / skidSpinPortion);
+                    spin = 1f - (1f - spin) * (1f - spin);
+                    transform.SetPositionAndRotation(Vector3.Lerp(BrakePoint(), stopPoint.position, slide), Quaternion.AngleAxis(skidSpinAngle * spin, Vector3.up) * ArrivalRotation());
+                }
                 if (timer >= skidDuration)
                 {
                     parkedRotation = transform.rotation;
@@ -98,6 +121,7 @@ public class DistributorTruck : MonoBehaviour
                 {
                     // backs out along the route it came in on, turning the nose round from the parked pose
                     float distance = RouteLength() * (1f - leave * leave);
+                    leaveDistance = distance;
                     Quaternion reversed = RouteRotation(distance) * Quaternion.Euler(0f, 180f, 0f);
                     transform.SetPositionAndRotation(OnRoad(RoutePosition(distance)), Quaternion.Slerp(parkedRotation, reversed, Mathf.Clamp01(leave * 4f)));
                 }
@@ -115,12 +139,17 @@ public class DistributorTruck : MonoBehaviour
     public void Drive()
     {
         transform.SetPositionAndRotation(startPoint.position, startPoint.rotation);
-        lastPosition = startPoint.position;
+        if (UsesPhysics()) driver.Drive(routePoints, skidDuration);
+        lastPosition = transform.position;
         SetState(State.Driving);
     }
 
     // the Distributor is aboard: wheels spin in place, then off it goes
-    public void Leave() => SetState(State.Burnout);
+    public void Leave()
+    {
+        if (HasRoute()) leaveDistance = RouteLength();
+        SetState(State.Burnout);
+    }
 
     public State GetState() => state;
     // 0..1 through the current state
@@ -133,7 +162,32 @@ public class DistributorTruck : MonoBehaviour
     public Transform GetDoorPoint() => doorPoint;
     public Transform GetTailgatePoint() => tailgatePoint;
 
+    // the road lead metres ahead in the direction the truck is (or is about to be) travelling; false while it settles or has no route
+    public bool TryGetRoadPointAhead(float lead, out Vector3 point)
+    {
+        point = transform.position;
+        if (state == State.Driving && UsesPhysics())
+        {
+            point = driver.GetPointAhead(lead);
+            return true;
+        }
+        if (!HasRoute() || (state != State.Parked && state != State.Burnout && state != State.Leaving)) return false;
+        // parked and burning out it still waits at the end of the route, about to head back
+        float distance = state == State.Parked ? RouteLength() : leaveDistance;
+        point = OnRoad(RoutePosition(distance - lead));
+        return true;
+    }
+
+    private void Driver_OnArrived(object sender, EventArgs e)
+    {
+        settleFromPosition = transform.position;
+        settleFromRotation = transform.rotation;
+        SetState(State.Skidding);
+    }
+
     private bool HasRoute() => routePoints.Length > 1;
+
+    private bool UsesPhysics() => driver != null && HasRoute();
 
     private float RouteLength() => routeDistances[routeDistances.Length - 1];
 
