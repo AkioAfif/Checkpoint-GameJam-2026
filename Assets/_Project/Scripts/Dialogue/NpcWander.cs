@@ -57,7 +57,8 @@ public class NpcWander : MonoBehaviour
     {
         if (e.npc != npc) return;
         isTalking = true;
-        agent.isStopped = true;
+        // a cutscene move switches the agent off; it is re-seated (and moving again) when the move ends
+        if (agent.isOnNavMesh) agent.isStopped = true;
         agent.updateRotation = false;
     }
 
@@ -65,7 +66,7 @@ public class NpcWander : MonoBehaviour
     {
         if (e.npc != npc) return;
         isTalking = false;
-        agent.isStopped = false;
+        if (agent.isOnNavMesh) agent.isStopped = false;
         agent.updateRotation = true;
     }
 

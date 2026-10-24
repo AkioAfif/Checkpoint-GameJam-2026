@@ -7,6 +7,7 @@ public class PlayerVisual : MonoBehaviour
     [SerializeField] private Player player;
     [SerializeField] private Animator animator;
     [SerializeField] private ParticleSystem dustParticleSystem;
+    [SerializeField] private CutsceneActor cutsceneActor;
     [SerializeField] private float dustInterval = .22f;
     [SerializeField] private float squashAmount = .12f;
     [SerializeField] private float squashSpeed = 9f;
@@ -20,12 +21,17 @@ public class PlayerVisual : MonoBehaviour
         PlantingController.Instance.OnStateChanged += PlantingController_OnStateChanged;
         PlantingController.Instance.OnPlantingFinished += PlantingController_OnPlantingFinished;
         QTEManager.Instance.OnCheckResolved += QTEManager_OnCheckResolved;
+        DialogueManager.Instance.OnLineChanged += DialogueManager_OnLineChanged;
+        if (cutsceneActor != null) cutsceneActor.OnEmoteRequested += CutsceneActor_OnEmoteRequested;
     }
 
     private void Update()
     {
-        bool isMoving = player.IsMoving();
-        animator.SetFloat(ChibiAnimation.SPEED, player.GetSpeedNormalized());
+        // the director walks the player through cutscenes without input
+        bool isCutsceneWalking = cutsceneActor != null && cutsceneActor.IsWalking();
+        bool isMoving = isCutsceneWalking || player.IsMoving();
+        float speedNormalized = isCutsceneWalking ? 1f : player.GetSpeedNormalized();
+        animator.SetFloat(ChibiAnimation.SPEED, speedNormalized);
 
         // a quick squash when starting to walk and a stretch when stopping
         if (isMoving != wasMoving) squash = isMoving ? -squashAmount : squashAmount;
@@ -34,7 +40,7 @@ public class PlayerVisual : MonoBehaviour
         transform.localScale = new Vector3(1f - squash * .5f, 1f + squash, 1f - squash * .5f);
 
         if (!isMoving) return;
-        dustTimer -= Time.deltaTime * player.GetSpeedNormalized();
+        dustTimer -= Time.deltaTime * speedNormalized;
         if (dustTimer > 0f) return;
         dustTimer = dustInterval;
         dustParticleSystem.Emit(1);
@@ -48,7 +54,13 @@ public class PlayerVisual : MonoBehaviour
             PlantingController.Instance.OnPlantingFinished -= PlantingController_OnPlantingFinished;
         }
         if (QTEManager.Instance != null) QTEManager.Instance.OnCheckResolved -= QTEManager_OnCheckResolved;
+        if (DialogueManager.Instance != null) DialogueManager.Instance.OnLineChanged -= DialogueManager_OnLineChanged;
     }
+
+    // the world model reacts like the portrait does
+    private void DialogueManager_OnLineChanged(object sender, DialogueManager.OnLineChangedEventArgs e) => ChibiAnimation.PlayEmote(animator, e.line.playerEmote);
+
+    private void CutsceneActor_OnEmoteRequested(object sender, CutsceneActor.OnEmoteRequestedEventArgs e) => ChibiAnimation.PlayEmote(animator, e.emote);
 
     private void PlantingController_OnStateChanged(object sender, PlantingController.OnStateChangedEventArgs e)
     {

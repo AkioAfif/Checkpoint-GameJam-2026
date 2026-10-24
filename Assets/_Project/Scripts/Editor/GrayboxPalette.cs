@@ -99,6 +99,18 @@ public static class GrayboxPalette
         });
     }
 
+    // a see-through coloured texture (Day 3's crater, the ghost plots' hologram tint); lit unless isUnlit
+    public static Material TransparentMapped(string name, Color color, Texture2D baseMap, bool isUnlit)
+    {
+        return GetOrCreate(name, isUnlit ? UNLIT : LIT, material =>
+        {
+            material.SetColor("_BaseColor", color);
+            if (baseMap != null) material.SetTexture("_BaseMap", baseMap);
+            if (!isUnlit) material.SetFloat("_Smoothness", .1f);
+            MakeTransparent(material);
+        });
+    }
+
     private static Material OutlineMaterial(string name, Color color)
     {
         return GetOrCreate(name, UNLIT, material =>

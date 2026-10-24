@@ -15,6 +15,9 @@ MonoBehaviour:
   cropName: Sawit Lv.1
   seedItemDataSO: {fileID: 11400000, guid: 446006ae6efa8784fb8dd8ba712f28e5, type: 2}
   saplingPrefab: {fileID: 6782914629683459224, guid: 0955d3bab51c73c41af5dc69547d0b3f, type: 3}
+  grownPrefab: {fileID: 1857188737684708424, guid: 653276a2faee91649b481327ad32cbb0, type: 3}
+  ripePrefab: {fileID: 6294090193265087823, guid: d916b3ce55e24b54da1249d62daaeb5b, type: 3}
+  harvestItemDataSO: {fileID: 11400000, guid: 35ef7e9d64dff644f940e1ebdf39356b, type: 2}
   qteCheckCount: 2
   ringShrinkDuration: 1.1
   hitWindow: 0.2

@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3444338e1f9873d4fa63350c20c5792d, type: 3}
+  m_Name: Day2
+  m_EditorClassIdentifier: Assembly-CSharp::Day2SO
+  startingSavings: 1000
+  startingDebt: 48500000
+  daysUntilDue: 30
+  bookTitle: SAVINGS BOOK
+  bookMorningFormat: 'Savings<pos=55%>{0} Koin
+
+    Debt left<pos=55%>{1} Koin
+
+    Due in<pos=55%>{2} days'
+  bookEveningFormat: 'Savings<pos=55%>{0} Koin
+
+    Earned today<pos=55%><color=#3E8E5A>+{1} Koin</color>
+
+    Debt left<pos=55%>{2} Koin
+
+    Due in<pos=55%>{3} days'
+  bookCloseHint: Press [{0}] to close the book
+  morningDialogueSO: {fileID: 11400000, guid: a91bda5bcdac3a645a54c27d414192fe, type: 2}
+  soldDialogueSO: {fileID: 11400000, guid: 2b3ceacd06bc23a41bdf03a7737243bb, type: 2}
+  rigelSeesLv2DialogueSO: {fileID: 11400000, guid: 81c801a77da628b46b519ddb3abc825a, type: 2}
+  eveningDialogueSO: {fileID: 11400000, guid: a022d532635f9bd4fb35c9567153774b, type: 2}
+  morningObjectiveArray:
+  - {fileID: 11400000, guid: 7a8f4e8ba368f3746a119c5502965786, type: 2}
+  harvestObjectiveArray:
+  - {fileID: 11400000, guid: 317d08899acdb3945a650384322d41da, type: 2}
+  - {fileID: 11400000, guid: 22e89a68fe7468548ae971f87c7af9eb, type: 2}
+  rigelObjectiveArray:
+  - {fileID: 11400000, guid: 76ed25b378c7a5c41a7a75aca7396ecd, type: 2}
+  experimentObjectiveArray:
+  - {fileID: 11400000, guid: 59b15cbee2b5a4848a5d8ee2f2b470e2, type: 2}
+  - {fileID: 11400000, guid: e69ead56872ae97468f6a5d61d50ea45, type: 2}
+  - {fileID: 11400000, guid: 5ceb39302b37482439979da035f6909f, type: 2}
+  showRigelObjectiveArray:
+  - {fileID: 11400000, guid: 7dbf8108601714943ba48ed72fe3039c, type: 2}
+  nightObjectiveArray:
+  - {fileID: 11400000, guid: 8f8ccfa3c76e1c34cab4cb2b3d543006, type: 2}
+  nightCaption: That evening...

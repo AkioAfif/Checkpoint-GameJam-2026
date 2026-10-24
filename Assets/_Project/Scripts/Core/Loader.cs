@@ -4,7 +4,8 @@ using UnityEngine.SceneManagement;
 public static class Loader
 {
     // enum names must equal scene file names, and every scene must be in Build Profiles
-    public enum Scene { Level01_VillagePrototype, LoadingScene, HouseInterior_Stub }
+    // new scenes go at the end: HouseDoor serializes this enum as an int
+    public enum Scene { Level01_VillagePrototype, LoadingScene, HouseInterior_Stub, HouseInterior, Level01_Day2, Level01_Day3 }
 
     private static Scene targetScene;
 

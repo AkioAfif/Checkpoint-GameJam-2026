@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90dd2cd9f9ef57b4a9813410d4edfba8, type: 3}
+  m_Name: Rigel
+  m_EditorClassIdentifier: Assembly-CSharp::NpcSO
+  npcName: Rigel
+  portraitPrefab: {fileID: 4700354563636635062, guid: 5e5f2429aa159fd47b4ddce21e7c7e53, type: 3}
+  firstDialogueSO: {fileID: 11400000, guid: 9662e6f24180eb84f888b643b8506314, type: 2}
+  repeatDialogueSO: {fileID: 11400000, guid: 114de0a33cb40d4428f97281d7d2f84a, type: 2}
+  portraitBackground: {r: 0.98, g: 0.86, b: 0.78, a: 1}

@@ -98,43 +98,79 @@ public static class InteractablePrefabBuilder
         return SavePrefab(root, FOLDER, "FarmPlot");
     }
 
+    // The machine from Tools/Blender/build_fabricator.py (about 1.3 m tall, front = local +Z). The scene spawns it turned 180 degrees.
     public static GameObject Fabricator()
     {
         GameObject root = Root("Fabricator");
         FabricatorController controller = root.AddComponent<FabricatorController>();
+        root.AddComponent<FabricatorDelivery>();
         CapsuleCollider body = root.AddComponent<CapsuleCollider>();
-        body.center = new Vector3(0f, 1.5f, 0f);
-        body.radius = 1f;
-        body.height = 3f;
+        body.center = new Vector3(0f, .65f, 0f);
+        body.radius = .62f;
+        body.height = 1.3f;
         GameObject visual = Root("Visual", root.transform);
         Transform v = visual.transform;
-        Part(v, "Base", GrayboxMeshFactory.Cylinder(1f, .45f, .12f, 24), GrayboxPalette.Metal, Vector3.zero);
-        Part(v, "Tube", GrayboxMeshFactory.Cylinder(.78f, 2f, .08f, 24), GrayboxPalette.Glass, new Vector3(0f, .42f, 0f));
-        GameObject swirl = Part(v, "Swirl", GrayboxMeshFactory.Blob(.5f, .9f), GrayboxPalette.Lit("FabricatorSwirl", new Color(.75f, .9f, .6f), .8f), new Vector3(0f, .7f, 0f));
-        Part(v, "RingLow", GrayboxMeshFactory.Torus(.8f, .07f), GrayboxPalette.Accent, new Vector3(0f, .42f, 0f));
-        Part(v, "RingHigh", GrayboxMeshFactory.Torus(.8f, .07f), GrayboxPalette.Accent, new Vector3(0f, 2.3f, 0f));
-        Part(v, "Cap", GrayboxMeshFactory.Cylinder(.92f, .3f, .1f, 24), GrayboxPalette.Metal, new Vector3(0f, 2.42f, 0f));
-        Part(v, "Hopper", GrayboxMeshFactory.Taper(.28f, .5f, .45f, .05f, 18), GrayboxPalette.Metal, new Vector3(0f, 2.7f, 0f));
-        Part(v, "Lamp", GrayboxMeshFactory.Blob(.14f, .2f), GrayboxPalette.Accent, new Vector3(.55f, 2.7f, 0f));
-        Part(v, "Tray", GrayboxMeshFactory.RoundedBox(new Vector3(.8f, .14f, .55f), .05f), GrayboxPalette.Accent, new Vector3(0f, .42f, -1f));
-        Part(v, "Panel", GrayboxMeshFactory.RoundedBox(new Vector3(.5f, .6f, .2f), .06f), GrayboxPalette.Metal, new Vector3(.75f, .45f, -.55f), new Vector3(0f, -35f, 0f));
+        Transform model = Day1PrefabBuilder.ImportModel("Assets/_Project/Art/Models/Fabricator/Fabricator.fbx", v, FabricatorMaterial).transform;
+        // hand-tuned in the editor (2026-10-19): 1.5x bigger, with a taller tube and everything above it raised to match
+        root.transform.localScale = Vector3.one * 1.5f;
+        model.Find("Tube").localScale = new Vector3(1f, 1.416635f, 1f);
+        model.Find("Lid").localPosition = new Vector3(0f, 1.295f, 0f);
+        model.Find("RingHigh").localPosition = new Vector3(0f, 1.295f, 0f);
+        model.Find("Hopper").localPosition = new Vector3(0f, 1.435f, 0f);
+        model.Find("Lamp").localPosition = new Vector3(-.32f, 1.435f, 0f);
+        model.Find("HandleL").localPosition = new Vector3(.5f, 1.164f, 0f);
+        model.Find("HandleR").localPosition = new Vector3(-.5f, 1.164f, 0f);
+        GameObject swirl = Part(v, "Swirl", GrayboxMeshFactory.Blob(.28f, .5f), GrayboxPalette.Lit("FabricatorSwirl", new Color(.75f, .9f, .6f), .8f), new Vector3(0f, .42f, 0f));
         FabricatorVisual fabricatorVisual = visual.AddComponent<FabricatorVisual>();
         SetField(fabricatorVisual, "fabricator", controller);
-        SetField(fabricatorVisual, "outputPoint", Anchor(root, "OutputPoint", new Vector3(0f, .6f, -1f)));
+        SetField(fabricatorVisual, "outputPoint", Anchor(root, "OutputPoint", new Vector3(0f, .45f, .6f)));
         SetField(fabricatorVisual, "seedPopPrefab", VfxBuilder.SeedPop().transform);
         SetField(fabricatorVisual, "bobTransform", swirl.transform);
-        AddOutline(root, v, GrayboxPalette.Outline, .04f);
+        AddOutline(root, v, GrayboxPalette.Outline, .03f);
 
-        SetItemAmounts(controller, "recipeArray", new[] { GameDataBuilder.Water, GameDataBuilder.Flower, GameDataBuilder.Crop });
-        SetField(controller, "outputItemDataSO", GameDataBuilder.SawitSeed);
+        // press 1 (tutorial): 3 plants make 2 seeds. Presses 2+: water + flower + plant make 1 seed and hand the bottle back;
+        // each of presses 2-4 has its own puzzle, the last one repeats.
         SerializedObject so = new SerializedObject(controller);
-        so.FindProperty("returnedItem.itemDataSO").objectReferenceValue = GameDataBuilder.EmptyBottle;
-        so.FindProperty("returnedItem.amount").intValue = 1;
+        SerializedProperty recipes = so.FindProperty("recipeArray");
+        recipes.arraySize = 4;
+        SetRecipe(recipes.GetArrayElementAtIndex(0), new[] { (GameDataBuilder.Crop, 3) }, 2, null, GameDataBuilder.PuzzleIntro, "Bring 3 plants from your field");
+        SetRecipe(recipes.GetArrayElementAtIndex(1), new[] { (GameDataBuilder.Water, 1), (GameDataBuilder.Flower, 1), (GameDataBuilder.Crop, 1) }, 1, GameDataBuilder.EmptyBottle, GameDataBuilder.PuzzleTutorial, "Needs water, a flower and a plant");
+        SetRecipe(recipes.GetArrayElementAtIndex(2), new[] { (GameDataBuilder.Water, 1), (GameDataBuilder.Flower, 1), (GameDataBuilder.Crop, 1) }, 1, GameDataBuilder.EmptyBottle, GameDataBuilder.PuzzleNormal, "Needs water, a flower and a plant");
+        SetRecipe(recipes.GetArrayElementAtIndex(3), new[] { (GameDataBuilder.Water, 1), (GameDataBuilder.Flower, 1), (GameDataBuilder.Crop, 1) }, 1, GameDataBuilder.EmptyBottle, GameDataBuilder.PuzzleSplit, "Needs water, a flower and a plant");
         so.ApplyModifiedPropertiesWithoutUndo();
-        SetArray(controller, "puzzleSOArray", new Object[] { GameDataBuilder.PuzzleTutorial, GameDataBuilder.PuzzleNormal });
-        SetField(controller, "promptAnchor", Anchor(root, "PromptAnchor", new Vector3(0f, 3.4f, 0f)));
+        SetField(controller, "promptAnchor", Anchor(root, "PromptAnchor", new Vector3(0f, 1.9f, 0f)));
         SetLayerRecursively(root, InteractableLayer);
         return SavePrefab(root, FOLDER, "Fabricator");
+    }
+
+    private static Material FabricatorMaterial(string slot)
+    {
+        switch (slot)
+        {
+            case "Metal": return GrayboxPalette.Metal;
+            case "Glass": return GrayboxPalette.Glass;
+            case "Accent": return GrayboxPalette.Accent;
+            case "Dark": return GrayboxPalette.DarkGray;
+        }
+        Debug.LogError($"Fabricator.fbx has an unknown material slot '{slot}'");
+        return GrayboxPalette.DarkGray;
+    }
+
+    private static void SetRecipe(SerializedProperty recipe, (ItemDataSO item, int amount)[] inputs, int seedCount, ItemDataSO returned, FabricatorPuzzleSO puzzle, string blockedReason)
+    {
+        SerializedProperty inputArray = recipe.FindPropertyRelative("inputArray");
+        inputArray.arraySize = inputs.Length;
+        for (int i = 0; i < inputs.Length; i++)
+        {
+            inputArray.GetArrayElementAtIndex(i).FindPropertyRelative("itemDataSO").objectReferenceValue = inputs[i].item;
+            inputArray.GetArrayElementAtIndex(i).FindPropertyRelative("amount").intValue = inputs[i].amount;
+        }
+        recipe.FindPropertyRelative("output.itemDataSO").objectReferenceValue = GameDataBuilder.SawitSeed;
+        recipe.FindPropertyRelative("output.amount").intValue = seedCount;
+        recipe.FindPropertyRelative("returned.itemDataSO").objectReferenceValue = returned;
+        recipe.FindPropertyRelative("returned.amount").intValue = returned != null ? 1 : 0;
+        recipe.FindPropertyRelative("puzzleSO").objectReferenceValue = puzzle;
+        recipe.FindPropertyRelative("blockedReason").stringValue = blockedReason;
     }
 
     public static GameObject Villager(string name, CharacterBuilder.Look look, NpcSO npcSO) => Villager(name, CharacterBuilder.RigPrefab(look), npcSO, 1f, .35f, look.scale);
@@ -193,31 +229,18 @@ public static class InteractablePrefabBuilder
         return SavePrefab(root, "Environment", "PlayerHouse");
     }
 
-    private static void AddOutline(GameObject root, Transform visual, Material material, float thickness)
+    public static void AddOutline(GameObject root, Transform visual, Material material, float thickness)
     {
         InteractableOutlineVisual outline = root.AddComponent<InteractableOutlineVisual>();
         SetField(outline, "interactableGameObject", root);
         SetArray(outline, "outlineGameObjectArray", AddOutlineHulls(visual, material, thickness));
     }
 
-    private static Transform Anchor(GameObject parent, string name, Vector3 localPosition)
+    public static Transform Anchor(GameObject parent, string name, Vector3 localPosition)
     {
         GameObject anchor = Root(name, parent.transform);
         anchor.transform.localPosition = localPosition;
         return anchor.transform;
-    }
-
-    private static void SetItemAmounts(Object target, string field, ItemDataSO[] items)
-    {
-        SerializedObject so = new SerializedObject(target);
-        SerializedProperty array = so.FindProperty(field);
-        array.arraySize = items.Length;
-        for (int i = 0; i < items.Length; i++)
-        {
-            array.GetArrayElementAtIndex(i).FindPropertyRelative("itemDataSO").objectReferenceValue = items[i];
-            array.GetArrayElementAtIndex(i).FindPropertyRelative("amount").intValue = 1;
-        }
-        so.ApplyModifiedPropertiesWithoutUndo();
     }
 
     public static void SetString(Object target, string field, string value)

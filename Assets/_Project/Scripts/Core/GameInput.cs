@@ -79,6 +79,7 @@ public class GameInput : MonoBehaviour
     public Vector2 GetMovementVectorNormalized() => moveAction.ReadValue<Vector2>().normalized;
     public bool IsSprintPressed() => sprintAction.IsPressed();
     public bool IsDigPressed() => digAction.IsPressed();
+    public bool IsInteractPressed() => interactAction.IsPressed();
     public Vector2 GetPointerScreenPosition() => pointAction.ReadValue<Vector2>();
 
     public string GetInteractBindingDisplay()

@@ -62,6 +62,7 @@ public class DialogueManager : MonoBehaviour
 
     public bool IsActive() => lineIndex >= 0;
     public DialogueSO.DialogueLine GetCurrentLine() => dialogueSO.lineArray[lineIndex];
+    public bool HasPendingReward(DialogueSO dialogueSO) => dialogueSO != null && dialogueSO.reward.amount > 0 && !rewardGivenSet.Contains(dialogueSO);
     public int GetVisibleCharacterCount() => Mathf.FloorToInt(revealedCharacters);
     public bool IsLineFullyRevealed() => revealedCharacters >= GetCurrentLine().text.Length;
 

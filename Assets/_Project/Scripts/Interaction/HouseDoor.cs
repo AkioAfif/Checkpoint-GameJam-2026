@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-// Locked until today's tasks are done. Entering: face the door → camera zooms in → iris closes → next scene.
+// Locked until today's tasks are done. Entering: face the door → (optional line) → camera zooms in → iris closes → next scene.
 public class HouseDoor : MonoBehaviour, IInteractable
 {
     public event EventHandler<OnStateChangedEventArgs> OnStateChanged;
@@ -18,6 +18,15 @@ public class HouseDoor : MonoBehaviour, IInteractable
 
     private State state;
     private float timer;
+    private bool isLocked;
+    private bool isWaitingForDialogue;
+    private bool isHidden;
+    private DialogueSO entryDialogueSO;
+
+    private void Start()
+    {
+        DialogueManager.Instance.OnDialogueEnded += DialogueManager_OnDialogueEnded;
+    }
 
     private void Update()
     {
@@ -33,20 +42,54 @@ public class HouseDoor : MonoBehaviour, IInteractable
         Loader.Load(nextScene);
     }
 
-    public bool IsSelectable() => state == State.Closed;
-    public bool CanInteract(Player player) => TaskManager.Instance.AreRequiredTasksComplete();
+    private void OnDestroy()
+    {
+        if (DialogueManager.Instance != null) DialogueManager.Instance.OnDialogueEnded -= DialogueManager_OnDialogueEnded;
+    }
+
+    private void DialogueManager_OnDialogueEnded(object sender, DialogueManager.OnDialogueEventArgs e)
+    {
+        if (!isWaitingForDialogue) return;
+        isWaitingForDialogue = false;
+        Enter();
+    }
+
+    public bool IsSelectable() => state == State.Closed && !isWaitingForDialogue && !isHidden;
+    public bool CanInteract(Player player) => !isLocked && TaskManager.Instance.AreRequiredTasksComplete();
 
     public void Interact(Player player)
     {
         player.FaceTowards(transform.position);
-        TaskManager.Instance.CompleteEnterHouse();
-        GameManager.Instance.SetState(GameManager.State.EnteringHouse);
-        SetState(State.ZoomingIn, zoomDuration);
+        if (entryDialogueSO == null)
+        {
+            Enter();
+            return;
+        }
+        // a story line first, the zoom starts when it ends
+        isWaitingForDialogue = true;
+        DialogueSO dialogueSO = entryDialogueSO;
+        entryDialogueSO = null;
+        DialogueManager.Instance.StartDialogue(null, dialogueSO);
     }
 
     public string GetPromptVerb() => promptVerb;
     public string GetBlockedReason() => lockedReason;
     public Transform GetPromptAnchor() => promptAnchor;
+
+    // the story can keep the door shut regardless of the checklist
+    public void SetLocked(bool isLocked) => this.isLocked = isLocked;
+    // not targetable at all (no prompt), e.g. while the player has only just stepped out of it
+    public void SetHidden(bool isHidden) => this.isHidden = isHidden;
+    public void SetEntryDialogue(DialogueSO dialogueSO) => entryDialogueSO = dialogueSO;
+    // where tonight's sleep leads (the next morning, or the end screen)
+    public void SetNextScene(Loader.Scene nextScene) => this.nextScene = nextScene;
+
+    private void Enter()
+    {
+        TaskManager.Instance.CompleteEnterHouse();
+        GameManager.Instance.SetState(GameManager.State.EnteringHouse);
+        SetState(State.ZoomingIn, zoomDuration);
+    }
 
     private void SetState(State state, float duration)
     {

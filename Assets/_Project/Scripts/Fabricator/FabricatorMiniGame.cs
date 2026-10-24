@@ -26,13 +26,19 @@ public class FabricatorMiniGame : MonoBehaviour
     [SerializeField] private Camera puzzleCamera;
     [SerializeField] private float particleRadius = .12f;
     [SerializeField] private float digRadius = .55f;
+    [Tooltip("All three liquids finishing within this many seconds of each other is a combo.")]
+    [SerializeField] private float comboWindow = 1.5f;
 
     private FabricatorPuzzleSO puzzleSO;
     private readonly List<Rigidbody2D>[] particleListArray = { new List<Rigidbody2D>(), new List<Rigidbody2D>(), new List<Rigidbody2D>() };
     private readonly int[] inMouldCountArray = new int[LIQUID_COUNT];
+    private readonly bool[] isLiquidUsedArray = new bool[LIQUID_COUNT];
+    // when each liquid first reached its target (-1 = not yet)
+    private readonly float[] doneTimeArray = new float[LIQUID_COUNT];
     private Rect mouldRect;
     private bool isRunning;
     private bool isSolved;
+    private bool hasPlayerDug;
     private float countTimer;
     private int puzzleLayer;
 
@@ -50,6 +56,8 @@ public class FabricatorMiniGame : MonoBehaviour
         if (countTimer > 0f) return;
         countTimer = COUNT_INTERVAL;
         CountMould();
+        for (int i = 0; i < LIQUID_COUNT; i++)
+            if (doneTimeArray[i] < 0f && GetLiquidProgress(i) >= 1f) doneTimeArray[i] = Time.time;
         if (IsEveryLiquidDone())
         {
             isSolved = true;
@@ -86,9 +94,37 @@ public class FabricatorMiniGame : MonoBehaviour
     public bool IsRock(Vector3Int cell) => tilemap.GetTile(cell) == rockTile;
     public Rect GetMouldRect() => mouldRect;
 
+    // tutorial ghost cursor: shown until the player digs for the first time
+    public bool IsHintActive() => isRunning && !isSolved && !hasPlayerDug && puzzleSO.hasHint;
+
+    // screen position along the hint path, t = 0..1
+    public Vector2 GetHintScreenPoint(float t)
+    {
+        Vector3 from = grid.GetCellCenterWorld(LayoutToCell(puzzleSO.hintFromCell));
+        Vector3 to = grid.GetCellCenterWorld(LayoutToCell(puzzleSO.hintToCell));
+        return puzzleCamera.WorldToScreenPoint(Vector3.Lerp(from, to, t));
+    }
+
+    // a puzzle may use only some of the liquids (the tutorial has just one)
+    public bool IsLiquidUsed(int liquidIndex) => isLiquidUsedArray[liquidIndex];
+
+    // every liquid in play reached the mould at nearly the same moment (one-liquid puzzles never combo)
+    public bool IsCombo()
+    {
+        float first = float.MaxValue, last = float.MinValue;
+        for (int i = 0; i < LIQUID_COUNT; i++)
+        {
+            if (!isLiquidUsedArray[i] || doneTimeArray[i] < 0f) return false;
+            first = Mathf.Min(first, doneTimeArray[i]);
+            last = Mathf.Max(last, doneTimeArray[i]);
+        }
+        return last - first <= comboWindow;
+    }
+
     // 0..1 progress of one liquid toward its required amount
     public float GetLiquidProgress(int liquidIndex)
     {
+        if (!isLiquidUsedArray[liquidIndex]) return 1f;
         float required = puzzleSO.particlesPerLiquid * puzzleSO.requiredFraction;
         return Mathf.Clamp01(inMouldCountArray[liquidIndex] / required);
     }
@@ -98,7 +134,9 @@ public class FabricatorMiniGame : MonoBehaviour
         ClearParticles();
         tilemap.ClearAllTiles();
         isSolved = false;
+        hasPlayerDug = false;
         Array.Clear(inMouldCountArray, 0, LIQUID_COUNT);
+        for (int i = 0; i < LIQUID_COUNT; i++) doneTimeArray[i] = -1f;
 
         string[] rows = puzzleSO.GetRows();
         List<Vector3Int>[] sourceCellListArray = { new List<Vector3Int>(), new List<Vector3Int>(), new List<Vector3Int>() };
@@ -107,7 +145,7 @@ public class FabricatorMiniGame : MonoBehaviour
         {
             for (int c = 0; c < rows[r].Length; c++)
             {
-                Vector3Int cell = new Vector3Int(c - rows[r].Length / 2, rows.Length / 2 - r, 0); // centred, top row first
+                Vector3Int cell = LayoutToCell(new Vector2Int(c, r), rows); // centred, top row first
                 char symbol = rows[r][c];
                 if (symbol == '#') tilemap.SetTile(cell, dirtTile);
                 else if (symbol == 'R') tilemap.SetTile(cell, rockTile);
@@ -126,11 +164,16 @@ public class FabricatorMiniGame : MonoBehaviour
         for (int i = 0; i < LIQUID_COUNT; i++)
         {
             int cellCount = sourceCellListArray[i].Count;
-            for (int p = 0; p < puzzleSO.particlesPerLiquid; p++)
+            isLiquidUsedArray[i] = cellCount > 0;
+            for (int p = 0; p < puzzleSO.particlesPerLiquid && cellCount > 0; p++)
                 SpawnParticle(i, sourceCellListArray[i][p % cellCount], p / cellCount);
         }
         OnBuilt?.Invoke(this, EventArgs.Empty);
     }
+
+    private Vector3Int LayoutToCell(Vector2Int layoutCell) => LayoutToCell(layoutCell, puzzleSO.GetRows());
+
+    private static Vector3Int LayoutToCell(Vector2Int layoutCell, string[] rows) => new Vector3Int(layoutCell.x - rows[layoutCell.y].Length / 2, rows.Length / 2 - layoutCell.y, 0);
 
     // up to 4 blobs per cell on a 2x2 sub-grid, so freshly spawned blobs never overlap and explode apart
     private void SpawnParticle(int liquidIndex, Vector3Int cell, int slot)
@@ -170,7 +213,9 @@ public class FabricatorMiniGame : MonoBehaviour
                 hasDug = true;
             }
         }
-        if (hasDug) OnDug?.Invoke(this, EventArgs.Empty);
+        if (!hasDug) return;
+        hasPlayerDug = true;
+        OnDug?.Invoke(this, EventArgs.Empty);
     }
 
     private void CountMould()

@@ -14,9 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   lineArray:
   - speaker: 1
+    text: Hey hey! Wanna see how fast I can run? I'll race you to your farm tomorrow!
+    playerEmote: 0
+    npcEmote: 2
+    isShaking: 0
+  - speaker: 1
     text: I counted all the flowers in the village. There are a LOT.
     playerEmote: 0
     npcEmote: 4
+    isShaking: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

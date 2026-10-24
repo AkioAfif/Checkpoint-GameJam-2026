@@ -1,6 +1,7 @@
 using UnityEngine;
 
-// Crop model while growing, float-up on harvest, sapling (grows in with a pop) once planted.
+// Crop model while growing, float-up on harvest, sapling (grows in with a pop) once planted, a grown palm by the evening,
+// a fruiting palm the next morning (cleared away with a float-up of its fruit when harvested).
 public class FarmPlotVisual : MonoBehaviour
 {
     [SerializeField] private FarmPlot farmPlot;
@@ -32,7 +33,22 @@ public class FarmPlotVisual : MonoBehaviour
         cropGameObject.SetActive(e.state == FarmPlot.State.Crop);
         if (wasCrop && e.state == FarmPlot.State.Empty)
             ItemFloatUp.Spawn(farmPlot.GetCropItemDataSO().prefab, cropGameObject.transform.position, burstPrefab);
+        if (sapling != null && e.state == FarmPlot.State.Empty)
+        {
+            ItemFloatUp.Spawn(farmPlot.GetPlantedCropDataSO().harvestItemDataSO.prefab, sapling.position, burstPrefab);
+            Destroy(sapling.gameObject);
+            sapling = null;
+        }
 
+        if (e.state == FarmPlot.State.Grown || e.state == FarmPlot.State.Ripe)
+        {
+            // swapped behind the evening fade (or before the morning's first frame), so no pop
+            if (sapling != null) Destroy(sapling.gameObject);
+            CropDataSO cropDataSO = farmPlot.GetPlantedCropDataSO();
+            sapling = Instantiate(e.state == FarmPlot.State.Ripe ? cropDataSO.ripePrefab : cropDataSO.grownPrefab, saplingParent);
+            growTimer = -1f;
+            return;
+        }
         if (e.state != FarmPlot.State.Planted) return;
         sapling = Instantiate(farmPlot.GetPlantedCropDataSO().saplingPrefab, saplingParent);
         sapling.localScale = Vector3.zero;

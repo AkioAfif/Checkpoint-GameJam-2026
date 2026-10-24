@@ -30,6 +30,9 @@ public static class VfxBuilder
     public static GameObject PlantSuccess() => SaveOneShot("PlantSuccess", new Color(.55f, .95f, .45f), new Color(1f, .95f, .5f), 30, new Vector2(2.5f, 4.5f), new Vector2(.15f, .3f), .7f, true, 35f);
     public static GameObject PlantFail() => SaveOneShot("PlantFail", Alpha(new Color(.55f, .5f, .47f), .8f), Alpha(new Color(.72f, .68f, .62f), .8f), 12, new Vector2(.6f, 1.4f), new Vector2(.5f, .85f), -.05f, false, 30f);
 
+    // Day 3's fists on the ground: clods of dirt thrown up and out
+    public static GameObject SmashDust() => SaveOneShot("SmashDust", new Color(.45f, .36f, .28f), new Color(.66f, .58f, .48f), 40, new Vector2(3f, 6.5f), new Vector2(.25f, .6f), 1.4f, false, 65f);
+
     private static GameObject SaveOneShot(string name, Color colorA, Color colorB, int count, Vector2 speed, Vector2 size, float gravity, bool additive, float coneAngle)
     {
         GameObject root = Root(name);

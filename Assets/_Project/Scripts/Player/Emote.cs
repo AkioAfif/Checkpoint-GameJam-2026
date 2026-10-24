@@ -1,2 +1,3 @@
 // One-shot character reactions. Names match the triggers in Chibi.controller.
-public enum Emote { None, Nod, Hop, Shake, Surprised, Wave, Cheer, Sad, Dig }
+// Day 1 additions: WakeUp (Wake-up grumble), HeavySigh, GoofyFlip, GoofySetup (lifting the Fabricator), TiltHead, WideSmile, Dodge (Sari diving out of the truck's way).
+public enum Emote { None, Nod, Hop, Shake, Surprised, Wave, Cheer, Sad, Dig, WakeUp, HeavySigh, GoofyFlip, GoofySetup, TiltHead, WideSmile, Dodge }

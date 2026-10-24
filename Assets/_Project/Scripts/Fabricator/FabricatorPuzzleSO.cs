@@ -12,5 +12,10 @@ public class FabricatorPuzzleSO : ScriptableObject
     // share of each liquid that must reach the mould
     [Range(.1f, 1f)] public float requiredFraction = .5f;
 
+    // optional tutorial hint: a ghost cursor sweeps between two layout cells (x = column, y = row) until the first dig
+    public bool hasHint;
+    public Vector2Int hintFromCell;
+    public Vector2Int hintToCell;
+
     public string[] GetRows() => layout.Replace("\r", "").Trim().Split('\n');
 }

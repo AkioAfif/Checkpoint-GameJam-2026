@@ -54,12 +54,13 @@ public static class UiBuilder
         BuildInventory(hud);
         BuildPrompt(canvas);
         BuildQte(canvas);
-        BuildFabricatorHud(canvas, refs);
+        // scenes without a Fabricator or a house door (HouseInterior) skip the panels that listen to them
+        if (refs.fabricator != null) BuildFabricatorHud(canvas, refs);
         BuildDialogue(canvas, refs);
         BuildDiscovery(canvas);
         BuildPause(canvas);
-        BuildFlash(canvas, refs);
-        BuildIris(canvas, refs);
+        if (refs.fabricator != null) BuildFlash(canvas, refs);
+        if (refs.houseDoor != null) BuildIris(canvas, refs);
     }
 
     // ---------- panels ----------
@@ -246,7 +247,7 @@ public static class UiBuilder
         RectTransform box = Panel(root, "Box", new Vector2(.5f, 0f), new Vector2(.5f, 0f), new Vector2(.5f, 0f), new Vector2(0f, 40f), new Vector2(1320f, 270f), Cream);
         Outline(box.gameObject);
         Portrait(box, "PlayerPortrait", refs.playerPortrait, new Vector2(0f, 1f), new Vector2(150f, 10f));
-        Portrait(box, "NpcPortrait", refs.npcPortrait, new Vector2(1f, 1f), new Vector2(-150f, 10f));
+        RectTransform npcFrame = Portrait(box, "NpcPortrait", refs.npcPortrait, new Vector2(1f, 1f), new Vector2(-150f, 10f));
 
         RectTransform nameTag = Panel(box, "NameTag", new Vector2(.5f, 1f), new Vector2(.5f, 1f), new Vector2(.5f, .5f), new Vector2(0f, 0f), new Vector2(300f, 56f), Sky);
         TextMeshProUGUI name = Text(nameTag, "Name", "Name", 30, Color.white, TextAlignmentOptions.Center, FontStyles.Bold);
@@ -260,12 +261,13 @@ public static class UiBuilder
         SetField(ui, "lineText", line);
         SetField(ui, "nameText", name);
         SetField(ui, "nameTagImage", nameTag.GetComponent<Image>());
+        SetField(ui, "npcPortraitFrame", npcFrame.gameObject);
         SetField(ui, "continueIndicator", Wrap(arrow.gameObject));
         SetField(ui, "boxPop", box.gameObject.AddComponent<UIPop>());
     }
 
     // round frame + masked RawImage showing a portrait RenderTexture, overlapping the top edge of the box
-    private static void Portrait(RectTransform box, string name, RenderTexture texture, Vector2 anchor, Vector2 position)
+    private static RectTransform Portrait(RectTransform box, string name, RenderTexture texture, Vector2 anchor, Vector2 position)
     {
         RectTransform frame = Panel(box, name, anchor, anchor, new Vector2(.5f, .3f), position, new Vector2(250f, 250f), Cream);
         frame.GetComponent<Image>().sprite = GrayboxTextures.Circle;
@@ -278,6 +280,7 @@ public static class UiBuilder
         raw.texture = texture;
         raw.raycastTarget = false;
         Stretch(raw.rectTransform, Vector2.zero, Vector2.zero);
+        return frame;
     }
 
     private static void BuildDiscovery(Transform canvas)

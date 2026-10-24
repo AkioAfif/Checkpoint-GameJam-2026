@@ -30,6 +30,8 @@ public static class CharacterBuilder
     public static readonly Look DartoLook = new Look { name = "Darto", cloth = new Color(.56f, .73f, .56f), hair = new Color(.62f, .62f, .64f), accessory = Accessory.Cap, scale = 1.05f };
     public static readonly Look DimasLook = new Look { name = "Dimas", cloth = new Color(.98f, .73f, .43f), hair = new Color(.2f, .18f, .18f), accessory = Accessory.None, scale = .85f };
     public static readonly Look IjahLook = new Look { name = "Ijah", cloth = new Color(.73f, .63f, .86f), hair = new Color(.93f, .93f, .93f), accessory = Accessory.Bun, scale = .95f };
+    public static readonly Look SariLook = new Look { name = "Sari", cloth = new Color(.40f, .76f, .74f), hair = new Color(.15f, .12f, .13f), accessory = Accessory.None, scale = .92f };
+    public static readonly Look RigelLook = new Look { name = "Rigel", cloth = new Color(.80f, .45f, .33f), hair = new Color(.12f, .10f, .10f), accessory = Accessory.Cap, scale = 1.02f };
 
     // rig prefab (Animator + body parts), nested inside the Player/NPC prefabs and spawned in the portrait booth
     public static GameObject RigPrefab(Look look)
@@ -217,7 +219,11 @@ public static class CharacterBuilder
     public static RuntimeAnimatorController Controller()
     {
         AnimatorController existing = AssetDatabase.LoadAssetAtPath<AnimatorController>(CONTROLLER_PATH);
-        if (existing != null) return existing;
+        if (existing != null)
+        {
+            AddMissingEmotes(existing); // later story beats add emotes; the controller keeps its GUID so every rig stays linked
+            return existing;
+        }
 
         AnimatorController controller = AnimatorController.CreateAnimatorControllerAtPath(CONTROLLER_PATH);
         controller.AddParameter(ChibiAnimation.SPEED, AnimatorControllerParameterType.Float);
@@ -240,9 +246,26 @@ public static class CharacterBuilder
         Transition(walk, crouch, .25f, t => t.AddCondition(AnimatorConditionMode.If, 0f, ChibiAnimation.IS_CROUCHING));
         Transition(crouch, idle, .25f, t => t.AddCondition(AnimatorConditionMode.IfNot, 0f, ChibiAnimation.IS_CROUCHING));
 
+        AddMissingEmotes(controller);
+        AssetDatabase.SaveAssets();
+        return controller;
+    }
+
+    // one trigger + state + transitions per Emote that the controller doesn't know yet
+    private static void AddMissingEmotes(AnimatorController controller)
+    {
+        AnimatorStateMachine machine = controller.layers[0].stateMachine;
+        AnimatorState idle = null, crouch = null;
+        foreach (ChildAnimatorState child in machine.states)
+        {
+            if (child.state.name == "Idle") idle = child.state;
+            else if (child.state.name == "Crouch") crouch = child.state;
+        }
+        bool hasChanged = false;
         foreach (KeyValuePair<Emote, AnimationClip> pair in EmoteClips())
         {
             string trigger = pair.Key.ToString();
+            if (System.Array.Exists(controller.parameters, parameter => parameter.name == trigger)) continue;
             controller.AddParameter(trigger, AnimatorControllerParameterType.Trigger);
             AnimatorState state = machine.AddState(trigger);
             state.motion = pair.Value;
@@ -255,9 +278,9 @@ public static class CharacterBuilder
             exit.hasExitTime = true;
             exit.exitTime = .95f;
             exit.duration = .15f;
+            hasChanged = true;
         }
-        AssetDatabase.SaveAssets();
-        return controller;
+        if (hasChanged) EditorUtility.SetDirty(controller);
     }
 
     private static void Transition(AnimatorState from, AnimatorState to, float duration, System.Action<AnimatorStateTransition> setup)
@@ -339,6 +362,13 @@ public static class CharacterBuilder
                     Rot(clip, "Hips/Head", new Vector4(0f, 0f, 0f, 0f), new Vector4(.3f, 28f, 0f, 0f), new Vector4(.7f, 26f, 10f, 0f), new Vector4(1.1f, 28f, -8f, 0f), new Vector4(1.3f, 0f, 0f, 0f));
                     Rot(clip, "Hips", new Vector4(0f, 0f, 0f, 0f), new Vector4(.3f, 10f, 0f, 0f), new Vector4(1.1f, 10f, 0f, 0f), new Vector4(1.3f, 0f, 0f, 0f));
                 }) },
+            { Emote.WakeUp, SaveClip("WakeUp", false, WakeUpClip) },
+            { Emote.HeavySigh, SaveClip("HeavySigh", false, HeavySighClip) },
+            { Emote.GoofyFlip, SaveClip("GoofyFlip", false, GoofyFlipClip) },
+            { Emote.GoofySetup, SaveClip("GoofySetup", false, GoofySetupClip) },
+            { Emote.TiltHead, SaveClip("TiltHead", false, clip => Rot(clip, "Hips/Head", new Vector4(0f, 0f, 0f, 0f), new Vector4(.25f, 4f, 0f, 24f), new Vector4(.8f, 4f, 0f, 24f), new Vector4(1.05f, 0f, 0f, 0f))) },
+            { Emote.WideSmile, SaveClip("WideSmile", false, WideSmileClip) },
+            { Emote.Dodge, SaveClip("Dodge", false, DodgeClip) },
             { Emote.Dig, SaveClip("Dig", false, clip =>
                 {
                     PosY(clip, "Hips", new Vector2(0f, .2f), new Vector2(.4f, .2f));
@@ -349,6 +379,72 @@ public static class CharacterBuilder
                     Rot(clip, "Hips/ArmR", new Vector4(0f, -45f, 0f, 10f), new Vector4(.15f, -95f, 0f, 5f), new Vector4(.4f, -45f, 0f, 10f));
                 }) },
         };
+    }
+
+    // lying on the back in bed, a grumbling shake of the head, then sitting up with a stretch
+    private static void WakeUpClip(AnimationClip clip)
+    {
+        PosY(clip, "Hips", new Vector2(0f, HIPS_Y - .16f), new Vector2(.9f, HIPS_Y - .15f), new Vector2(1.6f, HIPS_Y + .02f), new Vector2(2.2f, HIPS_Y));
+        Rot(clip, "Hips", new Vector4(0f, -85f, 0f, 0f), new Vector4(1f, -85f, 0f, 0f), new Vector4(1.6f, -5f, 0f, 0f), new Vector4(2.2f, 0f, 0f, 0f));
+        Rot(clip, "LegL", new Vector4(0f, -85f, 0f, -6f), new Vector4(1f, -85f, 0f, -6f), new Vector4(1.6f, -40f, 0f, -6f), new Vector4(2.2f, 0f, 0f, 0f));
+        Rot(clip, "LegR", new Vector4(0f, -85f, 0f, 6f), new Vector4(1f, -85f, 0f, 6f), new Vector4(1.6f, -40f, 0f, 6f), new Vector4(2.2f, 0f, 0f, 0f));
+        Rot(clip, "Hips/Head", new Vector4(0f, 0f, 0f, 0f), new Vector4(.25f, 0f, 0f, 14f), new Vector4(.5f, 0f, 0f, -14f), new Vector4(.75f, 0f, 0f, 10f), new Vector4(1f, 0f, 0f, 0f), new Vector4(1.7f, -14f, 0f, 0f), new Vector4(2.2f, 0f, 0f, 0f));
+        Rot(clip, "Hips/ArmL", new Vector4(0f, -10f, 0f, -20f), new Vector4(1f, -10f, 0f, -20f), new Vector4(1.7f, 0f, 0f, -150f), new Vector4(2.2f, 0f, 0f, -6f));
+        Rot(clip, "Hips/ArmR", new Vector4(0f, -10f, 0f, 20f), new Vector4(1f, -10f, 0f, 20f), new Vector4(1.7f, 0f, 0f, 150f), new Vector4(2.2f, 0f, 0f, 6f));
+    }
+
+    // shoulders rise, then drop with the head hanging
+    private static void HeavySighClip(AnimationClip clip)
+    {
+        PosY(clip, "Hips", new Vector2(0f, HIPS_Y), new Vector2(.7f, HIPS_Y + .035f), new Vector2(1.2f, HIPS_Y - .05f), new Vector2(1.9f, HIPS_Y - .04f), new Vector2(2.3f, HIPS_Y));
+        Rot(clip, "Hips/Head", new Vector4(0f, 0f, 0f, 0f), new Vector4(.7f, -8f, 0f, 0f), new Vector4(1.2f, 30f, 0f, 0f), new Vector4(1.9f, 28f, 0f, 0f), new Vector4(2.3f, 0f, 0f, 0f));
+        Rot(clip, "Hips/ArmL", new Vector4(0f, 0f, 0f, -6f), new Vector4(.7f, 0f, 0f, -34f), new Vector4(1.2f, 0f, 0f, -4f), new Vector4(2.3f, 0f, 0f, -6f));
+        Rot(clip, "Hips/ArmR", new Vector4(0f, 0f, 0f, 6f), new Vector4(.7f, 0f, 0f, 34f), new Vector4(1.2f, 0f, 0f, 4f), new Vector4(2.3f, 0f, 0f, 6f));
+        Rot(clip, "Hips", new Vector4(0f, 0f, 0f, 0f), new Vector4(1.2f, 9f, 0f, 0f), new Vector4(1.9f, 9f, 0f, 0f), new Vector4(2.3f, 0f, 0f, 0f));
+    }
+
+    // a hop with a full backflip (the end key snaps -360 to 0, which looks identical)
+    private static void GoofyFlipClip(AnimationClip clip)
+    {
+        PosY(clip, "Hips", new Vector2(0f, HIPS_Y), new Vector2(.12f, HIPS_Y - .1f), new Vector2(.42f, HIPS_Y + .6f), new Vector2(.76f, HIPS_Y - .02f), new Vector2(.88f, HIPS_Y - .08f), new Vector2(1f, HIPS_Y));
+        Rot(clip, "Hips", new Vector4(0f, 0f, 0f, 0f), new Vector4(.12f, 12f, 0f, 0f), new Vector4(.2f, 0f, 0f, 0f), new Vector4(.72f, -360f, 0f, 0f), new Vector4(.73f, 0f, 0f, 0f), new Vector4(1f, 0f, 0f, 0f));
+        Rot(clip, "LegL", new Vector4(0f, 0f, 0f, 0f), new Vector4(.3f, -70f, 0f, -8f), new Vector4(.7f, -70f, 0f, -8f), new Vector4(.85f, 0f, 0f, 0f));
+        Rot(clip, "LegR", new Vector4(0f, 0f, 0f, 0f), new Vector4(.3f, -70f, 0f, 8f), new Vector4(.7f, -70f, 0f, 8f), new Vector4(.85f, 0f, 0f, 0f));
+        ArmsUp(clip, 0f, .3f, 1f, 165f);
+    }
+
+    // crouch, scoop the machine up, lift it overhead, set it down in front
+    private static void GoofySetupClip(AnimationClip clip)
+    {
+        PosY(clip, "Hips", new Vector2(0f, HIPS_Y), new Vector2(.35f, .24f), new Vector2(.9f, HIPS_Y + .03f), new Vector2(1.5f, .28f), new Vector2(2f, HIPS_Y));
+        Rot(clip, "Hips", new Vector4(0f, 0f, 0f, 0f), new Vector4(.35f, 20f, 0f, 0f), new Vector4(.9f, -6f, 0f, 0f), new Vector4(1.5f, 18f, 0f, 0f), new Vector4(2f, 0f, 0f, 0f));
+        Rot(clip, "LegL", new Vector4(0f, 0f, 0f, 0f), new Vector4(.35f, -70f, 0f, -8f), new Vector4(.9f, 0f, 0f, -4f), new Vector4(1.5f, -70f, 0f, -8f), new Vector4(2f, 0f, 0f, 0f));
+        Rot(clip, "LegR", new Vector4(0f, 0f, 0f, 0f), new Vector4(.35f, -70f, 0f, 8f), new Vector4(.9f, 0f, 0f, 4f), new Vector4(1.5f, -70f, 0f, 8f), new Vector4(2f, 0f, 0f, 0f));
+        Rot(clip, "Hips/ArmL", new Vector4(0f, 0f, 0f, -6f), new Vector4(.35f, -75f, 0f, -12f), new Vector4(.9f, -170f, 0f, -12f), new Vector4(1.5f, -75f, 0f, -12f), new Vector4(2f, 0f, 0f, -6f));
+        Rot(clip, "Hips/ArmR", new Vector4(0f, 0f, 0f, 6f), new Vector4(.35f, -75f, 0f, 12f), new Vector4(.9f, -170f, 0f, 12f), new Vector4(1.5f, -75f, 0f, 12f), new Vector4(2f, 0f, 0f, 6f));
+        Rot(clip, "Hips/Head", new Vector4(0f, 0f, 0f, 0f), new Vector4(.9f, -14f, 0f, 0f), new Vector4(1.5f, 6f, 0f, 0f), new Vector4(2f, 0f, 0f, 0f));
+    }
+
+    // dives to the right (the arc comes from CutsceneActor), sprawls on the side, gets up and pats the dust off
+    private static void DodgeClip(AnimationClip clip)
+    {
+        PosY(clip, "Hips", new Vector2(0f, HIPS_Y), new Vector2(.08f, HIPS_Y - .08f), new Vector2(.35f, HIPS_Y - .16f), new Vector2(1f, HIPS_Y - .16f), new Vector2(1.35f, HIPS_Y), new Vector2(1.9f, HIPS_Y));
+        Rot(clip, "Hips", new Vector4(0f, 0f, 0f, 0f), new Vector4(.08f, 10f, 0f, 0f), new Vector4(.35f, 0f, 0f, -80f), new Vector4(1f, 0f, 0f, -78f), new Vector4(1.35f, 6f, 0f, 0f), new Vector4(1.5f, 0f, 0f, 0f));
+        Rot(clip, "LegL", new Vector4(0f, 0f, 0f, 0f), new Vector4(.35f, -20f, 0f, -70f), new Vector4(1f, -20f, 0f, -70f), new Vector4(1.35f, 0f, 0f, 0f));
+        Rot(clip, "LegR", new Vector4(0f, 0f, 0f, 0f), new Vector4(.35f, 10f, 0f, -80f), new Vector4(1f, 10f, 0f, -80f), new Vector4(1.35f, 0f, 0f, 0f));
+        Rot(clip, "Hips/ArmL", new Vector4(0f, 0f, 0f, -6f), new Vector4(.2f, 0f, 0f, -160f), new Vector4(1f, 0f, 0f, -150f), new Vector4(1.35f, -10f, 0f, -6f),
+            new Vector4(1.5f, -55f, 0f, -10f), new Vector4(1.6f, -25f, 0f, -10f), new Vector4(1.7f, -55f, 0f, -10f), new Vector4(1.9f, 0f, 0f, -6f));
+        Rot(clip, "Hips/ArmR", new Vector4(0f, 0f, 0f, 6f), new Vector4(.2f, 0f, 0f, 160f), new Vector4(1f, 0f, 0f, 150f), new Vector4(1.35f, -10f, 0f, 6f),
+            new Vector4(1.55f, -25f, 0f, 10f), new Vector4(1.65f, -55f, 0f, 10f), new Vector4(1.75f, -25f, 0f, 10f), new Vector4(1.9f, 0f, 0f, 6f));
+        Rot(clip, "Hips/Head", new Vector4(0f, 0f, 0f, 0f), new Vector4(.35f, -10f, 0f, 10f), new Vector4(1f, -10f, 0f, 10f), new Vector4(1.45f, 20f, 0f, 0f), new Vector4(1.75f, 20f, 0f, 0f), new Vector4(1.9f, 0f, 0f, 0f));
+    }
+
+    // a happy little bounce with the head thrown back, arms out
+    private static void WideSmileClip(AnimationClip clip)
+    {
+        PosY(clip, "Hips", new Vector2(0f, HIPS_Y), new Vector2(.15f, HIPS_Y + .1f), new Vector2(.3f, HIPS_Y), new Vector2(.45f, HIPS_Y + .08f), new Vector2(.6f, HIPS_Y), new Vector2(1f, HIPS_Y));
+        Rot(clip, "Hips/Head", new Vector4(0f, 0f, 0f, 0f), new Vector4(.2f, -12f, 0f, 6f), new Vector4(.6f, -10f, 0f, -6f), new Vector4(1f, 0f, 0f, 0f));
+        ArmsUp(clip, 0f, .2f, 1f, 40f);
     }
 
     // both arms raised sideways (amount degrees) at 'up', lowered again by 'end'

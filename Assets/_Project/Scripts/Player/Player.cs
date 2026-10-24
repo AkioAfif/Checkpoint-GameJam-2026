@@ -23,6 +23,8 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        // a cutscene hop moves the transform itself
+        if (!characterController.enabled) return;
         Vector3 moveDir = Vector3.zero;
         if (GameManager.Instance.IsGamePlaying())
         {

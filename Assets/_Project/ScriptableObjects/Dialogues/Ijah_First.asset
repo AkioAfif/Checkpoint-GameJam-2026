@@ -17,18 +17,22 @@ MonoBehaviour:
     text: Come here, dear. Let me look at you.
     playerEmote: 0
     npcEmote: 5
+    isShaking: 0
   - speaker: 0
     text: Hello, Nek Ijah!
     playerEmote: 1
     npcEmote: 0
+    isShaking: 0
   - speaker: 1
     text: Your farm looks healthy. Plants grow best when they're tended with patience.
     playerEmote: 0
     npcEmote: 1
+    isShaking: 0
   - speaker: 0
     text: I'll remember that!
     playerEmote: 6
     npcEmote: 0
+    isShaking: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

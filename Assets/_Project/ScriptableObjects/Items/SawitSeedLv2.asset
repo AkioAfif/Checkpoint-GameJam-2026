@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a532d23ec25add43b52cecb0ff0daae, type: 3}
+  m_Name: SawitSeedLv2
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
+  itemName: Sawit Seed Lv.2
+  description: A darker seed, pressed with forest resin. It feels warm, and a little too heavy.
+  icon: {fileID: -8281294969779376518, guid: 4d954770d0d88694e9a9fccd7a0a9ebb, type: 3}
+  prefab: {fileID: 8934208989341211818, guid: 996e32742c65df94f98b85203159d7f8, type: 3}
+  liquidColor: {r: 0.78, g: 0.16, b: 0.2, a: 1}
+  sellPrice: 0

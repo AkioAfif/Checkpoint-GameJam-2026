@@ -38,7 +38,7 @@ public static partial class Level01SceneBuilder
 
     private static void BuildGameplay() => BuildGameplayParts();
 
-    private static void BuildLightingAndVolume()
+    public static void BuildLightingAndVolume()
     {
         GameObject sun = new GameObject("Directional Light");
         Light light = sun.AddComponent<Light>();

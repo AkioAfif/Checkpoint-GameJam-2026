@@ -134,7 +134,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DistributorFaceVisual
   faceRenderer: {fileID: 6865427552809162783}
-  talkCharactersPerSecond: 40
   easeSpeed: 8
 --- !u!1 &3628032633392961543
 GameObject:

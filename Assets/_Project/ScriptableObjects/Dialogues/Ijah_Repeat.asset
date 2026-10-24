@@ -14,9 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   lineArray:
   - speaker: 1
+    text: A new machine? Hm. Plants grow best when they're tended with patience, dear.
+    playerEmote: 0
+    npcEmote: 1
+    isShaking: 0
+  - speaker: 1
     text: Patience, dear. Good things grow slowly.
     playerEmote: 0
     npcEmote: 1
+    isShaking: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0
