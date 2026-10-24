@@ -12,6 +12,7 @@ Last verified: 2026-10-21. If you change a setting below, update this file in th
 ## Versions & packages
 - Unity **6000.6.5f1**. C# API compatibility: .NET Standard 2.1 (`apiCompatibilityLevel: 6`). Language: C# 9 — no `required`, no file-scoped namespaces, no primary constructors, no raw string literals.
 - URP **17.6.0**, Shader Graph 17.6.0, Input System **1.20.0**, uGUI **2.6.0** (TextMeshPro lives inside this package — `using TMPro;`), Timeline 6.6.0, AI Navigation 2.0.15 (`using Unity.AI.Navigation;` for `NavMeshSurface`, `UnityEngine.AI` for `NavMeshAgent`), Test Framework 1.8.0.
+- **glTFast 6.20.0** (`com.unity.cloud.gltfast`, added 2026-10-24 for `Assets/Ilkham/scene/fix.glb`). It imports `.glb`/`.gltf` as GameObject assets. Namespace `GLTFast`.
 - Installed but **not used by our code**: Visual Scripting, `com.unity.ai.*`, `com.unity.pipeline`, collab-proxy. Never `using Unity.VisualScripting;` (KC had this by accident).
 - **Removed `com.unity.ai.inference`** (2026-10-17): its dependency `com.unity.dt.app-ui` ships a WebGL native lib that breaks the Web build at link time (`wasm-ld: undefined symbol: _embind_register_class`). Don't re-add it unless you drop the Web build.
 - **Cinemachine 6.6.0** (built-in package, Cinemachine 3 API: `using Unity.Cinemachine;`, `CinemachineCamera`, `CinemachineFollow`, `CinemachineRotationComposer`, `CinemachineConfiner3D`). Added 2026-10-17 for Level01.
