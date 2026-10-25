@@ -11,6 +11,7 @@ public class Player : MonoBehaviour
     [SerializeField] private float gravity = -20f;
 
     private CharacterController characterController;
+    private Transform cameraTransform;
     private float verticalVelocity;
     private float currentSpeed;
 
@@ -21,16 +22,17 @@ public class Player : MonoBehaviour
         characterController = GetComponent<CharacterController>();
     }
 
+    private void Start()
+    {
+        cameraTransform = Camera.main.transform;
+    }
+
     private void Update()
     {
         // a cutscene hop moves the transform itself
         if (!characterController.enabled) return;
         Vector3 moveDir = Vector3.zero;
-        if (GameManager.Instance.IsGamePlaying())
-        {
-            Vector2 input = GameInput.Instance.GetMovementVectorNormalized();
-            moveDir = new Vector3(input.x, 0f, input.y);
-        }
+        if (GameManager.Instance.IsGamePlaying()) moveDir = CameraRelative(GameInput.Instance.GetMovementVectorNormalized());
 
         currentSpeed = moveDir == Vector3.zero ? 0f : GameInput.Instance.IsSprintPressed() ? sprintSpeed : walkSpeed;
         verticalVelocity = characterController.isGrounded ? -1f : verticalVelocity + gravity * Time.deltaTime;
@@ -55,6 +57,21 @@ public class Player : MonoBehaviour
         characterController.enabled = false; // otherwise the controller overwrites the move next frame
         transform.position = position;
         characterController.enabled = true;
+    }
+
+    // W = away from the camera on the ground plane; a camera looking straight down uses its screen-up instead
+    private Vector3 CameraRelative(Vector2 input)
+    {
+        Vector3 forward = cameraTransform.forward;
+        forward.y = 0f;
+        if (forward.sqrMagnitude < .01f)
+        {
+            forward = cameraTransform.up;
+            forward.y = 0f;
+        }
+        forward.Normalize();
+        Vector3 right = new Vector3(forward.z, 0f, -forward.x);
+        return right * input.x + forward * input.y;
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

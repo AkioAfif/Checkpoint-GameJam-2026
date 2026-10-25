@@ -13,6 +13,7 @@ public class GameInput : MonoBehaviour
     public event EventHandler OnInteractAction;
     public event EventHandler OnPauseAction;
     public event EventHandler OnRestartAction;
+    public event EventHandler OnToggleTasksAction;
     // the Interact key text changed (rebind, or switched between keyboard and gamepad)
     public event EventHandler OnBindingDisplayChanged;
 
@@ -21,6 +22,7 @@ public class GameInput : MonoBehaviour
     private InputAction sprintAction;
     private InputAction pauseAction;
     private InputAction restartAction;
+    private InputAction toggleTasksAction;
     private InputAction digAction;
     private InputAction pointAction;
     private bool isUsingGamepad;
@@ -36,6 +38,7 @@ public class GameInput : MonoBehaviour
         sprintAction = InputSystem.actions.FindAction("Player/Sprint", true);
         pauseAction = InputSystem.actions.FindAction("Player/Pause", true);
         restartAction = InputSystem.actions.FindAction("Player/Restart", true);
+        toggleTasksAction = InputSystem.actions.FindAction("Player/ToggleTasks", true);
         digAction = InputSystem.actions.FindAction("Player/Attack", true);
         pointAction = InputSystem.actions.FindAction("UI/Point", true);
 
@@ -44,6 +47,7 @@ public class GameInput : MonoBehaviour
         interactAction.performed += Interact_performed;
         pauseAction.performed += Pause_performed;
         restartAction.performed += Restart_performed;
+        toggleTasksAction.performed += ToggleTasks_performed;
         InputSystem.onActionChange += InputSystem_onActionChange;
     }
 
@@ -53,11 +57,13 @@ public class GameInput : MonoBehaviour
         interactAction.performed -= Interact_performed;
         pauseAction.performed -= Pause_performed;
         restartAction.performed -= Restart_performed;
+        toggleTasksAction.performed -= ToggleTasks_performed;
         InputSystem.onActionChange -= InputSystem_onActionChange;
     }
 
     private void Interact_performed(InputAction.CallbackContext context) => OnInteractAction?.Invoke(this, EventArgs.Empty);
     private void Restart_performed(InputAction.CallbackContext context) => OnRestartAction?.Invoke(this, EventArgs.Empty);
+    private void ToggleTasks_performed(InputAction.CallbackContext context) => OnToggleTasksAction?.Invoke(this, EventArgs.Empty);
 
     private void Pause_performed(InputAction.CallbackContext context)
     {

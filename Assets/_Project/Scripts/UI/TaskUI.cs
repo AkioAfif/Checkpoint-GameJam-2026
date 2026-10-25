@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-// Top-left "Today" checklist.
+// Top-left "Today" checklist. Tab shows or hides it; it starts open.
+[RequireComponent(typeof(CanvasGroup))]
 public class TaskUI : MonoBehaviour
 {
     [SerializeField] private Transform container;
@@ -10,9 +11,14 @@ public class TaskUI : MonoBehaviour
     [SerializeField] private UIPop headerPop;
 
     private readonly List<TaskSingleUI> rowList = new List<TaskSingleUI>();
+    private CanvasGroup canvasGroup;
+    private bool isOpen = true;
 
     private void Awake()
     {
+        // HUDs saved before the toggle existed have no CanvasGroup yet
+        if (!TryGetComponent(out canvasGroup)) canvasGroup = gameObject.AddComponent<CanvasGroup>();
+        canvasGroup.SetVisible(isOpen);
         rowTemplate.gameObject.SetActive(false);
     }
 
@@ -21,15 +27,24 @@ public class TaskUI : MonoBehaviour
         TaskManager.Instance.OnObjectiveProgress += TaskManager_OnObjectiveProgress;
         TaskManager.Instance.OnRequiredTasksCompleted += TaskManager_OnRequiredTasksCompleted;
         TaskManager.Instance.OnObjectivesChanged += TaskManager_OnObjectivesChanged;
+        GameInput.Instance.OnToggleTasksAction += GameInput_OnToggleTasksAction;
         BuildRows();
     }
 
     private void OnDestroy()
     {
+        if (GameInput.Instance != null) GameInput.Instance.OnToggleTasksAction -= GameInput_OnToggleTasksAction;
         if (TaskManager.Instance == null) return;
         TaskManager.Instance.OnObjectiveProgress -= TaskManager_OnObjectiveProgress;
         TaskManager.Instance.OnRequiredTasksCompleted -= TaskManager_OnRequiredTasksCompleted;
         TaskManager.Instance.OnObjectivesChanged -= TaskManager_OnObjectivesChanged;
+    }
+
+    private void GameInput_OnToggleTasksAction(object sender, EventArgs e)
+    {
+        if (GameManager.Instance.IsGamePaused()) return;
+        isOpen = !isOpen;
+        canvasGroup.SetVisible(isOpen);
     }
 
     private void TaskManager_OnObjectiveProgress(object sender, TaskManager.OnObjectiveProgressEventArgs e) => RefreshAll(e.index);
