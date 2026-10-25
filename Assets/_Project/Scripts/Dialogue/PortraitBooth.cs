@@ -15,6 +15,8 @@ public class PortraitBooth : MonoBehaviour
         DialogueManager.Instance.OnDialogueStarted += DialogueManager_OnDialogueStarted;
         DialogueManager.Instance.OnDialogueEnded += DialogueManager_OnDialogueEnded;
         DialogueManager.Instance.OnLineChanged += DialogueManager_OnLineChanged;
+        // the player rig prefab can be rebuilt after the booth was, so re-tag its parts for the portrait cameras
+        MoveToPortraitLayer(playerPortraitAnimator.transform);
         SetCamerasEnabled(false);
     }
 
@@ -35,8 +37,7 @@ public class PortraitBooth : MonoBehaviour
             Transform portrait = Instantiate(npcSO.portraitPrefab, npcStand);
             portrait.localPosition = Vector3.zero;
             portrait.localRotation = Quaternion.identity;
-            int portraitLayer = gameObject.layer;
-            foreach (Transform t in portrait.GetComponentsInChildren<Transform>()) t.gameObject.layer = portraitLayer;
+            MoveToPortraitLayer(portrait);
             npcPortraitAnimator = portrait.GetComponent<Animator>();
             npcCamera.backgroundColor = npcSO.portraitBackground;
         }
@@ -55,6 +56,11 @@ public class PortraitBooth : MonoBehaviour
     {
         ChibiAnimation.PlayEmote(playerPortraitAnimator, e.line.playerEmote);
         if (npcPortraitAnimator != null) ChibiAnimation.PlayEmote(npcPortraitAnimator, e.line.npcEmote);
+    }
+
+    private void MoveToPortraitLayer(Transform root)
+    {
+        foreach (Transform t in root.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = gameObject.layer;
     }
 
     private void SetCamerasEnabled(bool isEnabled)

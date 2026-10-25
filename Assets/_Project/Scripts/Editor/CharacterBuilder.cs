@@ -13,8 +13,11 @@ public static class CharacterBuilder
     private const string DISTRIBUTOR_FOLDER = "Assets/_Project/Art/Models/Distributor";
     private const string DISTRIBUTOR_FBX = DISTRIBUTOR_FOLDER + "/Distributor.fbx";
     private const string GENERATED_FOLDER = "Assets/_Project/Art/Models/Generated";
+    private const string MEADOW_FOLDER = "Assets/_Project/Art/Models/Meadow";
+    private const string MEADOW_FBX = MEADOW_FOLDER + "/MC_Meadow.fbx";
+    private const string MEADOW_FACE = MEADOW_FOLDER + "/MC_Face.png";
 
-    public enum Accessory { None, StrawHat, Bun, Cap }
+    public enum Accessory { None, Bun, Cap }
 
     public struct Look
     {
@@ -25,7 +28,6 @@ public static class CharacterBuilder
         public float scale;
     }
 
-    public static readonly Look PlayerLook = new Look { name = "Player", cloth = new Color(.52f, .67f, .88f), hair = new Color(.36f, .27f, .22f), accessory = Accessory.StrawHat, scale = 1f };
     public static readonly Look RatnaLook = new Look { name = "Ratna", cloth = new Color(.93f, .63f, .69f), hair = new Color(.26f, .21f, .21f), accessory = Accessory.Bun, scale = 1f };
     public static readonly Look DartoLook = new Look { name = "Darto", cloth = new Color(.56f, .73f, .56f), hair = new Color(.62f, .62f, .64f), accessory = Accessory.Cap, scale = 1.05f };
     public static readonly Look DimasLook = new Look { name = "Dimas", cloth = new Color(.98f, .73f, .43f), hair = new Color(.2f, .18f, .18f), accessory = Accessory.None, scale = .85f };
@@ -33,14 +35,10 @@ public static class CharacterBuilder
     public static readonly Look SariLook = new Look { name = "Sari", cloth = new Color(.40f, .76f, .74f), hair = new Color(.15f, .12f, .13f), accessory = Accessory.None, scale = .92f };
     public static readonly Look RigelLook = new Look { name = "Rigel", cloth = new Color(.80f, .45f, .33f), hair = new Color(.12f, .10f, .10f), accessory = Accessory.Cap, scale = 1.02f };
 
-    // rig prefab (Animator + body parts), nested inside the Player/NPC prefabs and spawned in the portrait booth
+    // rig prefab (Animator + body parts), nested inside the NPC prefabs and spawned in the portrait booth
     public static GameObject RigPrefab(Look look)
     {
-        GameObject rig = Root($"Rig_{look.name}");
-        Animator animator = rig.AddComponent<Animator>();
-        animator.runtimeAnimatorController = Controller();
-        animator.applyRootMotion = false;
-        animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+        GameObject rig = AnimatedRig($"Rig_{look.name}");
         rig.transform.localScale = Vector3.one * look.scale;
 
         Material cloth = GrayboxPalette.Cloth(look.name, look.cloth);
@@ -89,21 +87,68 @@ public static class CharacterBuilder
         return SavePrefab(rig, "Characters", $"Rig_{look.name}");
     }
 
-    // The antagonist: a skinned mesh made by Tools/Blender/build_distributor.py, re-bound to identity-rotation bones
-    // (FBX rest rotations would fight the clips' absolute euler keys) so Chibi.controller drives him like everyone else.
+    // The antagonist: a skinned mesh made by Tools/Blender/build_distributor.py, driven by Chibi.controller like everyone else.
     public static GameObject DistributorRigPrefab()
     {
         ConfigureDistributorImport();
-        GameObject model = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(DISTRIBUTOR_FBX));
-        SkinnedMeshRenderer source = model.GetComponentInChildren<SkinnedMeshRenderer>();
-        Dictionary<string, Transform> importedBones = new Dictionary<string, Transform>();
-        foreach (Transform t in model.GetComponentsInChildren<Transform>()) importedBones[t.name] = t;
+        GameObject rig = AnimatedRig("Rig_Distributor");
+        SkinnedMeshRenderer skinned = BindChibiSkin(rig, DISTRIBUTOR_FBX, "Distributor_", DistributorMaterial);
+        DistributorFaceVisual face = rig.AddComponent<DistributorFaceVisual>();
+        SetField(face, "faceRenderer", skinned);
+        return SavePrefab(rig, "Characters", "Rig_Distributor");
+    }
 
-        GameObject rig = Root("Rig_Distributor");
+    // The main character "Meadow" (Tools/Blender/export_mc_meadow.py), poured into the existing Rig_Player prefab: its root
+    // (with the Animator) keeps its file ID, so the Player prefab, every scene's player and the portrait booth stay linked.
+    [MenuItem("Tools/Characters/Rebuild Player Rig (Meadow)")]
+    public static GameObject PlayerRigPrefab()
+    {
+        ConfigureMeadowImport();
+        string path = $"{PREFABS}/Characters/Rig_Player.prefab";
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(path) == null)
+        {
+            GameObject rig = AnimatedRig("Rig_Player");
+            AddPlayerFace(rig, BindChibiSkin(rig, MEADOW_FBX, "MC_Meadow_", MeadowMaterial));
+            return SavePrefab(rig, "Characters", "Rig_Player");
+        }
+        GameObject contents = PrefabUtility.LoadPrefabContents(path);
+        for (int i = contents.transform.childCount - 1; i >= 0; i--) Object.DestroyImmediate(contents.transform.GetChild(i).gameObject);
+        contents.transform.localScale = Vector3.one;
+        AddPlayerFace(contents, BindChibiSkin(contents, MEADOW_FBX, "MC_Meadow_", MeadowMaterial));
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(contents, path);
+        PrefabUtility.UnloadPrefabContents(contents);
+        return prefab;
+    }
+
+    private static void AddPlayerFace(GameObject rig, SkinnedMeshRenderer skinned)
+    {
+        PlayerFaceVisual face = rig.GetComponent<PlayerFaceVisual>();
+        if (face == null) face = rig.AddComponent<PlayerFaceVisual>();
+        SetField(face, "faceRenderer", skinned);
+        SetField(face, "eyeLeftMaterial", MeadowMaterial("MC_Face_EyeL"));
+        SetField(face, "eyeRightMaterial", MeadowMaterial("MC_Face_EyeR"));
+        SetField(face, "mouthMaterial", MeadowMaterial("MC_Face_Mouth"));
+    }
+
+    private static GameObject AnimatedRig(string name)
+    {
+        GameObject rig = Root(name);
         Animator animator = rig.AddComponent<Animator>();
         animator.runtimeAnimatorController = Controller();
         animator.applyRootMotion = false;
         animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+        return rig;
+    }
+
+    // Re-binds an FBX's skinned mesh to identity-rotation Chibi bones under 'rig' (FBX rest rotations would fight the clips'
+    // absolute euler keys). The FBX needs bones Hips (at HIPS_Y), Head, ArmL, ArmR, LegL, LegR; material(slot name) maps its slots.
+    private static SkinnedMeshRenderer BindChibiSkin(GameObject rig, string fbxPath, string meshPrefix, System.Func<string, Material> material)
+    {
+        GameObject model = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath));
+        SkinnedMeshRenderer source = model.GetComponentInChildren<SkinnedMeshRenderer>();
+        Dictionary<string, Transform> importedBones = new Dictionary<string, Transform>();
+        foreach (Transform t in model.GetComponentsInChildren<Transform>()) importedBones[t.name] = t;
+
         Dictionary<string, Transform> bones = new Dictionary<string, Transform>();
         // parents first, so setting a child's world position sticks
         foreach (string boneName in new[] { "Hips", "LegL", "LegR", "Head", "ArmL", "ArmR" })
@@ -112,31 +157,28 @@ public static class CharacterBuilder
             bones[boneName] = Root(boneName, parent).transform;
             bones[boneName].position = importedBones[boneName].position;
         }
-        if (Mathf.Abs(bones["Hips"].localPosition.y - HIPS_Y) > .001f) Debug.LogError($"Distributor Hips at y {bones["Hips"].localPosition.y}, the Chibi clips expect {HIPS_Y}");
+        if (Mathf.Abs(bones["Hips"].localPosition.y - HIPS_Y) > .001f) Debug.LogError($"{fbxPath}: Hips at y {bones["Hips"].localPosition.y}, the Chibi clips expect {HIPS_Y}");
 
         Transform[] boneArray = new Transform[source.bones.Length];
         for (int i = 0; i < boneArray.Length; i++) boneArray[i] = bones[source.bones[i].name];
         GameObject body = Root("Body", rig.transform);
         SkinnedMeshRenderer skinned = body.AddComponent<SkinnedMeshRenderer>();
-        skinned.sharedMesh = DistributorMesh(source, boneArray);
+        skinned.sharedMesh = ReboundMesh(source, boneArray, fbxPath, meshPrefix);
         skinned.bones = boneArray;
         skinned.rootBone = bones["Hips"];
         skinned.localBounds = new Bounds(skinned.sharedMesh.bounds.center - bones["Hips"].position, skinned.sharedMesh.bounds.size * 1.3f);
         Material[] materials = new Material[source.sharedMaterials.Length];
-        for (int i = 0; i < materials.Length; i++) materials[i] = DistributorMaterial(source.sharedMaterials[i].name);
+        for (int i = 0; i < materials.Length; i++) materials[i] = material(source.sharedMaterials[i].name);
         skinned.sharedMaterials = materials;
         Object.DestroyImmediate(model);
-
-        DistributorFaceVisual face = rig.AddComponent<DistributorFaceVisual>();
-        SetField(face, "faceRenderer", skinned);
-        return SavePrefab(rig, "Characters", "Rig_Distributor");
+        return skinned;
     }
 
     // copy of the imported mesh with bindposes for the new bones; named after the FBX hash so a re-export rebuilds it
-    private static Mesh DistributorMesh(SkinnedMeshRenderer source, Transform[] boneArray)
+    private static Mesh ReboundMesh(SkinnedMeshRenderer source, Transform[] boneArray, string fbxPath, string prefix)
     {
-        string key = "Distributor_" + AssetDatabase.GetAssetDependencyHash(DISTRIBUTOR_FBX).ToString().Substring(0, 8);
-        foreach (string guid in AssetDatabase.FindAssets("Distributor_", new[] { GENERATED_FOLDER }))
+        string key = prefix + AssetDatabase.GetAssetDependencyHash(fbxPath).ToString().Substring(0, 8);
+        foreach (string guid in AssetDatabase.FindAssets(prefix, new[] { GENERATED_FOLDER }))
         {
             string path = AssetDatabase.GUIDToAssetPath(guid);
             if (!System.IO.Path.GetFileName(path).StartsWith(key)) AssetDatabase.DeleteAsset(path); // stale export + its outline hull
@@ -177,6 +219,49 @@ public static class CharacterBuilder
         return GrayboxPalette.DarkGray;
     }
 
+    // Blender material slot name → material. Colours are the Blender (linear) values, so they match the farm assets they were taken from.
+    private static Material MeadowMaterial(string slot)
+    {
+        switch (slot)
+        {
+            case "MC_Skin": return GrayboxPalette.Lit("SkinMeadow", Linear(.9f, .55f, .36f));
+            case "MC_Tee": return GrayboxPalette.Lit("TeeMeadow", Linear(.896f, .768f, .558f));
+            case "MC_Denim": return GrayboxPalette.Lit("DenimMeadow", Linear(.076f, .262f, .254f));
+            case "MC_Boot": return GrayboxPalette.Lit("BootMeadow", Linear(.254f, .091f, .03f));
+            case "MC_Hair": return GrayboxPalette.Lit("HairMeadow", Linear(.156f, .068f, .025f));
+            case "MC_Straw": return GrayboxPalette.Lit("StrawMeadow", Linear(.82f, .6f, .26f));
+            case "MC_Band": return GrayboxPalette.Lit("HatBandMeadow", Linear(.584f, .095f, .05f));
+            case "MC_Button": return GrayboxPalette.Lit("ButtonMeadow", Linear(1f, .687f, .25f));
+            case "MC_Blush": return GrayboxPalette.Lit("BlushMeadow", Linear(.9f, .35f, .3f));
+            // face sheet: 4x4 cells, rows 0-1 eyes, rows 2-3 mouths; the UVs sit on cell 0, the offset picks the cell
+            case "MC_Face_EyeL":
+            case "MC_Face_EyeR":
+                return GrayboxPalette.LitCutout("FaceMeadow" + slot.Substring(8), AssetDatabase.LoadAssetAtPath<Texture2D>(MEADOW_FACE), Vector2.zero);
+            case "MC_Face_Mouth":
+                return GrayboxPalette.LitCutout("FaceMeadowMouth", AssetDatabase.LoadAssetAtPath<Texture2D>(MEADOW_FACE), new Vector2(0f, -.5f));
+        }
+        Debug.LogError($"MC_Meadow.fbx has an unknown material slot '{slot}'");
+        return GrayboxPalette.DarkGray;
+    }
+
+    private static Color Linear(float r, float g, float b) => new Color(r, g, b).gamma;
+
+    private static void ConfigureMeadowImport()
+    {
+        ModelImporter model = (ModelImporter)AssetImporter.GetAtPath(MEADOW_FBX);
+        if (model.importAnimation)
+        {
+            model.importAnimation = false;
+            model.SaveAndReimport();
+        }
+        TextureImporter face = (TextureImporter)AssetImporter.GetAtPath(MEADOW_FACE);
+        if (face.alphaIsTransparency && face.wrapMode == TextureWrapMode.Clamp) return;
+        face.alphaIsTransparency = true;
+        face.wrapMode = TextureWrapMode.Clamp;
+        face.maxTextureSize = 1024;
+        face.SaveAndReimport();
+    }
+
     private static void ConfigureDistributorImport()
     {
         ModelImporter model = (ModelImporter)AssetImporter.GetAtPath(DISTRIBUTOR_FBX);
@@ -201,12 +286,6 @@ public static class CharacterBuilder
     {
         switch (accessory)
         {
-            case Accessory.StrawHat:
-                Material straw = GrayboxPalette.Lit("Straw", new Color(.95f, .84f, .55f));
-                Part(head, "HatBrim", GrayboxMeshFactory.Cylinder(.5f, .05f, .02f, 20), straw, new Vector3(0f, .5f, 0f), new Vector3(-8f, 0f, 0f));
-                Part(head, "HatTop", GrayboxMeshFactory.Taper(.27f, .22f, .2f, .06f, 16), straw, new Vector3(0f, .52f, -.02f), new Vector3(-8f, 0f, 0f));
-                Part(head, "HatBand", GrayboxMeshFactory.Torus(.255f, .025f, 16, 6), GrayboxPalette.Lit("HatBand", new Color(.86f, .45f, .40f)), new Vector3(0f, .53f, -.02f), new Vector3(-8f, 0f, 0f));
-                break;
             case Accessory.Bun:
                 Part(head, "Bun", GrayboxMeshFactory.Blob(.14f, .24f), hair, new Vector3(0f, .52f, -.18f));
                 break;
