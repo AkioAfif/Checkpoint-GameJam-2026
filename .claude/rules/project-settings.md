@@ -23,7 +23,7 @@ Last verified: 2026-10-21. If you change a setting below, update this file in th
 - Active Input Handling = **Input System Package only** (`activeInputHandler: 1`). Any `UnityEngine.Input.*` call (`Input.GetKey`, `Input.GetAxis`, `Input.mousePosition`) throws `InvalidOperationException` at runtime.
 - **Project-wide actions** = `Assets/InputSystem_Actions.inputactions` (access through `InputSystem.actions`; it is enabled automatically).
 - C# wrapper generation is **off** (`generateWrapperCode: 0`), so the class `InputSystem_Actions` **does not exist**. Don't reference it. See `.claude/rules/input.md`.
-- Action map `Player`: Move (Vector2), Look (Vector2), Attack (LMB / Enter / pad West — the Fabricator uses it to dig), Interact (E / pad North, **plain press, no Hold interaction**), Crouch (C / pad East), Jump (Space / pad South), Previous (1), Next (2), Sprint (LeftShift / L3), Pause (Esc / pad Start), Restart (R / pad Select).
+- Action map `Player`: Move (Vector2), Look (Vector2), Attack (LMB / Enter / pad West — the Fabricator uses it to dig), Interact (E / pad North, **plain press, no Hold interaction**), Crouch (C / pad East), Jump (Space / pad South), Previous (1), Next (2), Sprint (LeftShift / L3), Pause (Esc / pad Start), Restart (R / pad Select), ToggleTasks (Tab, keyboard only; added 2026-10-25).
 - Interact rebinds are saved as JSON overrides in PlayerPrefs key `InputBindings` (see `GameInput.RebindInteract`).
 - Action map `UI`: Navigate, Submit, Cancel, Point, Click, RightClick, MiddleClick, ScrollWheel, TrackedDevice*.
 - Control schemes: Keyboard&Mouse, Gamepad, Touch, Joystick, XR.

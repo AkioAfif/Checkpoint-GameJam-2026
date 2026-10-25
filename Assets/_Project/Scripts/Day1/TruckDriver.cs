@@ -155,7 +155,7 @@ public class TruckDriver : MonoBehaviour
         zoneSpeed = float.MaxValue;
         hasHardDrifted = false;
         isDriving = true;
-        IgnoreCharacters();
+        SetCharactersIgnored(true);
     }
 
     public bool IsDriving() => isDriving;
@@ -277,16 +277,16 @@ public class TruckDriver : MonoBehaviour
         return nearest < float.MaxValue;
     }
 
-    // a cutscene, not a hit-and-run: like the scripted truck it passes through the player and the villagers
-    private void IgnoreCharacters()
+    // a cutscene, not a hit-and-run: while driving in it passes through the player and the villagers; parked, it is solid again
+    private void SetCharactersIgnored(bool isIgnored)
     {
         Npc[] npcArray = FindObjectsByType<Npc>(FindObjectsInactive.Include);
         foreach (Collider truckCollider in GetComponentsInChildren<Collider>())
         {
-            Physics.IgnoreCollision(truckCollider, Player.Instance.GetComponent<CharacterController>());
+            Physics.IgnoreCollision(truckCollider, Player.Instance.GetComponent<CharacterController>(), isIgnored);
             foreach (Npc npc in npcArray)
                 foreach (Collider npcCollider in npc.GetComponentsInChildren<Collider>(true))
-                    Physics.IgnoreCollision(truckCollider, npcCollider);
+                    Physics.IgnoreCollision(truckCollider, npcCollider, isIgnored);
         }
     }
 
@@ -295,6 +295,7 @@ public class TruckDriver : MonoBehaviour
         isDriving = false;
         driftMode = DriftMode.None;
         SetPhysicsActive(false);
+        SetCharactersIgnored(false);
         OnArrived?.Invoke(this, EventArgs.Empty);
     }
 

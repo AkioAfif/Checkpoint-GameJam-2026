@@ -1,15 +1,17 @@
 using System;
 using UnityEngine;
 
-// The tube machine in front of the house: zoom in → solve the puzzle → seeds pop out. Resources are only used on success.
+// The tube machine in front of the house: pick how many batches → zoom in → solve the puzzle once → seeds pop out.
+// Resources are only used on success, one recipe's worth per batch.
 public class FabricatorController : MonoBehaviour, IInteractable
 {
     public static event EventHandler OnAnySeedFabricated;
 
     public event EventHandler<OnStateChangedEventArgs> OnStateChanged;
     public class OnStateChangedEventArgs : EventArgs { public State state; }
+    public event EventHandler OnBatchCountChanged;
 
-    public enum State { Idle, Entering, Puzzle, Solved, Exiting }
+    public enum State { Idle, Choosing, Entering, Puzzle, Solved, Exiting }
 
     // one press: what goes in, what comes out, and the puzzle that gates it. The last entry repeats.
     [Serializable]
@@ -30,6 +32,8 @@ public class FabricatorController : MonoBehaviour, IInteractable
     [SerializeField] private float exitDuration = .5f;
     [Tooltip("Extra seeds for a combo (all liquids into the mould at once).")]
     [SerializeField] private int comboBonus = 1;
+    [Tooltip("Most batches one run can make, even with a full inventory.")]
+    [SerializeField] private int maxBatchCount = 9;
     [SerializeField] private string promptVerb = "use the Fabricator";
     [SerializeField] private Transform promptAnchor;
 
@@ -38,16 +42,30 @@ public class FabricatorController : MonoBehaviour, IInteractable
     private int completedRuns;
     private bool isSuccess;
     private bool isPlaced = true;
+    private int batchCount = 1;
+    // the Interact press that opened the recipe panel must not also confirm it
+    private int choosingStartFrame;
+    // A/D change the batch count once per press, not every frame they are held
+    private int heldBatchStep;
 
     private void Start()
     {
         miniGame.OnSolved += MiniGame_OnSolved;
         GameInput.Instance.OnPauseAction += GameInput_OnPauseAction;
         GameInput.Instance.OnRestartAction += GameInput_OnRestartAction;
+        GameInput.Instance.OnInteractAction += GameInput_OnInteractAction;
     }
 
     private void Update()
     {
+        if (state == State.Choosing)
+        {
+            float horizontal = GameInput.Instance.GetMovementVectorNormalized().x;
+            int step = horizontal > .5f ? 1 : horizontal < -.5f ? -1 : 0;
+            if (step != 0 && step != heldBatchStep) ChangeBatchCount(step);
+            heldBatchStep = step;
+            return;
+        }
         if (state == State.Idle || state == State.Puzzle) return;
         timer -= Time.deltaTime;
         if (timer > 0f) return;
@@ -73,13 +91,20 @@ public class FabricatorController : MonoBehaviour, IInteractable
         if (GameInput.Instance == null) return;
         GameInput.Instance.OnPauseAction -= GameInput_OnPauseAction;
         GameInput.Instance.OnRestartAction -= GameInput_OnRestartAction;
+        GameInput.Instance.OnInteractAction -= GameInput_OnInteractAction;
     }
 
     private void MiniGame_OnSolved(object sender, EventArgs e) => SetState(State.Solved, solvedDuration);
 
     private void GameInput_OnPauseAction(object sender, EventArgs e)
     {
-        if (state == State.Puzzle) Leave(false);
+        if (state == State.Choosing) CancelBatch();
+        else if (state == State.Puzzle) Leave(false);
+    }
+
+    private void GameInput_OnInteractAction(object sender, EventArgs e)
+    {
+        if (state == State.Choosing && Time.frameCount != choosingStartFrame) ConfirmBatch();
     }
 
     private void GameInput_OnRestartAction(object sender, EventArgs e)
@@ -93,9 +118,45 @@ public class FabricatorController : MonoBehaviour, IInteractable
     public void Interact(Player player)
     {
         isSuccess = false;
+        batchCount = 1;
+        heldBatchStep = 0;
+        choosingStartFrame = Time.frameCount;
         GameManager.Instance.SetState(GameManager.State.Fabricating);
+        SetState(State.Choosing, 0f);
+        OnBatchCountChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void ChangeBatchCount(int delta)
+    {
+        int newCount = Mathf.Clamp(batchCount + delta, 1, GetMaxBatchCount());
+        if (newCount == batchCount) return;
+        batchCount = newCount;
+        OnBatchCountChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void ConfirmBatch()
+    {
+        if (state != State.Choosing) return;
         SetState(State.Entering, enterDuration);
     }
+
+    public void CancelBatch()
+    {
+        if (state != State.Choosing) return;
+        SetState(State.Exiting, 0f);
+    }
+
+    public int GetBatchCount() => batchCount;
+    // as many batches as the inventory covers for every input, capped at maxBatchCount
+    public int GetMaxBatchCount()
+    {
+        int affordable = maxBatchCount;
+        foreach (ItemAmount input in GetRecipe().inputArray)
+            if (input.amount > 0) affordable = Mathf.Min(affordable, Inventory.Instance.GetCount(input.itemDataSO) / input.amount);
+        return Mathf.Max(1, affordable);
+    }
+    public ItemAmount[] GetInputArray() => GetRecipe().inputArray;
+    public ItemAmount GetOutput() => GetRecipe().output;
 
     public string GetPromptVerb() => promptVerb;
     public string GetBlockedReason() => GetRecipe().blockedReason;
@@ -120,9 +181,10 @@ public class FabricatorController : MonoBehaviour, IInteractable
         if (isSuccess)
         {
             Recipe recipe = GetRecipe();
-            Inventory.Instance.RemoveItems(recipe.inputArray);
-            if (recipe.returned.amount > 0) Inventory.Instance.AddItem(recipe.returned.itemDataSO, recipe.returned.amount);
-            Inventory.Instance.AddItem(recipe.output.itemDataSO, recipe.output.amount + (miniGame.IsCombo() ? comboBonus : 0));
+            for (int i = 0; i < batchCount; i++) Inventory.Instance.RemoveItems(recipe.inputArray);
+            if (recipe.returned.amount > 0) Inventory.Instance.AddItem(recipe.returned.itemDataSO, recipe.returned.amount * batchCount);
+            // the combo is one reward per run, however many batches it made
+            Inventory.Instance.AddItem(recipe.output.itemDataSO, recipe.output.amount * batchCount + (miniGame.IsCombo() ? comboBonus : 0));
             completedRuns++;
         }
         miniGame.End();
