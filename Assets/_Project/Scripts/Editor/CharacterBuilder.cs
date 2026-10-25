@@ -16,6 +16,7 @@ public static class CharacterBuilder
     private const string MEADOW_FOLDER = "Assets/_Project/Art/Models/Meadow";
     private const string MEADOW_FBX = MEADOW_FOLDER + "/MC_Meadow.fbx";
     private const string MEADOW_FACE = MEADOW_FOLDER + "/MC_Face.png";
+    private const string NPC_FOLDER = "Assets/_Project/Art/Models/Npcs";
 
     public enum Accessory { None, Bun, Cap }
 
@@ -35,9 +36,11 @@ public static class CharacterBuilder
     public static readonly Look SariLook = new Look { name = "Sari", cloth = new Color(.40f, .76f, .74f), hair = new Color(.15f, .12f, .13f), accessory = Accessory.None, scale = .92f };
     public static readonly Look RigelLook = new Look { name = "Rigel", cloth = new Color(.80f, .45f, .33f), hair = new Color(.12f, .10f, .10f), accessory = Accessory.Cap, scale = 1.02f };
 
-    // rig prefab (Animator + body parts), nested inside the NPC prefabs and spawned in the portrait booth
+    // rig prefab (Animator + body parts), nested inside the NPC prefabs and spawned in the portrait booth;
+    // villagers remodelled in Blender use their FBX instead of the primitive chibi
     public static GameObject RigPrefab(Look look)
     {
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(NpcFbx(look.name)) != null) return NpcRigPrefab(look.name);
         GameObject rig = AnimatedRig($"Rig_{look.name}");
         rig.transform.localScale = Vector3.one * look.scale;
 
@@ -197,19 +200,47 @@ public static class CharacterBuilder
     public static GameObject PlayerRigPrefab()
     {
         ConfigureMeadowImport();
-        string path = $"{PREFABS}/Characters/Rig_Player.prefab";
-        if (AssetDatabase.LoadAssetAtPath<GameObject>(path) == null)
+        return PourIntoRig("Rig_Player", MEADOW_FBX, "MC_Meadow_", MeadowMaterial, AddPlayerFace);
+    }
+
+    // The remodelled villagers (Tools/Blender/export_npcs.py). Their size is baked into the mesh, so the rig root stays at scale 1.
+    public static GameObject NpcRigPrefab(string name)
+    {
+        ConfigureMeadowImport();
+        DisableAnimationImport(NpcFbx(name));
+        return PourIntoRig($"Rig_{name}", NpcFbx(name), $"Npc_{name}_", NpcMaterial, null);
+    }
+
+    // re-skins every remodelled villager in place and refreshes its Npc_ prefab (hover outline + prompt height)
+    [MenuItem("Tools/Characters/Rebuild NPC Rigs")]
+    public static void RebuildNpcRigs()
+    {
+        foreach (string guid in AssetDatabase.FindAssets("t:Model", new[] { NPC_FOLDER }))
         {
-            GameObject rig = AnimatedRig("Rig_Player");
-            AddPlayerFace(rig, BindChibiSkin(rig, MEADOW_FBX, "MC_Meadow_", MeadowMaterial));
-            return SavePrefab(rig, "Characters", "Rig_Player");
+            string name = System.IO.Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(guid));
+            NpcRigPrefab(name);
+            string npcPath = $"{PREFABS}/Characters/Npc_{name}.prefab";
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(npcPath) != null) InteractablePrefabBuilder.RefreshVillagerVisual(npcPath);
         }
-        GameObject contents = PrefabUtility.LoadPrefabContents(path);
-        for (int i = contents.transform.childCount - 1; i >= 0; i--) Object.DestroyImmediate(contents.transform.GetChild(i).gameObject);
-        contents.transform.localScale = Vector3.one;
-        AddPlayerFace(contents, BindChibiSkin(contents, MEADOW_FBX, "MC_Meadow_", MeadowMaterial));
-        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(contents, path);
-        PrefabUtility.UnloadPrefabContents(contents);
+    }
+
+    private static string NpcFbx(string name) => $"{NPC_FOLDER}/{name}.fbx";
+
+    // Re-skins a rig prefab from an FBX. An existing prefab is refilled in place: its root (with the Animator) keeps its file ID,
+    // so the prefabs nesting it, scene instances and the portrait booth stay linked.
+    private static GameObject PourIntoRig(string rigName, string fbxPath, string meshPrefix, System.Func<string, Material> material,
+                                          System.Action<GameObject, SkinnedMeshRenderer> finish)
+    {
+        string path = $"{PREFABS}/Characters/{rigName}.prefab";
+        bool exists = AssetDatabase.LoadAssetAtPath<GameObject>(path) != null;
+        GameObject rig = exists ? PrefabUtility.LoadPrefabContents(path) : AnimatedRig(rigName);
+        for (int i = rig.transform.childCount - 1; i >= 0; i--) Object.DestroyImmediate(rig.transform.GetChild(i).gameObject);
+        rig.transform.localScale = Vector3.one;
+        SkinnedMeshRenderer skinned = BindChibiSkin(rig, fbxPath, meshPrefix, material);
+        finish?.Invoke(rig, skinned);
+        if (!exists) return SavePrefab(rig, "Characters", rigName);
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(rig, path);
+        PrefabUtility.UnloadPrefabContents(rig);
         return prefab;
     }
 
@@ -345,14 +376,27 @@ public static class CharacterBuilder
 
     private static Color Linear(float r, float g, float b) => new Color(r, g, b).gamma;
 
+    // villager slots are named after their sRGB colour ("NPC_E07A5F", Blender may add ".001"), plus the shared face sheet
+    private static Material NpcMaterial(string slot)
+    {
+        string key = slot.Split('.')[0];
+        if (key == "NPC_Face") return GrayboxPalette.LitCutout("FaceNpc", AssetDatabase.LoadAssetAtPath<Texture2D>(MEADOW_FACE), Vector2.zero);
+        if (key.StartsWith("NPC_") && ColorUtility.TryParseHtmlString("#" + key.Substring(4), out Color color)) return GrayboxPalette.Lit("Npc_" + key.Substring(4), color);
+        Debug.LogError($"Villager FBX has an unknown material slot '{slot}'");
+        return GrayboxPalette.DarkGray;
+    }
+
+    private static void DisableAnimationImport(string fbxPath)
+    {
+        ModelImporter model = (ModelImporter)AssetImporter.GetAtPath(fbxPath);
+        if (!model.importAnimation) return;
+        model.importAnimation = false;
+        model.SaveAndReimport();
+    }
+
     private static void ConfigureMeadowImport()
     {
-        ModelImporter model = (ModelImporter)AssetImporter.GetAtPath(MEADOW_FBX);
-        if (model.importAnimation)
-        {
-            model.importAnimation = false;
-            model.SaveAndReimport();
-        }
+        DisableAnimationImport(MEADOW_FBX);
         TextureImporter face = (TextureImporter)AssetImporter.GetAtPath(MEADOW_FACE);
         if (face.alphaIsTransparency && face.wrapMode == TextureWrapMode.Clamp) return;
         face.alphaIsTransparency = true;
