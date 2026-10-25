@@ -185,6 +185,9 @@ public class DistributorTruck : MonoBehaviour
         SetState(State.Skidding);
     }
 
+    // the physics arrival is out of its handbrake corner and pulling up (the cameras stop chasing)
+    public bool IsPastHardDrift() => state == State.Driving && UsesPhysics() && driver.HasHardDrifted();
+
     private bool HasRoute() => routePoints.Length > 1;
 
     private bool UsesPhysics() => driver != null && HasRoute();

@@ -21,6 +21,9 @@ public class TruckCameraVisual : MonoBehaviour
     [Tooltip("Degrees of roll per degree-per-second the truck turns.")]
     [SerializeField] private float dutchPerYawRate = .08f;
     [SerializeField] private float dutchSmoothTime = .35f;
+    [Tooltip("Where the camera glides to once the truck is out of its hard drift and pulling up. Left empty, it holds wherever it was.")]
+    [SerializeField] private Transform parkedShotPoint;
+    [SerializeField] private float parkedShotSmoothTime = 1.2f;
 
     private CinemachineCamera cinemachineCamera;
     private bool wasActive;
@@ -46,29 +49,35 @@ public class TruckCameraVisual : MonoBehaviour
         }
         // run further ahead the faster it goes, so the smoothing lag never lets the truck catch the camera (the departure is quick)
         float lead = leadDistance + truck.GetSpeedNormalized() * TRUCK_FULL_SPEED * smoothTime;
-        // settling into its parking spot: hold the shot
-        if (!truck.TryGetRoadPointAhead(lead, out Vector3 roadAhead)) return;
-
-        Vector3 travel = roadAhead - truck.transform.position;
-        travel.y = 0f;
-        if (travel.sqrMagnitude < .01f) travel = truck.transform.forward;
-        Vector3 side = Vector3.Cross(Vector3.up, travel).normalized;
-        Vector3 wanted = roadAhead + Vector3.up * height + side * sideOffset;
-        if (!wasActive || Vector3.Distance(transform.position, wanted) > snapDistance)
+        // out of the hard drift and pulling up, or settling into its spot: glide to the parked shot (or hold) and level the picture
+        float wantedDutch = 0f;
+        if (truck.IsPastHardDrift() || !truck.TryGetRoadPointAhead(lead, out Vector3 roadAhead))
         {
-            transform.position = wanted;
-            velocity = Vector3.zero;
-            dutch = 0f;
-            dutchVelocity = 0f;
+            if (parkedShotPoint != null) transform.position = Vector3.SmoothDamp(transform.position, parkedShotPoint.position, ref velocity, parkedShotSmoothTime);
         }
         else
         {
-            transform.position = Vector3.SmoothDamp(transform.position, wanted, ref velocity, smoothTime);
+            Vector3 travel = roadAhead - truck.transform.position;
+            travel.y = 0f;
+            if (travel.sqrMagnitude < .01f) travel = truck.transform.forward;
+            Vector3 side = Vector3.Cross(Vector3.up, travel).normalized;
+            Vector3 wanted = roadAhead + Vector3.up * height + side * sideOffset;
+            if (!wasActive || Vector3.Distance(transform.position, wanted) > snapDistance)
+            {
+                transform.position = wanted;
+                velocity = Vector3.zero;
+                dutch = 0f;
+                dutchVelocity = 0f;
+            }
+            else
+            {
+                transform.position = Vector3.SmoothDamp(transform.position, wanted, ref velocity, smoothTime);
+            }
+            // lean into the turn: the faster it swings round (a drift most of all), the harder the picture rolls
+            wantedDutch = Mathf.Clamp(yawRate * dutchPerYawRate, -maxDutch, maxDutch);
         }
         wasActive = true;
 
-        // lean into the turn: the faster it swings round (a drift most of all), the harder the picture rolls
-        float wantedDutch = Mathf.Clamp(yawRate * dutchPerYawRate, -maxDutch, maxDutch);
         dutch = Mathf.SmoothDamp(dutch, wantedDutch, ref dutchVelocity, dutchSmoothTime);
         LensSettings lens = cinemachineCamera.Lens;
         lens.Dutch = dutch;

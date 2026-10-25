@@ -70,6 +70,7 @@ public class TruckDriver : MonoBehaviour
     private float driftSide = 1f;
     private Vector3 hardExitHeading;
     private float hardTimer;
+    private bool hasHardDrifted;
     private float slipAngle;
 
     private void Awake()
@@ -152,6 +153,7 @@ public class TruckDriver : MonoBehaviour
         rearGripNow = rearGrip;
         driftMode = DriftMode.None;
         zoneSpeed = float.MaxValue;
+        hasHardDrifted = false;
         isDriving = true;
         IgnoreCharacters();
     }
@@ -160,6 +162,8 @@ public class TruckDriver : MonoBehaviour
     // the road this far ahead of the truck (the chase camera rides it)
     public Vector3 GetPointAhead(float distance) => path.GetPositionAt(progress + distance);
     public bool IsDrifting() => driftMode != DriftMode.None;
+    // the handbrake corner is behind it: all that is left is pulling up
+    public bool HasHardDrifted() => hasHardDrifted;
     // degrees the body points away from where it is travelling (sign = which way)
     public float GetSlipAngle() => slipAngle;
 
@@ -173,6 +177,7 @@ public class TruckDriver : MonoBehaviour
             if (isLinedUp || hardTimer > 3f)
             {
                 driftMode = DriftMode.None;
+                hasHardDrifted = true;
                 zoneSpeed = float.MaxValue;
             }
         }
