@@ -33,6 +33,9 @@ public static class VfxBuilder
     // Day 3's fists on the ground: clods of dirt thrown up and out
     public static GameObject SmashDust() => SaveOneShot("SmashDust", new Color(.45f, .36f, .28f), new Color(.66f, .58f, .48f), 40, new Vector2(3f, 6.5f), new Vector2(.25f, .6f), 1.4f, false, 65f);
 
+    // the MC falling into the river: droplets thrown up and out that rain back down
+    public static GameObject RiverSplash() => SaveOneShot("RiverSplash", Color.white, new Color(.82f, .95f, 1f), 64, new Vector2(3f, 6.5f), new Vector2(.22f, .5f), 1.6f, false, 32f);
+
     private static GameObject SaveOneShot(string name, Color colorA, Color colorB, int count, Vector2 speed, Vector2 size, float gravity, bool additive, float coneAngle)
     {
         GameObject root = Root(name);
