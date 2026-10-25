@@ -87,15 +87,108 @@ public static class CharacterBuilder
         return SavePrefab(rig, "Characters", $"Rig_{look.name}");
     }
 
-    // The antagonist: a skinned mesh made by Tools/Blender/build_distributor.py, driven by Chibi.controller like everyone else.
+    // The antagonist: a skinned mesh made by Tools/Blender/build_distributor.py, driven by Chibi.controller like everyone else
+    // (through DistributorController, which swaps in his own arm-raising emotes).
     public static GameObject DistributorRigPrefab()
     {
         ConfigureDistributorImport();
         GameObject rig = AnimatedRig("Rig_Distributor");
+        rig.GetComponent<Animator>().runtimeAnimatorController = DistributorController();
         SkinnedMeshRenderer skinned = BindChibiSkin(rig, DISTRIBUTOR_FBX, "Distributor_", DistributorMaterial);
         DistributorFaceVisual face = rig.AddComponent<DistributorFaceVisual>();
         SetField(face, "faceRenderer", skinned);
         return SavePrefab(rig, "Characters", "Rig_Distributor");
+    }
+
+    // After re-running build_distributor.py: re-skins the existing Rig_Distributor and the outline hull inside Npc_Distributor
+    // in place, so every scene instance (FixScene's hand-tuned one included) keeps its links and overrides.
+    [MenuItem("Tools/Characters/Refresh Distributor Mesh")]
+    public static void RefreshDistributorMesh()
+    {
+        ConfigureDistributorImport();
+        GameObject scratch = Root("DistributorScratch");
+        SkinnedMeshRenderer fresh = BindChibiSkin(scratch, DISTRIBUTOR_FBX, "Distributor_", DistributorMaterial);
+
+        string rigPath = $"{PREFABS}/Characters/Rig_Distributor.prefab";
+        GameObject rig = PrefabUtility.LoadPrefabContents(rigPath);
+        rig.GetComponent<Animator>().runtimeAnimatorController = DistributorController();
+        SkinnedMeshRenderer body = rig.transform.Find("Body").GetComponent<SkinnedMeshRenderer>();
+        Dictionary<string, Transform> bones = new Dictionary<string, Transform>();
+        foreach (Transform t in rig.GetComponentsInChildren<Transform>()) bones[t.name] = t;
+        Transform[] boneArray = new Transform[fresh.bones.Length];
+        for (int i = 0; i < boneArray.Length; i++) boneArray[i] = bones[fresh.bones[i].name];
+        body.sharedMesh = fresh.sharedMesh;
+        body.bones = boneArray;
+        body.sharedMaterials = fresh.sharedMaterials;
+        body.localBounds = fresh.localBounds;
+        Mesh mesh = body.sharedMesh;
+        Bounds bounds = body.localBounds;
+        PrefabUtility.SaveAsPrefabAsset(rig, rigPath);
+        PrefabUtility.UnloadPrefabContents(rig);
+        Object.DestroyImmediate(scratch);
+
+        string npcPath = $"{PREFABS}/Characters/Npc_Distributor.prefab";
+        GameObject npc = PrefabUtility.LoadPrefabContents(npcPath);
+        foreach (SkinnedMeshRenderer hull in npc.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+        {
+            if (hull.name != "Outline") continue;
+            hull.sharedMesh = GrayboxMeshFactory.Outline(mesh, .025f);
+            hull.localBounds = bounds;
+        }
+        PrefabUtility.SaveAsPrefabAsset(npc, npcPath);
+        PrefabUtility.UnloadPrefabContents(npc);
+    }
+
+    // His head is about twice a villager's, so the shared emotes that raise the arms overhead pass straight through it. This
+    // override controller (same states and triggers as Chibi.controller) plays variants that raise them out to the side.
+    private static RuntimeAnimatorController DistributorController()
+    {
+        string path = $"{ANIMATION_FOLDER}/Distributor.overrideController";
+        AnimatorOverrideController controller = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(path);
+        if (controller == null)
+        {
+            controller = new AnimatorOverrideController(Controller());
+            AssetDatabase.CreateAsset(controller, path);
+        }
+        List<KeyValuePair<AnimationClip, AnimationClip>> overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>();
+        controller.GetOverrides(overrides);
+        for (int i = 0; i < overrides.Count; i++) overrides[i] = new KeyValuePair<AnimationClip, AnimationClip>(overrides[i].Key, DistributorClip(overrides[i].Key));
+        controller.ApplyOverrides(overrides);
+        EditorUtility.SetDirty(controller);
+        return controller;
+    }
+
+    // null = keep the shared clip. +Z raises ArmR out to the side (-Z ArmL), -X swings forward. His sleeves already hang 28 degrees
+    // out in the mesh, so Z 80 puts the arm ~108 degrees from hanging: the highest the hand clears his jowls and cheeks.
+    private static AnimationClip DistributorClip(AnimationClip shared)
+    {
+        switch (shared.name)
+        {
+            case "Wave":
+                return ArmVariant(shared, clip => Rot(clip, "Hips/ArmR", new Vector4(0f, 0f, 0f, 6f), new Vector4(.15f, -25f, 0f, 78f), new Vector4(.3f, -25f, 0f, 58f),
+                    new Vector4(.45f, -25f, 0f, 80f), new Vector4(.6f, -25f, 0f, 58f), new Vector4(.75f, -25f, 0f, 78f), new Vector4(1f, 0f, 0f, 6f)));
+            case "Cheer":
+                return ArmVariant(shared, clip =>
+                {
+                    // fists pump with the two hops
+                    Rot(clip, "Hips/ArmL", new Vector4(0f, 0f, 0f, -6f), new Vector4(.12f, -20f, 0f, -80f), new Vector4(.3f, -20f, 0f, -62f), new Vector4(.45f, -20f, 0f, -80f), new Vector4(.72f, -20f, 0f, -76f), new Vector4(.9f, 0f, 0f, -6f));
+                    Rot(clip, "Hips/ArmR", new Vector4(0f, 0f, 0f, 6f), new Vector4(.12f, -20f, 0f, 80f), new Vector4(.3f, -20f, 0f, 62f), new Vector4(.45f, -20f, 0f, 80f), new Vector4(.72f, -20f, 0f, 76f), new Vector4(.9f, 0f, 0f, 6f));
+                });
+            case "Hop": return ArmVariant(shared, clip => ArmsUp(clip, 0f, .28f, .6f, 75f));
+            case "GoofyFlip": return ArmVariant(shared, clip => ArmsUp(clip, 0f, .3f, 1f, 75f));
+        }
+        return null;
+    }
+
+    // copy of a shared clip with new arm curves (shortcut: SaveClip keeps an existing asset, delete Distributor_*.anim to regenerate)
+    private static AnimationClip ArmVariant(AnimationClip shared, System.Action<AnimationClip> arms)
+    {
+        return SaveClip("Distributor_" + shared.name, shared.isLooping, clip =>
+        {
+            foreach (EditorCurveBinding binding in AnimationUtility.GetCurveBindings(shared))
+                if (!binding.path.StartsWith("Hips/Arm")) AnimationUtility.SetEditorCurve(clip, binding, AnimationUtility.GetEditorCurve(shared, binding));
+            arms(clip);
+        });
     }
 
     // The main character "Meadow" (Tools/Blender/export_mc_meadow.py), poured into the existing Rig_Player prefab: its root
@@ -197,23 +290,29 @@ public static class CharacterBuilder
     }
 
     // Blender material slot name → our palette, so he shares the villagers' lighting response
+    // colours = SLOTS in build_distributor.py (NPC concept palette)
     private static Material DistributorMaterial(string slot)
     {
-        Color tan = new Color(.80f, .62f, .46f);
         switch (slot)
         {
             case "SkinHead":
                 return GrayboxPalette.LitMapped("SkinDistributorHead",
                     AssetDatabase.LoadAssetAtPath<Texture2D>(DISTRIBUTOR_FOLDER + "/Distributor_Head_Base.png"),
                     AssetDatabase.LoadAssetAtPath<Texture2D>(DISTRIBUTOR_FOLDER + "/Distributor_Head_Normal.png"));
-            case "Skin": return GrayboxPalette.Lit("SkinDistributor", tan);
-            case "Hair": return GrayboxPalette.Lit("HairDistributor", new Color(.10f, .09f, .10f), .45f);
-            case "Frame": return GrayboxPalette.Lit("GlassesFrame", new Color(.12f, .11f, .12f), .4f);
-            case "Lens": return GrayboxPalette.Lit("GlassesLens", new Color(.96f, .96f, .94f), .7f);
-            case "Lips": return GrayboxPalette.Lit("LipsDistributor", new Color(.80f, .47f, .45f));
-            case "Cloth": return GrayboxPalette.Cloth("Distributor", new Color(.80f, .66f, .36f));
-            case "Accent": return GrayboxPalette.Accent;
-            case "Dark": return GrayboxPalette.DarkGray;
+            case "Skin": return GrayboxPalette.Lit("SkinDistributor", new Color(.788f, .557f, .392f));
+            case "Hair": return GrayboxPalette.Lit("HairDistributor", new Color(.165f, .141f, .125f), .45f);
+            case "Frame": return GrayboxPalette.Lit("GlassesFrame", new Color(.29f, .18f, .11f), .4f);
+            // only seen as the white glare (LensGlare shape key; at rest the lens hides inside its rim): unlit, a flat flash
+            case "Lens": return GrayboxPalette.Unlit("GlassesGlare", Color.white);
+            case "Lips": return GrayboxPalette.Lit("LipsDistributor", new Color(.722f, .416f, .361f));
+            case "Cloth": return GrayboxPalette.Cloth("Distributor", new Color(.71f, .337f, .184f));
+            case "Trim": return GrayboxPalette.Cloth("DistributorTrim", new Color(.561f, .247f, .133f));
+            case "Charcoal": return GrayboxPalette.Cloth("DistributorCharcoal", new Color(.231f, .22f, .212f));
+            case "Leather": return GrayboxPalette.Lit("LeatherDistributor", new Color(.478f, .29f, .165f), .35f);
+            case "Accent": return GrayboxPalette.Lit("AccentDistributor", new Color(.878f, .69f, .29f), .5f);
+            // the inside of his mouth (slit + cavity): near-black so an open mouth reads as a hole
+            case "Dark": return GrayboxPalette.Lit("DarkDistributor", new Color(.11f, .07f, .06f), 0f);
+            case "EyeWhite": return GrayboxPalette.Lit("EyeWhiteDistributor", new Color(.969f, .953f, .918f), .6f);
         }
         Debug.LogError($"Distributor.fbx has an unknown material slot '{slot}'");
         return GrayboxPalette.DarkGray;

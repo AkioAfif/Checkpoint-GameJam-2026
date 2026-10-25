@@ -16,6 +16,8 @@ public class DialogueSO : ScriptableObject
         public Emote npcEmote;
         // every letter trembles (a shout in shock)
         public bool isShaking;
+        // the Distributor's glasses flash opaque white (weird, uneasy, suspicious moments)
+        public bool isNpcGlaring;
     }
 
     public DialogueLine[] lineArray;

@@ -18,6 +18,7 @@ MonoBehaviour:
     playerEmote: 0
     npcEmote: 1
     isShaking: 0
+    isNpcGlaring: 1
   reward:
     itemDataSO: {fileID: 0}
     amount: 0
