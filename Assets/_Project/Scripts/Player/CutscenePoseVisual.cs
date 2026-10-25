@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// Bends the Chibi rig into the cutscene poses it has no clip for (eating, pounding the ground, adjusting glasses), after the
+// Bends the Chibi rig into the cutscene poses it has no clip for (eating, pounding the ground, adjusting glasses, drowning), after the
 // Animator so the pose wins over idle/walk. A punch slams the raised arms down and lets them swing back up.
 public class CutscenePoseVisual : MonoBehaviour
 {
@@ -10,6 +10,11 @@ public class CutscenePoseVisual : MonoBehaviour
     [SerializeField] private float punchDuration = .3f;
     [Tooltip("How far the hips drop in a crouch (metres).")]
     [SerializeField] private float crouchDrop = .22f;
+    [Tooltip("Seconds a drowning character thrashes at the surface before going under (River drifts them meanwhile).")]
+    [SerializeField] private float drownSinkDelay = 2f;
+    [Tooltip("How fast (m/s) and how far (m) the body then sinks.")]
+    [SerializeField] private float drownSinkSpeed = .8f;
+    [SerializeField] private float drownSinkDepth = 1.1f;
 
     private Transform hips;
     private Transform head;
@@ -21,6 +26,8 @@ public class CutscenePoseVisual : MonoBehaviour
     private float weight;
     private float punchTimer;
     private int punchCount;
+    // seconds the shown pose has been held (drowning sinks over time)
+    private float poseTimer;
 
     private void Start()
     {
@@ -37,7 +44,12 @@ public class CutscenePoseVisual : MonoBehaviour
     {
         CutscenePose pose = cutsceneActor.GetPose();
         // fade out of the last pose before showing a new one
-        if (pose != shownPose && weight <= 0f) shownPose = pose;
+        if (pose != shownPose && weight <= 0f)
+        {
+            shownPose = pose;
+            poseTimer = 0f;
+        }
+        poseTimer += Time.deltaTime;
         weight = Mathf.MoveTowards(weight, pose == shownPose && pose != CutscenePose.None ? 1f : 0f, blendSpeed * Time.deltaTime);
         punchTimer = Mathf.Max(0f, punchTimer - Time.deltaTime);
         if (weight <= 0f) return;
@@ -83,6 +95,15 @@ public class CutscenePoseVisual : MonoBehaviour
                 // one finger pushing the glasses up the nose
                 headEuler = new Vector3(6f, 0f, 0f);
                 armREuler = new Vector3(-150f, 0f, -28f);
+                break;
+            case CutscenePose.Drown:
+                // thrashing both arms over the head, face up gasping, bobbing on the current, then pulled under
+                float thrash = Mathf.Sin(poseTimer * 16f);
+                drop = Mathf.Sin(poseTimer * 5f) * .06f + Mathf.Clamp((poseTimer - drownSinkDelay) * drownSinkSpeed, 0f, drownSinkDepth);
+                lean = -10f;
+                headEuler = new Vector3(-28f, 0f, thrash * 8f);
+                armLEuler = new Vector3(-155f + thrash * 35f, 0f, -22f);
+                armREuler = new Vector3(-155f - thrash * 35f, 0f, 22f);
                 break;
         }
         head.localRotation = Quaternion.Slerp(head.localRotation, Quaternion.Euler(headEuler), weight);
