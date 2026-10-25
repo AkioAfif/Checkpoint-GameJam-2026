@@ -22,6 +22,10 @@ public class Day1CameraVisual : MonoBehaviour
     [SerializeField] private float meetingHeight = 2.8f;
     [Tooltip("Once they stand further apart than meetingDistance, the camera keeps this much more distance than the gap between them.")]
     [SerializeField] private float meetingPadding = 3f;
+    [Tooltip("The meeting camera's target group (player + Distributor). Without a delivery camera, the player's weight eases to 0 while the Distributor fetches and sets down the Fabricator, so the shot focuses on him.")]
+    [SerializeField] private CinemachineTargetGroup meetingGroup;
+    [Tooltip("Weight per second the player's share of the meeting focus changes by.")]
+    [SerializeField] private float meetingFocusSpeed = 1.5f;
     [Tooltip("Optional: left empty, the meeting camera keeps filming while he fetches, carries and sets down the Fabricator.")]
     [SerializeField] private CinemachineCamera deliveryCamera;
     [SerializeField] private CinemachineCamera eveningCamera;
@@ -52,11 +56,19 @@ public class Day1CameraVisual : MonoBehaviour
         Vector3 shot = director.IsFarmShot() ? farmShotPoint.position : houseShotPoint.position;
         eveningCameraTarget.position = Vector3.SmoothDamp(eveningCameraTarget.position, shot, ref panVelocity, panSmoothTime);
 
+        if (meetingGroup != null)
+        {
+            int playerIndex = meetingGroup.FindMember(Player.Instance.transform);
+            float playerWeight = deliveryCamera == null && director.IsDelivering() ? 0f : 1f;
+            meetingGroup.Targets[playerIndex].Weight = Mathf.MoveTowards(meetingGroup.Targets[playerIndex].Weight, playerWeight, meetingFocusSpeed * Time.deltaTime);
+        }
+
         if (!meetingCamera.enabled)
         {
             meetingSide = Vector3.zero;
             return;
         }
+
         Vector3 pair = distributor.position - Player.Instance.transform.position;
         pair.y = 0f;
         if (pair.sqrMagnitude < .01f) return;
