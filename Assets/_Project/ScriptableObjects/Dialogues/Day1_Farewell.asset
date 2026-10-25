@@ -17,18 +17,26 @@ MonoBehaviour:
     text: Look at you, a natural! The village will be talking about this field soon.
     playerEmote: 0
     npcEmote: 6
+    isShaking: 0
+    isNpcGlaring: 0
   - speaker: 0
     text: I still can't believe it actually works.
     playerEmote: 14
     npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
   - speaker: 1
     text: Believe it, partner. Keep the seeds coming and I'll be back to buy every one.
     playerEmote: 0
     npcEmote: 1
+    isShaking: 0
+    isNpcGlaring: 1
   - speaker: 1
     text: Well, I've got other families to help. Until next time!
     playerEmote: 0
     npcEmote: 5
+    isShaking: 0
+    isNpcGlaring: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

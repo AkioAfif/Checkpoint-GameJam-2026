@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
@@ -173,7 +174,30 @@ public static class InteractablePrefabBuilder
         recipe.FindPropertyRelative("blockedReason").stringValue = blockedReason;
     }
 
-    public static GameObject Villager(string name, CharacterBuilder.Look look, NpcSO npcSO) => Villager(name, CharacterBuilder.RigPrefab(look), npcSO, 1f, .35f, look.scale);
+    public static GameObject Villager(string name, CharacterBuilder.Look look, NpcSO npcSO)
+    {
+        GameObject prefab = Villager(name, CharacterBuilder.RigPrefab(look), npcSO, 1f, .35f, look.scale);
+        // a remodelled (skinned) villager gets its prompt placed from its real height
+        if (prefab.GetComponentInChildren<SkinnedMeshRenderer>(true) != null) RefreshVillagerVisual(AssetDatabase.GetAssetPath(prefab));
+        return prefab;
+    }
+
+    // After a rig re-skin, in place: the hover outline hung off the old rig's parts, and the prompt height followed the old size.
+    public static void RefreshVillagerVisual(string path)
+    {
+        GameObject root = PrefabUtility.LoadPrefabContents(path);
+        Transform rig = root.GetComponentInChildren<Animator>(true).transform;
+        List<GameObject> oldHulls = new List<GameObject>();
+        foreach (Transform t in rig.GetComponentsInChildren<Transform>(true)) if (t.name == "Outline") oldHulls.Add(t.gameObject);
+        foreach (GameObject hull in oldHulls) Object.DestroyImmediate(hull);
+
+        SkinnedMeshRenderer body = rig.GetComponentInChildren<SkinnedMeshRenderer>(true);
+        root.transform.Find("PromptAnchor").localPosition = new Vector3(0f, body.sharedMesh.bounds.max.y * rig.lossyScale.y + .35f, 0f);
+        SetArray(root.GetComponent<InteractableOutlineVisual>(), "outlineGameObjectArray", AddOutlineHulls(rig, GrayboxPalette.Outline, .025f));
+        SetLayerRecursively(root, InteractableLayer);
+        PrefabUtility.SaveAsPrefabAsset(root, path);
+        PrefabUtility.UnloadPrefabContents(root);
+    }
 
     // visualScale grows the world model only (the dialogue portrait keeps the rig at scale 1 so it fits the frame)
     public static GameObject Villager(string name, GameObject rigPrefab, NpcSO npcSO, float visualScale, float radius, float promptScale)

@@ -1,0 +1,23 @@
+[
+ {
+  "letter": "A",
+  "title": "Seed Broker",
+  "blurb": "Market trader: wheat shirt, sage waistcoat with flap pockets and brass buttons, leather belt and buckle, cross-body satchel, rolled trouser cuffs, straw boater with a rust band.",
+  "tris": 6760,
+  "height": 1.62
+ },
+ {
+  "letter": "B",
+  "title": "Co-op Foreman",
+  "blurb": "Field boss: white tee with rolled sleeves, denim overalls with a bib pocket, shoulder straps and buttons, tool belt with two pouches, work boots with thick soles, olive flat cap.",
+  "tris": 7036,
+  "height": 1.62
+ },
+ {
+  "letter": "C",
+  "title": "Travelling Salesman",
+  "blurb": "Smooth talker: rust frock coat with a flared skirt, lapels, double gold buttons and flap pockets, mustard turn-back cuffs, sash belt, ledger case, brown bowler hat.",
+  "tris": 6828,
+  "height": 1.63
+ }
+]

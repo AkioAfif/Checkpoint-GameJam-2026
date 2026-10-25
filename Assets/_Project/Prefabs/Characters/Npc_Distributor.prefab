@@ -244,7 +244,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: 4300000, guid: ad4271c18a700f346b35f3e2d82b8690, type: 2}
+  m_Mesh: {fileID: 4300000, guid: cc63d16958285d049b8f6b4a4988b8c0, type: 2}
   m_Bones:
   - {fileID: 9092935270521326876}
   - {fileID: 4793109794321689700}
@@ -255,8 +255,8 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 9092935270521326876}
   m_AABB:
-    m_Center: {x: 0, y: 0.3609246, z: 0.043212324}
-    m_Extent: {x: 0.75316817, y: 1.0217019, z: 0.73867595}
+    m_Center: {x: 0, y: 0.3904246, z: 0.0057123005}
+    m_Extent: {x: 0.78000003, y: 1.0613519, z: 0.78742594}
   m_DirtyAABB: 0
 --- !u!1 &7102582398410101883
 GameObject:
@@ -306,6 +306,10 @@ MonoBehaviour:
   npc: {fileID: 5008066416991175126}
   npcWander: {fileID: 1101134749845432940}
   animator: {fileID: 680195467047193345}
+  cutsceneActor: {fileID: 0}
+  carryArmLEuler: {x: -85, y: 0, z: -6}
+  carryArmREuler: {x: -85, y: 0, z: 6}
+  rewardMarkerOffset: -0.1
 --- !u!1001 &6471769357405907018
 PrefabInstance:
   m_ObjectHideFlags: 0

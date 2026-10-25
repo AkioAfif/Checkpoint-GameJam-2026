@@ -157,11 +157,11 @@ public static class GameDataBuilder
         distributorFirst = Dialogue("Distributor_Day2_First", default,
             N("Well, well. The little farmer pressing seeds in MY Fabricator.", Emote.Nod),
             P("Your Fabricator? It's stood by my house for years!", Emote.Surprised),
-            N("Every seed that machine makes is distributed... by me.", Emote.Shake),
-            N("Plant them if you like. At harvest we'll discuss my share.", Emote.Nod),
+            Glaring(N("Every seed that machine makes is distributed... by me.", Emote.Shake)),
+            Glaring(N("Plant them if you like. At harvest we'll discuss my share.", Emote.Nod)),
             P("...", Emote.Sad));
         distributorRepeat = Dialogue("Distributor_Day2_Repeat", default,
-            N("Keep pressing, farmer. I'm counting every seed.", Emote.Nod));
+            Glaring(N("Keep pressing, farmer. I'm counting every seed.", Emote.Nod)));
     }
 
     private static void BuildNpcs()
@@ -275,6 +275,13 @@ public static class GameDataBuilder
     }
 
     // ---------- asset helpers ----------
+
+    // the Distributor's glasses flash white on this line (DistributorFaceVisual)
+    public static DialogueSO.DialogueLine Glaring(DialogueSO.DialogueLine line)
+    {
+        line.isNpcGlaring = true;
+        return line;
+    }
 
     public static ItemDataSO Item(string file, string itemName, string description, GameObject prefab, Color liquidColor)
     {

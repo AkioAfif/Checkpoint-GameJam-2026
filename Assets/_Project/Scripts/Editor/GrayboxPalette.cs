@@ -68,6 +68,23 @@ public static class GrayboxPalette
         });
     }
 
+    // opaque with alpha clipping: flat 2D decals such as the main character's face sheet (offset picks the sheet cell)
+    public static Material LitCutout(string name, Texture2D baseMap, Vector2 offset)
+    {
+        return GetOrCreate(name, LIT, material =>
+        {
+            material.SetColor("_BaseColor", Color.white);
+            material.SetTexture("_BaseMap", baseMap);
+            material.SetTextureOffset("_BaseMap", offset);
+            material.SetFloat("_AlphaClip", 1f);
+            material.SetFloat("_Cutoff", .5f);
+            material.EnableKeyword("_ALPHATEST_ON");
+            material.renderQueue = (int)RenderQueue.AlphaTest;
+            material.SetFloat("_Smoothness", .1f);
+            material.enableInstancing = true;
+        });
+    }
+
     public static Material Transparent(string name, Color color, float smoothness)
     {
         return GetOrCreate(name, LIT, material =>

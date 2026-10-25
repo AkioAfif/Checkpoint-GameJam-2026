@@ -109,7 +109,7 @@ Animator:
   m_GameObject: {fileID: 2972774974538692899}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 7cb1b78dca0f47d48b34f85578b118ff, type: 2}
+  m_Controller: {fileID: 22100000, guid: ee462653cc7dab44fb506f1d301865c1, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -135,6 +135,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DistributorFaceVisual
   faceRenderer: {fileID: 6865427552809162783}
   easeSpeed: 8
+  blinkIntervalMin: 2
+  blinkIntervalMax: 5
+  blinkDuration: 0.14
+  talkingSquint: 35
 --- !u!1 &3628032633392961543
 GameObject:
   m_ObjectHideFlags: 0
@@ -224,14 +228,18 @@ SkinnedMeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: daedff5f39b4e57448ce76fa707c838b, type: 2}
-  - {fileID: 2100000, guid: e17016a917d026f479d8c53ae863f7a7, type: 2}
+  - {fileID: 2100000, guid: fe6607bce2b7be140bc4844f1d25b362, type: 2}
   - {fileID: 2100000, guid: c03265d4f1bc7b74199b7c3d55197919, type: 2}
   - {fileID: 2100000, guid: 309b2c6add14ab84ea4e1308c2729e11, type: 2}
   - {fileID: 2100000, guid: 11609bd3990b4fa4aa06a608399e0828, type: 2}
-  - {fileID: 2100000, guid: da670b42e13c0be429f48f9a995d40ac, type: 2}
+  - {fileID: 2100000, guid: b522f8421e6793b4c9cb9511a2d0136c, type: 2}
+  - {fileID: 2100000, guid: 0de2a02510c5c474d879402f6f3cdb81, type: 2}
+  - {fileID: 2100000, guid: 2721e30c5f3d50d419604b8256829ef5, type: 2}
+  - {fileID: 2100000, guid: bbc15696d10955443802b3d009bc0414, type: 2}
   - {fileID: 2100000, guid: 43135586b60a49d4cb7703750de06ac4, type: 2}
-  - {fileID: 2100000, guid: 690f78f2f1a41d14eb4e2f9c57c405d1, type: 2}
   - {fileID: 2100000, guid: 26682d71468a9ad41b20272f62f576ed, type: 2}
+  - {fileID: 2100000, guid: a034618fa9d2d8b4b879c0faf9d98cc3, type: 2}
+  - {fileID: 2100000, guid: 1b1ffdd933194eb459dd3e70cde89523, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -258,7 +266,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: 4300000, guid: f31d952c19d215941a63a1117bd836c7, type: 2}
+  m_Mesh: {fileID: 4300000, guid: d6870f9d97ac3c842a65850105c358b7, type: 2}
   m_Bones:
   - {fileID: 2873524722424128854}
   - {fileID: 1969440862166484014}
@@ -269,8 +277,8 @@ SkinnedMeshRenderer:
   m_BlendShapeWeights: []
   m_RootBone: {fileID: 2873524722424128854}
   m_AABB:
-    m_Center: {x: 0, y: 0.3609246, z: 0.043212324}
-    m_Extent: {x: 0.75316817, y: 1.0217019, z: 0.73867595}
+    m_Center: {x: 0, y: 0.3904246, z: 0.0057123005}
+    m_Extent: {x: 0.78000003, y: 1.0613519, z: 0.78742594}
   m_DirtyAABB: 0
 --- !u!1 &4437249329147306563
 GameObject:

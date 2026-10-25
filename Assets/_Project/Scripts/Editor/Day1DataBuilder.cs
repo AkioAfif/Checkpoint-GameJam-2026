@@ -45,10 +45,10 @@ public static class Day1DataBuilder
             N("That you work harder than anyone in this village, and that the rain has not been kind to you.", Emote.Nod),
             N("I represent ICAN. We help hard-working families get back on their feet. This is a Fabricator. It's yours."),
             P("Mine? Are you serious? How much does it cost?", Emote.Surprised),
-            N("Nothing. Not one coin.", Emote.WideSmile),
+            GameDataBuilder.Glaring(N("Nothing. Not one coin.", Emote.WideSmile)),
             N("Put plants in, and it gives you sawit seeds. Sawit grows fast and sells well. I'll buy every one."),
             P("Why would you give this away for free?"),
-            N("Because when you do well, we do well. Simple. Let's try it together. Bring me three plants from your field."));
+            GameDataBuilder.Glaring(N("Because when you do well, we do well. Simple. Let's try it together. Bring me three plants from your field.")));
 
         Day1.pressedDialogueSO = Dialogue("Day1_FirstPress",
             N("Look at that! First try. You have a gift for this, partner.", Emote.Cheer),
@@ -66,7 +66,7 @@ public static class Day1DataBuilder
         Day1.farewellDialogueSO = Dialogue("Day1_Farewell",
             N("Look at you, a natural! The village will be talking about this field soon.", Emote.Cheer),
             P("I still can't believe it actually works.", Emote.WideSmile),
-            N("Believe it, partner. Keep the seeds coming and I'll be back to buy every one.", Emote.Nod),
+            GameDataBuilder.Glaring(N("Believe it, partner. Keep the seeds coming and I'll be back to buy every one.", Emote.Nod)),
             N("Well, I've got other families to help. Until next time!", Emote.Wave));
 
         Day1.waitingTutorial1DialogueSO = Dialogue("Distributor_Waiting1", N("Whenever you're ready. No pressure.", Emote.Nod));

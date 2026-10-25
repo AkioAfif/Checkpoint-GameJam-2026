@@ -76,7 +76,7 @@ public static partial class Level01SceneBuilder
         SetMask(interaction, "interactableLayerMask", LayerMask.GetMask("Interactable"));
 
         GameObject visual = Root("Visual", root.transform);
-        GameObject rig = (GameObject)PrefabUtility.InstantiatePrefab(CharacterBuilder.RigPrefab(CharacterBuilder.PlayerLook), visual.transform);
+        GameObject rig = (GameObject)PrefabUtility.InstantiatePrefab(CharacterBuilder.PlayerRigPrefab(), visual.transform);
         PlayerVisual playerVisual = visual.AddComponent<PlayerVisual>();
         SetField(playerVisual, "player", root.GetComponent<Player>());
         SetField(playerVisual, "animator", rig.GetComponent<Animator>());
@@ -225,7 +225,7 @@ public static partial class Level01SceneBuilder
         booth.transform.position = PortraitBoothPosition;
         PortraitBooth portraitBooth = booth.AddComponent<PortraitBooth>();
 
-        GameObject playerRig = (GameObject)PrefabUtility.InstantiatePrefab(CharacterBuilder.RigPrefab(CharacterBuilder.PlayerLook), booth.transform);
+        GameObject playerRig = (GameObject)PrefabUtility.InstantiatePrefab(CharacterBuilder.PlayerRigPrefab(), booth.transform);
         playerRig.transform.localPosition = Vector3.zero;
         playerRig.transform.localRotation = Quaternion.Euler(0f, 18f, 0f);
         Transform npcStand = Root("NpcStand", booth.transform).transform;
