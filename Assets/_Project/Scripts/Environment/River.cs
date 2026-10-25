@@ -8,6 +8,9 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class River : MonoBehaviour
 {
+    public event EventHandler<OnPlayerFellInEventArgs> OnPlayerFellIn;
+    public class OnPlayerFellInEventArgs : EventArgs { public Vector3 position; }
+
     // the glb river mesh is a strip: rows of this many vertices straight across the water, the first row upstream
     private const int ROW_VERTEX_COUNT = 11;
 
@@ -120,6 +123,8 @@ public class River : MonoBehaviour
         playerController.enabled = false;
         playerActor.PlayEmote(Emote.Surprised);
         playerActor.SetPose(CutscenePose.Drown);
+        Vector3 position = Player.Instance.transform.position;
+        OnPlayerFellIn?.Invoke(this, new OnPlayerFellInEventArgs { position = new Vector3(position.x, surfaceHeight, position.z) });
     }
 
     // carried downstream along the river's centreline, drawn into the middle, bobbing up to float chest-deep

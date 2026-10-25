@@ -6,7 +6,7 @@ using UnityEngine;
 // Tools > FixScene > Build River Flow: gives the imported River_Water (fix.glb, no UVs) a copy of its mesh with UVs that
 // run along the river, a tileable flow-streak texture, a ripple normal map (used twice: the main ripples and a second, finer
 // detail layer) and a URP Lit material, then swaps them in. RiverFlowVisual scrolls the textures at River's current speed and
-// RiverWaveVisual swells the surface (all added and wired here). Re-runnable: it overwrites its own assets. The MeshCollider
+// RiverWaveVisual swells the surface, RiverSplashVisual splashes when the MC falls in (all added and wired here). Re-runnable: it overwrites its own assets. The MeshCollider
 // keeps the original, flat mesh (same shape).
 public static class RiverFlowBuilder
 {
@@ -61,6 +61,11 @@ public static class RiverFlowBuilder
         SerializedObject serializedWaveVisual = new SerializedObject(waveVisual);
         serializedWaveVisual.FindProperty("river").objectReferenceValue = river;
         serializedWaveVisual.ApplyModifiedProperties();
+        if (!water.TryGetComponent(out RiverSplashVisual splashVisual)) splashVisual = Undo.AddComponent<RiverSplashVisual>(water);
+        SerializedObject serializedSplashVisual = new SerializedObject(splashVisual);
+        serializedSplashVisual.FindProperty("river").objectReferenceValue = river;
+        serializedSplashVisual.FindProperty("splashPrefab").objectReferenceValue = VfxBuilder.RiverSplash().transform;
+        serializedSplashVisual.ApplyModifiedProperties();
         SerializedObject serializedRiver = new SerializedObject(river);
         SerializedProperty screenFade = serializedRiver.FindProperty("screenFade");
         if (screenFade.objectReferenceValue == null) screenFade.objectReferenceValue = Object.FindAnyObjectByType<ScreenFadeUI>(FindObjectsInactive.Include);
