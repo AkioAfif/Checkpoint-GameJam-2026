@@ -83,15 +83,29 @@ public static class Day2GrayboxBuilder
         SavingsBookUI savingsBookUI = Day2UiBuilder.BuildSavingsBook(hud, Day2DataBuilder.Day2);
         Day2UiBuilder.BuildMoneyPopup(hud);
 
-        FabricatorController fabricator = Object.FindAnyObjectByType<FabricatorController>(FindObjectsInactive.Include);
         FarmPlot[] plots = Object.FindObjectsByType<FarmPlot>(FindObjectsInactive.Include)
             .OrderBy(p => Mathf.Round(p.transform.position.z * 10f)).ThenBy(p => p.transform.position.x).ToArray();
+        // over the house-side path, looking east across the field
+        AddDirector(director, Day2DataBuilder.Day2, savingsBookUI, rigel, morningPoint, eveningPoint, plots, doorLamp,
+            GameObject.Find("Directional Light").GetComponent<Light>(), new Vector3(14.5f, 6.2f, -3.5f), Level01SceneBuilder.FarmCentre + new Vector3(0f, .9f, 0f));
 
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+        AddToBuildProfile(SCENE_PATH);
+        AssetDatabase.SaveAssets();
+        Debug.Log($"Day 2 built into {SCENE_PATH}. Press Play in it to test Day 2 on its own (3 stand-in ripe palms).");
+    }
+
+    // The director with its evening camera, night and the palms' twitch, wired to the scene's own systems. Shared with the
+    // CozyFarm Day 2 (FixSceneDay2Builder). Front-row plots first in 'plots': they stand in for Day 1's when played alone.
+    public static Day2Director AddDirector(Transform director, Day2SO day2SO, SavingsBookUI savingsBookUI, Npc rigel, Transform morningPoint, Transform eveningPoint,
+        FarmPlot[] plots, GameObject doorLamp, Light sun, Vector3 farmCameraPosition, Vector3 farmCameraLookAt)
+    {
         Day2Director day2 = director.gameObject.AddComponent<Day2Director>();
-        SetField(day2, "day2SO", Day2DataBuilder.Day2);
+        SetField(day2, "day2SO", day2SO);
         SetField(day2, "screenFade", Object.FindAnyObjectByType<ScreenFadeUI>(FindObjectsInactive.Include));
         SetField(day2, "savingsBookUI", savingsBookUI);
-        SetField(day2, "fabricator", fabricator);
+        SetField(day2, "fabricator", Object.FindAnyObjectByType<FabricatorController>(FindObjectsInactive.Include));
         SetLv2Recipe(day2);
         SetField(day2, "ripeCropDataSO", GameDataBuilder.SawitLv1);
         SetField(day2, "newCropDataSO", Day2DataBuilder.SawitLv2);
@@ -101,10 +115,9 @@ public static class Day2GrayboxBuilder
         SetField(day2, "morningPoint", morningPoint);
         SetField(day2, "eveningPoint", eveningPoint);
 
-        // over the house-side path, looking east across the field
         CinemachineCamera farmCamera = Root("CM_Day2Farm", director).AddComponent<CinemachineCamera>();
-        farmCamera.transform.position = new Vector3(14.5f, 6.2f, -3.5f);
-        farmCamera.transform.LookAt(Level01SceneBuilder.FarmCentre + new Vector3(0f, .9f, 0f));
+        farmCamera.transform.position = farmCameraPosition;
+        farmCamera.transform.LookAt(farmCameraLookAt);
         LensSettings lens = LensSettings.Default;
         lens.FieldOfView = 42f;
         lens.FarClipPlane = 200f;
@@ -116,7 +129,7 @@ public static class Day2GrayboxBuilder
 
         NightVisual night = director.gameObject.AddComponent<NightVisual>();
         SetField(night, "day2Director", day2);
-        SetField(night, "sun", GameObject.Find("Directional Light").GetComponent<Light>());
+        SetField(night, "sun", sun);
         SetField(night, "worldCamera", Camera.main);
         SetField(night, "doorLamp", doorLamp);
 
@@ -125,12 +138,7 @@ public static class Day2GrayboxBuilder
         SetField(pulse, "mutantCropDataSO", Day2DataBuilder.SawitLv2);
         SetArray(pulse, "farmPlotArray", plots);
         SetField(pulse, "pulseMaterial", GrayboxPalette.Unlit("MutantPulse", new Color(.62f, .05f, .1f)));
-
-        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
-        EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
-        AddToBuildProfile(SCENE_PATH);
-        AssetDatabase.SaveAssets();
-        Debug.Log($"Day 2 built into {SCENE_PATH}. Press Play in it to test Day 2 on its own (3 stand-in ripe palms).");
+        return day2;
     }
 
     // Day 1's story leaves the copy: the truck, Sari, the Distributor and Day 1's director, cameras and night.

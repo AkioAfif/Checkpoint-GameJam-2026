@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CropDataSO
   cropName: Sawit Lv.2
   seedItemDataSO: {fileID: 11400000, guid: b4a43250077a3c347b72836d91f1aaee, type: 2}
-  saplingPrefab: {fileID: 1157441547271374251, guid: 886076e3bc991904990f2aa30921c1eb, type: 3}
-  grownPrefab: {fileID: 6171438163431767198, guid: 66d88adc5adce7f4890b09874517696b, type: 3}
-  ripePrefab: {fileID: 4292082112910106289, guid: ec31915d0dab0fb448bd4b2fc4784e0a, type: 3}
+  saplingPrefab: {fileID: 2863336051710207581, guid: e3ee50283edfffa4cafaac7d2a8f73dc, type: 3}
+  grownPrefab: {fileID: 8389998324636908612, guid: ac504a6070fe1fe4695e290274d849d3, type: 3}
+  ripePrefab: {fileID: 7728609096111988529, guid: c92312c28929c364cae9a0802b34b800, type: 3}
   harvestItemDataSO: {fileID: 11400000, guid: 85b0b94b1aae0c942a2b777be98f1ccc, type: 2}
   qteCheckCount: 3
   ringShrinkDuration: 0.95
