@@ -34,6 +34,9 @@ public class Day2Director : MonoBehaviour
     [Tooltip("Ripe palms when this scene is played without Day 1 before it.")]
     [SerializeField] private int testRipeCount = 3;
     [SerializeField] private Npc rigelNpc;
+    [Tooltip("Optional: Rigel lives further off and walks in from here to where he stands in the scene. Empty = he is just there.")]
+    [SerializeField] private Transform rigelArrivalPoint;
+    [SerializeField] private float rigelWalkSpeed = 2.6f;
     [SerializeField] private HouseDoor houseDoor;
     [Tooltip("Just out of the front door, facing the camera.")]
     [SerializeField] private Transform morningPoint;
@@ -50,9 +53,17 @@ public class Day2Director : MonoBehaviour
     private bool isSoldPending;
     private bool isSoldDialogueActive;
     private bool isShowRigelPending;
+    private Pose rigelStandPose;
+    private CutsceneActor rigelActor;
 
     private void Start()
     {
+        rigelStandPose = new Pose(rigelNpc.transform.position, rigelNpc.transform.rotation);
+        if (rigelArrivalPoint != null)
+        {
+            rigelActor = rigelNpc.GetComponent<CutsceneActor>();
+            rigelActor.OnMoveFinished += RigelActor_OnMoveFinished;
+        }
         screenFade.OnBlack += ScreenFade_OnBlack;
         screenFade.OnFinished += ScreenFade_OnFinished;
         DialogueManager.Instance.OnDialogueEnded += DialogueManager_OnDialogueEnded;
@@ -133,6 +144,7 @@ public class Day2Director : MonoBehaviour
             // the neighbour has seen the palms from across the fence
             isSoldDialogueActive = false;
             rigelNpc.gameObject.SetActive(true);
+            if (rigelArrivalPoint != null) WalkRigelIn();
             TaskManager.Instance.SetObjectives(day2SO.rigelObjectiveArray);
             SetState(State.Rigel);
         }
@@ -157,6 +169,16 @@ public class Day2Director : MonoBehaviour
             savingsBookUI.Show(SavingsBookUI_OnClosed);
         }
     }
+
+    // he heard about the sale and comes down the path to see the palms for himself
+    private void WalkRigelIn()
+    {
+        rigelNpc.transform.position = rigelArrivalPoint.position;
+        float distance = Vector3.Distance(rigelArrivalPoint.position, rigelStandPose.position);
+        rigelActor.MoveTo(rigelStandPose.position, distance / rigelWalkSpeed, 0f);
+    }
+
+    private void RigelActor_OnMoveFinished(object sender, EventArgs e) => rigelNpc.transform.rotation = rigelStandPose.rotation;
 
     // ---------- night ----------
 
