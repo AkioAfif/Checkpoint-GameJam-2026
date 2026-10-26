@@ -1,4 +1,5 @@
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 using static GrayboxBuild;
 
@@ -55,13 +56,24 @@ public static class Day2PrefabBuilder
     // Day 1's palm the next morning: the evening's size, with fruit bunches under the fronds
     public static GameObject RipePalmLv1() => Palm("Palm_SawitLv1_Ripe", .2f, .12f, 1.15f, new Vector3(.2f, .045f, 1.15f), 11, SawitLeaf, GrayboxPalette.Accent, true);
 
-    public static GameObject SaplingLv2() => Palm("Sapling_SawitLv2Seed", .12f, .08f, .6f, new Vector3(.13f, .035f, .68f), 7, SawitLeafLv2, GlowLv2, false);
+    // Sawit Lv.2 is the Blender "gloamplum" plant, as Lv.1 is the duskbell (same scales as Plant_DuskbellLv1_*): the sprout,
+    // then one evening later the harvest-ready plant with its fruit hidden, and on Day 3 the same plant with its fruit
+    public static GameObject SaplingLv2() => BlenderPlant("Sapling_GloamplumLv2", "plant_2_gloamplum_sprout", 2.2f, true);
+    public static GameObject GrownPalmLv2() => BlenderPlant("Plant_GloamplumLv2_Grown", "plant_2_gloamplum_harvest_ready", 1.4f, false);
+    public static GameObject RipePalmLv2() => BlenderPlant("Plant_GloamplumLv2_Ripe", "plant_2_gloamplum_harvest_ready", 1.4f, true);
 
-    // one evening later: taller than Day 1's palms, more fronds, the red heart showing
-    public static GameObject GrownPalmLv2() => Palm("Palm_SawitLv2_Grown", .26f, .15f, 1.55f, new Vector3(.22f, .05f, 1.45f), 13, SawitLeafLv2, GlowLv2, false);
-
-    // Day 3, two weeks on: the Lv.2 palm heavy with fruit
-    public static GameObject RipePalmLv2() => Palm("Palm_SawitLv2_Ripe", .26f, .15f, 1.55f, new Vector3(.22f, .05f, 1.45f), 13, SawitLeafLv2, GlowLv2, true);
+    // the model under a "Model" child (the root stays unscaled for the plot), fruit meshes off until ripe
+    private static GameObject BlenderPlant(string name, string model, float scale, bool hasFruit)
+    {
+        GameObject root = Root(name);
+        GameObject glb = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Ilkham/models/plants/{model}.glb");
+        GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(glb, root.transform);
+        instance.name = "Model";
+        instance.transform.localScale = Vector3.one * scale;
+        foreach (Transform part in instance.transform)
+            if (part.name.Contains("_Fruit_")) part.gameObject.SetActive(hasFruit);
+        return SavePrefab(root, "Items", name);
+    }
 
     private static GameObject Palm(string name, float trunkBottom, float trunkTop, float trunkHeight, Vector3 frondSize, int frondCount, Material leaf, Material glow, bool hasFruit)
     {
