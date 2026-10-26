@@ -22,6 +22,8 @@ public class PlayerFaceVisual : MonoBehaviour
     [SerializeField] private float talkFrameTime = .09f;
 
     private Animator animator;
+    // the player's, for held poses; the portrait booth copy has none
+    private CutsceneActor cutsceneActor;
     private MaterialPropertyBlock block;
     private int eyeLeftIndex, eyeRightIndex, mouthIndex;
     private Emote[] emoteArray;
@@ -34,6 +36,7 @@ public class PlayerFaceVisual : MonoBehaviour
     private void Awake()
     {
         animator = GetComponent<Animator>();
+        cutsceneActor = GetComponentInParent<CutsceneActor>();
         block = new MaterialPropertyBlock();
         if (faceRenderer == null)
         {
@@ -55,6 +58,8 @@ public class PlayerFaceVisual : MonoBehaviour
     private void Update()
     {
         GetFace(GetPlayingEmote(), out Eyes eyes, out Mouth mouth);
+        // the Surprised emote ends long before the swept-away drowning does: keep its face for the whole drift
+        if (cutsceneActor != null && cutsceneActor.GetPose() == CutscenePose.Drown) GetFace(Emote.Surprised, out eyes, out mouth);
 
         blinkTimer -= Time.deltaTime;
         if (blinkTimer < 0f)
