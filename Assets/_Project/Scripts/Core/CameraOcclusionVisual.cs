@@ -3,9 +3,10 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-// Fades scenery standing between the gameplay camera and the player, and brings it back once the view is clear.
-// Scenery rarely has colliders, so the sight line is tested against renderer bounds instead of raycast against physics.
+// Fades scenery that really hides the player from the gameplay camera, and brings it back once the view is clear.
+// A sphere is swept along the sight line against the scenery's colliders: only what it hits before the player fades.
 // A faded renderer swaps to transparent copies of its own materials, made once per renderer and reused; the shared originals are never edited.
+// Its depth is drawn first (depthOnlyMaterial), so only the outer shell shows, not the walls and windows inside it.
 public class CameraOcclusionVisual : MonoBehaviour
 {
     private const string TRANSPARENT_KEYWORD = "_SURFACE_TYPE_TRANSPARENT";
@@ -24,19 +25,20 @@ public class CameraOcclusionVisual : MonoBehaviour
     [SerializeField] private CinemachineCamera followCamera;
     [Tooltip("Scenery whose renderers may be faded (the environment root).")]
     [SerializeField] private Transform[] occluderRootArray;
+    [Tooltip("Project/DepthOnly: draws a faded object's depth just before its see-through materials.")]
+    [SerializeField] private Material depthOnlyMaterial;
     [SerializeField] private float fadedAlpha = .25f;
     [SerializeField] private float fadeSpeed = 4f;
     [Tooltip("Aims at the player's chest, not the feet.")]
     [SerializeField] private float targetHeight = 1f;
-    [Tooltip("Widens the sight line so the player's whole body stays clear.")]
-    [SerializeField] private float sightRadius = .6f;
+    [Tooltip("Radius (m) of the sphere swept along the sight line: how much of the player's body must stay clear.")]
+    [SerializeField] private float sightRadius = .3f;
     [Tooltip("Renderers flatter than this (ground, paths, low fences) never block the view.")]
     [SerializeField] private float minOccluderHeight = 1.5f;
-    [Tooltip("Renderers wider than this are merged meshes (fence runs, ground details) whose bounds cover half the map.")]
-    [SerializeField] private float maxOccluderWidth = 25f;
 
     private class Fade
     {
+        public Mesh mesh;
         public Material[] originalArray;
         public Material[] fadedArray;
         public int[] colorIdArray;
@@ -45,7 +47,8 @@ public class CameraOcclusionVisual : MonoBehaviour
         public bool isSwapped;
     }
 
-    private readonly List<Renderer> candidateList = new List<Renderer>();
+    private readonly Dictionary<Collider, Renderer> candidateDictionary = new Dictionary<Collider, Renderer>();
+    private readonly RaycastHit[] hitArray = new RaycastHit[32];
     private readonly Dictionary<Renderer, Fade> fadeDictionary = new Dictionary<Renderer, Fade>();
     private readonly HashSet<Renderer> unsupportedSet = new HashSet<Renderer>();
     private readonly HashSet<Renderer> occludingSet = new HashSet<Renderer>();
@@ -58,8 +61,8 @@ public class CameraOcclusionVisual : MonoBehaviour
         {
             foreach (Renderer candidate in root.GetComponentsInChildren<Renderer>(true))
             {
-                Vector3 size = candidate.bounds.size;
-                if (size.y >= minOccluderHeight && size.x <= maxOccluderWidth && size.z <= maxOccluderWidth) candidateList.Add(candidate);
+                if (candidate.bounds.size.y < minOccluderHeight || !candidate.TryGetComponent(out Collider collider)) continue;
+                candidateDictionary[collider] = candidate;
             }
         }
     }
@@ -95,20 +98,23 @@ public class CameraOcclusionVisual : MonoBehaviour
         Vector3 toTarget = target - cameraTransform.position;
         float distance = toTarget.magnitude;
         if (distance < .01f) return;
-        Ray sightLine = new Ray(cameraTransform.position, toTarget / distance);
-        foreach (Renderer candidate in candidateList)
+        // stop one radius short, so a wall right behind the player isn't touched by the sphere's end
+        int count = Physics.SphereCastNonAlloc(cameraTransform.position, sightRadius, toTarget / distance, hitArray, distance - sightRadius, Physics.AllLayers, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < count; i++)
         {
-            if (!candidate.enabled || !candidate.gameObject.activeInHierarchy) continue;
-            Bounds bounds = candidate.bounds;
-            bounds.Expand(sightRadius * 2f);
-            if (bounds.IntersectRay(sightLine, out float hitDistance) && hitDistance < distance) occludingSet.Add(candidate);
+            if (!candidateDictionary.TryGetValue(hitArray[i].collider, out Renderer candidate)) continue;
+            if (candidate.enabled && candidate.gameObject.activeInHierarchy) occludingSet.Add(candidate);
         }
     }
 
     private void UpdateFade(Renderer occluder, Fade fade)
     {
         float targetAlpha = occludingSet.Contains(occluder) ? fadedAlpha : 1f;
-        if (Mathf.Approximately(fade.alpha, targetAlpha) && fade.isSwapped == targetAlpha < 1f) return;
+        if (Mathf.Approximately(fade.alpha, targetAlpha) && fade.isSwapped == targetAlpha < 1f)
+        {
+            if (fade.isSwapped) DrawDepth(occluder, fade);
+            return;
+        }
         fade.alpha = Mathf.MoveTowards(fade.alpha, targetAlpha, fadeSpeed * Time.deltaTime);
 
         // fully back: the untouched shared materials again, so batching and shadows are exactly as before
@@ -126,11 +132,21 @@ public class CameraOcclusionVisual : MonoBehaviour
             color.a *= fade.alpha;
             fade.fadedArray[i].SetColor(fade.colorIdArray[i], color);
         }
+        DrawDepth(occluder, fade);
+    }
+
+    // shortcut: draws the renderer's own mesh, so a static-batched renderer would be misplaced; handle subMeshStartIndex if the scenery gets batched
+    private void DrawDepth(Renderer occluder, Fade fade)
+    {
+        RenderParams renderParams = new RenderParams(depthOnlyMaterial) { layer = occluder.gameObject.layer, shadowCastingMode = ShadowCastingMode.Off, receiveShadows = false };
+        Matrix4x4 localToWorld = occluder.localToWorldMatrix;
+        for (int i = 0; i < fade.originalArray.Length && i < fade.mesh.subMeshCount; i++) Graphics.RenderMesh(renderParams, fade.mesh, i, localToWorld);
     }
 
     // null when a material can't switch to transparent (its shader has no URP surface override), so that renderer is left alone
     private Fade CreateFade(Renderer occluder)
     {
+        if (!occluder.TryGetComponent(out MeshFilter meshFilter) || meshFilter.sharedMesh == null) return null;
         Material[] originalArray = occluder.sharedMaterials;
         int[] colorIdArray = new int[originalArray.Length];
         for (int i = 0; i < originalArray.Length; i++)
@@ -149,6 +165,7 @@ public class CameraOcclusionVisual : MonoBehaviour
 
         Fade fade = new Fade
         {
+            mesh = meshFilter.sharedMesh,
             originalArray = originalArray,
             fadedArray = new Material[originalArray.Length],
             colorIdArray = colorIdArray,
