@@ -44,8 +44,13 @@ public static class FixSceneDay2Builder
         }
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
 
-        AssetDatabase.DeleteAsset(SCENE_PATH);
-        AssetDatabase.CopyAsset(SOURCE_SCENE_PATH, SCENE_PATH);
+        // overwrite the file, not delete + copy: the scene keeps its GUID (and its .meta stays out of every diff)
+        if (AssetDatabase.LoadAssetAtPath<SceneAsset>(SCENE_PATH) == null) AssetDatabase.CopyAsset(SOURCE_SCENE_PATH, SCENE_PATH);
+        else
+        {
+            System.IO.File.Copy(SOURCE_SCENE_PATH, SCENE_PATH, true);
+            AssetDatabase.ImportAsset(SCENE_PATH, ImportAssetOptions.ForceUpdate);
+        }
         EditorSceneManager.OpenScene(SCENE_PATH);
         // after opening: OpenScene unloads assets loaded before it, and references to them would save as missing
         LoadData();
