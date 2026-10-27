@@ -2,10 +2,12 @@ using System;
 using UnityEngine;
 
 // The tube machine in front of the house: pick how many batches → zoom in → solve the puzzle once → seeds pop out.
-// Resources are only used on success, one recipe's worth per batch.
+// Resources are only used on success, one recipe's worth per batch. The recipe panel always opens; Make needs the materials.
+// A guided recipe (the tutorial's first press) skips the panel: one batch, straight into the puzzle, only with the materials.
 public class FabricatorController : MonoBehaviour, IInteractable
 {
-    public static event EventHandler OnAnySeedFabricated;
+    public static event EventHandler<OnAnySeedFabricatedEventArgs> OnAnySeedFabricated;
+    public class OnAnySeedFabricatedEventArgs : EventArgs { public int seedCount; }
 
     public event EventHandler<OnStateChangedEventArgs> OnStateChanged;
     public class OnStateChangedEventArgs : EventArgs { public State state; }
@@ -23,6 +25,8 @@ public class FabricatorController : MonoBehaviour, IInteractable
         public ItemAmount returned;
         public FabricatorPuzzleSO puzzleSO;
         public string blockedReason;
+        [Tooltip("Tutorial press: no recipe panel, always one batch, and [Interact] is blocked (showing blockedReason) until the materials are there.")]
+        public bool isGuided;
     }
 
     [SerializeField] private FabricatorMiniGame miniGame;
@@ -41,6 +45,8 @@ public class FabricatorController : MonoBehaviour, IInteractable
     private float timer;
     private int completedRuns;
     private bool isSuccess;
+    // what the last successful run put in the bag (batches × output + combo bonus), announced once the machine is idle again
+    private int madeSeedCount;
     private bool isPlaced = true;
     private int batchCount = 1;
     // the Interact press that opened the recipe panel must not also confirm it
@@ -81,7 +87,7 @@ public class FabricatorController : MonoBehaviour, IInteractable
             case State.Exiting:
                 SetState(State.Idle, 0f);
                 GameManager.Instance.SetState(GameManager.State.Playing);
-                if (isSuccess) OnAnySeedFabricated?.Invoke(this, EventArgs.Empty);
+                if (isSuccess) OnAnySeedFabricated?.Invoke(this, new OnAnySeedFabricatedEventArgs { seedCount = madeSeedCount });
                 break;
         }
     }
@@ -113,7 +119,8 @@ public class FabricatorController : MonoBehaviour, IInteractable
     }
 
     public bool IsSelectable() => isPlaced && state == State.Idle;
-    public bool CanInteract(Player player) => Inventory.Instance.HasItems(GetRecipe().inputArray);
+    // the panel opens with any bag (it shows what is missing); only a guided press waits for its materials
+    public bool CanInteract(Player player) => !GetRecipe().isGuided || Inventory.Instance.HasItems(GetRecipe().inputArray);
 
     public void Interact(Player player)
     {
@@ -122,6 +129,11 @@ public class FabricatorController : MonoBehaviour, IInteractable
         heldBatchStep = 0;
         choosingStartFrame = Time.frameCount;
         GameManager.Instance.SetState(GameManager.State.Fabricating);
+        if (GetRecipe().isGuided)
+        {
+            SetState(State.Entering, enterDuration);
+            return;
+        }
         SetState(State.Choosing, 0f);
         OnBatchCountChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -134,9 +146,10 @@ public class FabricatorController : MonoBehaviour, IInteractable
         OnBatchCountChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    // Make: refused while the bag can't cover the chosen batches (Leave would otherwise pay out with inputs missing)
     public void ConfirmBatch()
     {
-        if (state != State.Choosing) return;
+        if (state != State.Choosing || !CanAffordBatches()) return;
         SetState(State.Entering, enterDuration);
     }
 
@@ -149,7 +162,7 @@ public class FabricatorController : MonoBehaviour, IInteractable
     // developer tools: finishes the run in whatever stage it is, through the same Leave the puzzle's solve uses (output once, no combo)
     public bool TrySkipRun()
     {
-        if (state == State.Idle || state == State.Exiting || !HasItemsForBatches()) return false;
+        if (state == State.Idle || state == State.Exiting || !CanAffordBatches()) return false;
         Leave(true, false);
         return true;
     }
@@ -173,7 +186,8 @@ public class FabricatorController : MonoBehaviour, IInteractable
     // developer tools: a quick load puts back how many runs (and so which recipe press) were done
     public void RestoreCompletedRuns(int runs) => completedRuns = runs;
 
-    private bool HasItemsForBatches()
+    // the bag covers every input for the chosen number of batches
+    public bool CanAffordBatches()
     {
         foreach (ItemAmount input in GetRecipe().inputArray)
             if (Inventory.Instance.GetCount(input.itemDataSO) < input.amount * batchCount) return false;
@@ -218,7 +232,8 @@ public class FabricatorController : MonoBehaviour, IInteractable
             for (int i = 0; i < batchCount; i++) Inventory.Instance.RemoveItems(recipe.inputArray);
             if (recipe.returned.amount > 0) Inventory.Instance.AddItem(recipe.returned.itemDataSO, recipe.returned.amount * batchCount);
             // the combo is one reward per run, however many batches it made
-            Inventory.Instance.AddItem(recipe.output.itemDataSO, recipe.output.amount * batchCount + (isCombo ? comboBonus : 0));
+            madeSeedCount = recipe.output.amount * batchCount + (isCombo ? comboBonus : 0);
+            Inventory.Instance.AddItem(recipe.output.itemDataSO, madeSeedCount);
             completedRuns++;
         }
         miniGame.End();

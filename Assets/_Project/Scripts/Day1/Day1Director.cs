@@ -20,6 +20,8 @@ public class Day1Director : MonoBehaviour
     {
         None, Startled, WaitingForTruck, Flipping, Intro, WalkingToTruck, Lifting, Carrying, Placing, Waving, Walking, Hopping, Leaving,
         EveningWalkIn, EveningWhat, EveningPan, EveningWalkToFarm, EveningMonologue,
+        // the night walk up the path, filmed by the gameplay camera
+        EveningPathWalk,
     }
 
     [SerializeField] private Day1SO day1SO;
@@ -42,6 +44,8 @@ public class Day1Director : MonoBehaviour
     [SerializeField] private Transform eveningStartPoint;
     [SerializeField] private Transform eveningStopPoint;
     [SerializeField] private Transform farmInspectPoint;
+    [Tooltip("Optional night walk (2+ points along the path, ending by the garden): the MC starts on the first point and walks them in order while the gameplay camera follows; after the \"What?!\" the shot pans to the plants that grew. Empty: the walk-in from eveningStartPoint with the house shot.")]
+    [SerializeField] private Transform[] eveningPathPointArray;
     [SerializeField] private float strollDistance = 3f;
     [Tooltip("Optional: when set, the truck comes once the player walks within arrivalTriggerRadius of this point (the garden) instead of strollDistance from the yard.")]
     [SerializeField] private Transform arrivalTriggerPoint;
@@ -75,6 +79,10 @@ public class Day1Director : MonoBehaviour
     private bool isFarewellReady;
     private bool isPressedDialogueActive;
     private bool hasSariDodged;
+    private int eveningPathIndex;
+    // centre of the plants that grew by nightfall; the night walk's last shot frames it
+    private bool hasGardenFocus;
+    private Vector3 gardenFocus;
 
     private void Start()
     {
@@ -160,21 +168,35 @@ public class Day1Director : MonoBehaviour
     private void ScreenFade_OnBlack(object sender, EventArgs e)
     {
         if (!isNightFadePlaying) return;
-        Player.Instance.Teleport(eveningStartPoint.position);
-        Player.Instance.FaceTowards(eveningStopPoint.position);
         sariNpc.gameObject.SetActive(false);
         foreach (FarmPlot farmPlot in farmPlotArray) farmPlot.Grow();
-        // set before the state so the camera already frames the house front when Night begins
-        step = Step.EveningWalkIn;
+        // set before the state so the camera already has its first shot when Night begins
+        if (HasEveningPath())
+        {
+            // the bottom of the path; the gameplay camera follows the walk
+            Player.Instance.Teleport(eveningPathPointArray[0].position);
+            Player.Instance.FaceTowards(eveningPathPointArray[1].position);
+            FindGardenFocus();
+            eveningPathIndex = 0;
+            step = Step.EveningPathWalk;
+        }
+        else
+        {
+            Player.Instance.Teleport(eveningStartPoint.position);
+            Player.Instance.FaceTowards(eveningStopPoint.position);
+            // the camera already frames the house front
+            step = Step.EveningWalkIn;
+        }
         SetState(State.Night);
     }
 
-    // the screen clears on the house front, still a cutscene: the MC walks into the shot from the west
+    // the screen clears, still a cutscene: the MC walks up the path (or into the house-front shot from the west)
     private void ScreenFade_OnFinished(object sender, EventArgs e)
     {
         if (!isNightFadePlaying) return;
         isNightFadePlaying = false;
-        WalkPlayerTo(eveningStopPoint.position);
+        if (HasEveningPath()) WalkEveningPath();
+        else WalkPlayerTo(eveningStopPoint.position);
     }
 
     // ---------- Arrival ----------
@@ -265,7 +287,18 @@ public class Day1Director : MonoBehaviour
 
     private void PlayerActor_OnMoveFinished(object sender, EventArgs e)
     {
-        if (step == Step.EveningWalkIn)
+        if (step == Step.EveningPathWalk)
+        {
+            if (eveningPathIndex < eveningPathPointArray.Length - 1)
+            {
+                WalkEveningPath();
+                return;
+            }
+            // at the garden, still on the gameplay camera: the shot moves to the plants only once the "What?!" is closed
+            step = Step.EveningWhat;
+            DialogueManager.Instance.StartDialogue(null, day1SO.eveningWhatDialogueSO);
+        }
+        else if (step == Step.EveningWalkIn)
         {
             step = Step.EveningWhat;
             DialogueManager.Instance.StartDialogue(null, day1SO.eveningWhatDialogueSO);
@@ -414,6 +447,30 @@ public class Day1Director : MonoBehaviour
         playerActor.MoveTo(target, Vector3.Distance(Player.Instance.transform.position, target) / walkSpeed, 0f);
     }
 
+    private bool HasEveningPath() => eveningPathPointArray != null && eveningPathPointArray.Length >= 2;
+
+    // the next leg of the night walk
+    private void WalkEveningPath()
+    {
+        eveningPathIndex++;
+        WalkPlayerTo(eveningPathPointArray[eveningPathIndex].position);
+    }
+
+    // the middle of the plants that grew; with none, the camera keeps its fixed farm shot
+    private void FindGardenFocus()
+    {
+        Vector3 sum = Vector3.zero;
+        int count = 0;
+        foreach (FarmPlot farmPlot in farmPlotArray)
+        {
+            if (farmPlot.GetState() != FarmPlot.State.Grown) continue;
+            sum += farmPlot.transform.position;
+            count++;
+        }
+        hasGardenFocus = count > 0;
+        if (hasGardenFocus) gardenFocus = sum / count;
+    }
+
     // ---------- night ----------
 
     private void HouseDoor_OnStateChanged(object sender, HouseDoor.OnStateChangedEventArgs e)
@@ -431,8 +488,16 @@ public class Day1Director : MonoBehaviour
     // the Distributor is fetching, carrying or setting down the Fabricator
     public bool IsDelivering() => step == Step.WalkingToTruck || step == Step.Lifting || step == Step.Carrying || step == Step.Placing;
     // the evening at the farm, filmed from above: first the house front, then the field
-    public bool IsEveningCutscene() => step == Step.EveningWalkIn || step == Step.EveningWhat || IsFarmShot();
+    // (the night walk up the path and its "What?!" are not: the gameplay camera films them)
+    public bool IsEveningCutscene() => step == Step.EveningWalkIn || (step == Step.EveningWhat && !HasEveningPath()) || IsFarmShot();
     public bool IsFarmShot() => step == Step.EveningPan || step == Step.EveningWalkToFarm || step == Step.EveningMonologue;
+    // the night walk and its "What?!", filmed by the gameplay camera before the shot pans to the garden
+    public bool IsEveningFollowShot() => step == Step.EveningPathWalk || (step == Step.EveningWhat && HasEveningPath());
+    public bool TryGetGardenFocus(out Vector3 focus)
+    {
+        focus = gardenFocus;
+        return hasGardenFocus;
+    }
 
     private void SetState(State state)
     {

@@ -43,7 +43,8 @@ public class TaskManager : MonoBehaviour
         if (e.delta > 0) AddProgress(TaskObjectiveSO.Type.CollectItem, e.itemDataSO, e.delta);
     }
 
-    private void FabricatorController_OnAnySeedFabricated(object sender, EventArgs e) => AddProgress(TaskObjectiveSO.Type.FabricateSeed, null, 1);
+    // "make N seeds" counts seeds, not presses: a run of several batches (or a combo) counts every seed it made
+    private void FabricatorController_OnAnySeedFabricated(object sender, FabricatorController.OnAnySeedFabricatedEventArgs e) => AddProgress(TaskObjectiveSO.Type.FabricateSeed, null, e.seedCount);
     private void FarmPlot_OnAnyPlanted(object sender, EventArgs e) => AddProgress(TaskObjectiveSO.Type.PlantCrop, null, 1);
 
     public void CompleteEnterHouse() => AddProgress(TaskObjectiveSO.Type.EnterHouse, null, 1);

@@ -68,13 +68,16 @@ public class FabricatorRecipeUI : MonoBehaviour
         batchCountText.text = batchCount.ToString();
         minusButton.interactable = batchCount > 1;
         plusButton.interactable = batchCount < fabricator.GetMaxBatchCount();
+        // the rows above show what is missing; Make only works once the bag covers the batches
+        makeButton.interactable = fabricator.CanAffordBatches();
     }
 
     private void Show()
     {
         UpdateVisual();
         canvasGroup.SetVisible(true);
-        makeButton.Select();
+        if (makeButton.interactable) makeButton.Select();
+        else cancelButton.Select();
     }
 
     private void Hide() => canvasGroup.SetVisible(false);

@@ -33,9 +33,17 @@ public class FarmPlotVisual : MonoBehaviour
         cropGameObject.SetActive(e.state == FarmPlot.State.Crop);
         if (wasCrop && e.state == FarmPlot.State.Empty)
             ItemFloatUp.Spawn(farmPlot.GetCropItemDataSO().prefab, cropGameObject.transform.position, burstPrefab);
+        // a dev quick load can send a plot with a model straight back to Crop or Planted: drop the old model, no harvest effect
+        if (sapling != null && (e.state == FarmPlot.State.Crop || e.state == FarmPlot.State.Planted))
+        {
+            Destroy(sapling.gameObject);
+            sapling = null;
+        }
         if (sapling != null && e.state == FarmPlot.State.Empty)
         {
-            ItemFloatUp.Spawn(farmPlot.GetPlantedCropDataSO().harvestItemDataSO.prefab, sapling.position, burstPrefab);
+            // no planted crop = a dev quick load, not a harvest: nothing to float up
+            CropDataSO plantedCropDataSO = farmPlot.GetPlantedCropDataSO();
+            if (plantedCropDataSO != null) ItemFloatUp.Spawn(plantedCropDataSO.harvestItemDataSO.prefab, sapling.position, burstPrefab);
             Destroy(sapling.gameObject);
             sapling = null;
         }
