@@ -8,6 +8,8 @@ public class ResourceNode : MonoBehaviour, IInteractable
 
     public event EventHandler OnCollected;
     public event EventHandler OnRespawned;
+    // developer tools put the node back in a saved state (visuals only refresh, no collect effects)
+    public event EventHandler OnRestored;
 
     [SerializeField] private ItemDataSO itemDataSO;
     [SerializeField] private int amount = 1;
@@ -54,6 +56,16 @@ public class ResourceNode : MonoBehaviour, IInteractable
     public string GetBlockedReason() => blockedReason;
     public Transform GetPromptAnchor() => promptAnchor;
     public ItemDataSO GetItemDataSO() => itemDataSO;
+    public bool IsAvailable() => isAvailable;
+    public float GetRespawnTimer() => respawnTimer;
+
+    // developer tools: puts a saved node back without collecting it (no reward, no collect effects)
+    public void RestoreAvailability(bool isAvailable, float respawnTimer)
+    {
+        this.isAvailable = isAvailable;
+        this.respawnTimer = respawnTimer;
+        OnRestored?.Invoke(this, EventArgs.Empty);
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     public static void ResetStaticData() => OnAnyCollected = null;

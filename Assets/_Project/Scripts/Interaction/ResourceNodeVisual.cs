@@ -15,6 +15,7 @@ public class ResourceNodeVisual : MonoBehaviour
     {
         resourceNode.OnCollected += ResourceNode_OnCollected;
         resourceNode.OnRespawned += ResourceNode_OnRespawned;
+        resourceNode.OnRestored += ResourceNode_OnRestored;
     }
 
     private void Update()
@@ -36,5 +37,11 @@ public class ResourceNodeVisual : MonoBehaviour
     {
         modelGameObject.SetActive(true);
         regrowTimer = 0f;
+    }
+
+    private void ResourceNode_OnRestored(object sender, System.EventArgs e)
+    {
+        modelGameObject.SetActive(!hideOnCollect || resourceNode.IsAvailable());
+        regrowTimer = -1f;
     }
 }

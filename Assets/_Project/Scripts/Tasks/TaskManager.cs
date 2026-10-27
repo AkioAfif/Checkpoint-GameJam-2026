@@ -64,6 +64,38 @@ public class TaskManager : MonoBehaviour
         CheckRequiredComplete();
     }
 
+    // developer tools: sets an objective to done and announces it like a normal completion
+    public void CompleteObjective(int index)
+    {
+        progressArray[index] = objectiveSOArray[index].requiredCount;
+        OnObjectiveProgress?.Invoke(this, new OnObjectiveProgressEventArgs { index = index, isComplete = true });
+        CheckRequiredComplete();
+    }
+
+    // developer tools: sets an objective back to not-done (collect objectives recount the bag)
+    public void ResetObjective(int index)
+    {
+        TaskObjectiveSO objectiveSO = objectiveSOArray[index];
+        progressArray[index] = objectiveSO.type == TaskObjectiveSO.Type.CollectItem
+            ? Mathf.Min(Inventory.Instance.GetCount(objectiveSO.itemDataSO), objectiveSO.requiredCount)
+            : 0;
+        OnObjectiveProgress?.Invoke(this, new OnObjectiveProgressEventArgs { index = index, isComplete = IsComplete(index) });
+        if (objectiveSO.type == TaskObjectiveSO.Type.EnterHouse) return;
+        areRequiredComplete = false;
+        CheckRequiredComplete();
+    }
+
+    // developer tools: restores a saved list and its progress silently (no completion events fire again)
+    public void RestoreProgress(TaskObjectiveSO[] savedObjectiveSOArray, int[] savedProgressArray, bool savedAreRequiredComplete)
+    {
+        objectiveSOArray = savedObjectiveSOArray;
+        progressArray = (int[])savedProgressArray.Clone();
+        areRequiredComplete = savedAreRequiredComplete;
+        OnObjectivesChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public bool AreRequiredComplete() => areRequiredComplete;
+
     public TaskObjectiveSO[] GetObjectiveSOArray() => objectiveSOArray;
     public int GetProgress(int index) => progressArray[index];
     public bool IsComplete(int index) => progressArray[index] >= objectiveSOArray[index].requiredCount;

@@ -77,6 +77,46 @@ public static class WorldState
     public static int GetDaysUntilDue() => daysUntilDue;
     public static long GetEarnedToday() => earnedToday;
 
+    // developer tools: a copy of everything above, taken and put back by quick save / load
+    public class Snapshot
+    {
+        public bool isDay1Complete, isDay2Complete, isDay3Complete, hasSkippedTime, isFabricatorPlaced, hasAccounts;
+        public Vector3[] plantedPositionArray;
+        public long savings, debt, earnedToday;
+        public int daysUntilDue;
+    }
+
+    public static Snapshot Capture() => new Snapshot
+    {
+        isDay1Complete = isDay1Complete,
+        isDay2Complete = isDay2Complete,
+        isDay3Complete = isDay3Complete,
+        hasSkippedTime = hasSkippedTime,
+        isFabricatorPlaced = isFabricatorPlaced,
+        hasAccounts = hasAccounts,
+        plantedPositionArray = plantedPositionList.ToArray(),
+        savings = savings,
+        debt = debt,
+        earnedToday = earnedToday,
+        daysUntilDue = daysUntilDue,
+    };
+
+    public static void Restore(Snapshot snapshot)
+    {
+        isDay1Complete = snapshot.isDay1Complete;
+        isDay2Complete = snapshot.isDay2Complete;
+        isDay3Complete = snapshot.isDay3Complete;
+        hasSkippedTime = snapshot.hasSkippedTime;
+        isFabricatorPlaced = snapshot.isFabricatorPlaced;
+        hasAccounts = snapshot.hasAccounts;
+        plantedPositionList.Clear();
+        plantedPositionList.AddRange(snapshot.plantedPositionArray);
+        savings = snapshot.savings;
+        debt = snapshot.debt;
+        earnedToday = snapshot.earnedToday;
+        daysUntilDue = snapshot.daysUntilDue;
+    }
+
     // a fresh playthrough (the end screen's replay button)
     public static void Clear() => ResetStaticData();
 

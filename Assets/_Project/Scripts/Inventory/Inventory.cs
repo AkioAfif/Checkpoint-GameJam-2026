@@ -55,6 +55,21 @@ public class Inventory : MonoBehaviour
         foreach (ItemAmount itemAmount in itemAmountArray) TryRemoveItem(itemAmount.itemDataSO, itemAmount.amount);
     }
 
+    // developer tools: every item ever held, with its count
+    public ItemAmount[] GetCountArray()
+    {
+        ItemAmount[] countArray = new ItemAmount[itemOrderList.Count];
+        for (int i = 0; i < countArray.Length; i++) countArray[i] = new ItemAmount { itemDataSO = itemOrderList[i], amount = GetCount(itemOrderList[i]) };
+        return countArray;
+    }
+
+    // developer tools: sets the bag to exactly these counts. Delta is 0, so no discovery card and no task progress; the HUD still refreshes.
+    public void RestoreCounts(ItemAmount[] countArray)
+    {
+        foreach (ItemDataSO itemDataSO in itemOrderList) SetCount(itemDataSO, 0, 0);
+        foreach (ItemAmount itemAmount in countArray) SetCount(itemAmount.itemDataSO, itemAmount.amount, 0);
+    }
+
     public int GetCount(ItemDataSO itemDataSO) => countDictionary.TryGetValue(itemDataSO, out int count) ? count : 0;
 
     // items in the order they were first obtained (drives the HUD strip)

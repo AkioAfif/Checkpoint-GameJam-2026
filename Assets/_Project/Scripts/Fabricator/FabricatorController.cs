@@ -76,7 +76,7 @@ public class FabricatorController : MonoBehaviour, IInteractable
                 SetState(State.Puzzle, 0f);
                 break;
             case State.Solved:
-                Leave(true);
+                Leave(true, miniGame.IsCombo());
                 break;
             case State.Exiting:
                 SetState(State.Idle, 0f);
@@ -99,7 +99,7 @@ public class FabricatorController : MonoBehaviour, IInteractable
     private void GameInput_OnPauseAction(object sender, EventArgs e)
     {
         if (state == State.Choosing) CancelBatch();
-        else if (state == State.Puzzle) Leave(false);
+        else if (state == State.Puzzle) Leave(false, false);
     }
 
     private void GameInput_OnInteractAction(object sender, EventArgs e)
@@ -146,6 +146,40 @@ public class FabricatorController : MonoBehaviour, IInteractable
         SetState(State.Exiting, 0f);
     }
 
+    // developer tools: finishes the run in whatever stage it is, through the same Leave the puzzle's solve uses (output once, no combo)
+    public bool TrySkipRun()
+    {
+        if (state == State.Idle || state == State.Exiting || !HasItemsForBatches()) return false;
+        Leave(true, false);
+        return true;
+    }
+
+    // developer tools: leaves without a reward, like Esc does during the puzzle
+    public bool TryAbortRun()
+    {
+        if (state == State.Choosing)
+        {
+            CancelBatch();
+            return true;
+        }
+        if (state != State.Entering && state != State.Puzzle) return false;
+        Leave(false, false);
+        return true;
+    }
+
+    public bool IsRunActive() => state != State.Idle;
+    public int GetCompletedRuns() => completedRuns;
+
+    // developer tools: a quick load puts back how many runs (and so which recipe press) were done
+    public void RestoreCompletedRuns(int runs) => completedRuns = runs;
+
+    private bool HasItemsForBatches()
+    {
+        foreach (ItemAmount input in GetRecipe().inputArray)
+            if (Inventory.Instance.GetCount(input.itemDataSO) < input.amount * batchCount) return false;
+        return true;
+    }
+
     public int GetBatchCount() => batchCount;
     // as many batches as the inventory covers for every input, capped at maxBatchCount
     public int GetMaxBatchCount()
@@ -175,7 +209,7 @@ public class FabricatorController : MonoBehaviour, IInteractable
 
     private Recipe GetRecipe() => recipeArray[Mathf.Min(completedRuns, recipeArray.Length - 1)];
 
-    private void Leave(bool isSuccess)
+    private void Leave(bool isSuccess, bool isCombo)
     {
         this.isSuccess = isSuccess;
         if (isSuccess)
@@ -184,7 +218,7 @@ public class FabricatorController : MonoBehaviour, IInteractable
             for (int i = 0; i < batchCount; i++) Inventory.Instance.RemoveItems(recipe.inputArray);
             if (recipe.returned.amount > 0) Inventory.Instance.AddItem(recipe.returned.itemDataSO, recipe.returned.amount * batchCount);
             // the combo is one reward per run, however many batches it made
-            Inventory.Instance.AddItem(recipe.output.itemDataSO, recipe.output.amount * batchCount + (miniGame.IsCombo() ? comboBonus : 0));
+            Inventory.Instance.AddItem(recipe.output.itemDataSO, recipe.output.amount * batchCount + (isCombo ? comboBonus : 0));
             completedRuns++;
         }
         miniGame.End();

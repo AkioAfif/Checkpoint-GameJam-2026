@@ -66,6 +66,21 @@ public class DialogueManager : MonoBehaviour
     public int GetVisibleCharacterCount() => Mathf.FloorToInt(revealedCharacters);
     public bool IsLineFullyRevealed() => revealedCharacters >= GetCurrentLine().text.Length;
 
+    // every remaining line still fires OnLineChanged, so listeners see the same sequence; only the typing wait is skipped
+    public void SkipDialogue()
+    {
+        while (IsActive()) NextLine();
+    }
+
+    public HashSet<DialogueSO> GetRewardedSet() => new HashSet<DialogueSO>(rewardGivenSet);
+
+    // developer tools: put back the rewards given so far (a quick load must not re-pay or lose a reward)
+    public void RestoreRewardedSet(HashSet<DialogueSO> rewardedSet)
+    {
+        rewardGivenSet.Clear();
+        rewardGivenSet.UnionWith(rewardedSet);
+    }
+
     private void NextLine()
     {
         lineIndex++;

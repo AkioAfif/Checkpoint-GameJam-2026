@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -27,6 +28,9 @@ public class GameInput : MonoBehaviour
     private InputAction pointAction;
     private bool isUsingGamepad;
     private bool isRebinding;
+    // dev tools menu open: gameplay sees no input at all (the menu's own clicks must not dig, interact or pause)
+    private bool isInputLocked;
+    private readonly Dictionary<KeyCode, Key> keyLookup = new Dictionary<KeyCode, Key>();
 
     private void Awake()
     {
@@ -61,13 +65,24 @@ public class GameInput : MonoBehaviour
         InputSystem.onActionChange -= InputSystem_onActionChange;
     }
 
-    private void Interact_performed(InputAction.CallbackContext context) => OnInteractAction?.Invoke(this, EventArgs.Empty);
-    private void Restart_performed(InputAction.CallbackContext context) => OnRestartAction?.Invoke(this, EventArgs.Empty);
-    private void ToggleTasks_performed(InputAction.CallbackContext context) => OnToggleTasksAction?.Invoke(this, EventArgs.Empty);
+    private void Interact_performed(InputAction.CallbackContext context)
+    {
+        if (!isInputLocked) OnInteractAction?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void Restart_performed(InputAction.CallbackContext context)
+    {
+        if (!isInputLocked) OnRestartAction?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void ToggleTasks_performed(InputAction.CallbackContext context)
+    {
+        if (!isInputLocked) OnToggleTasksAction?.Invoke(this, EventArgs.Empty);
+    }
 
     private void Pause_performed(InputAction.CallbackContext context)
     {
-        if (isRebinding) return; // Esc cancels the rebind, it must not also close the pause menu
+        if (isRebinding || isInputLocked) return; // Esc cancels the rebind, it must not also close the pause menu
         OnPauseAction?.Invoke(this, EventArgs.Empty);
     }
 
@@ -82,11 +97,26 @@ public class GameInput : MonoBehaviour
         OnBindingDisplayChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    public Vector2 GetMovementVectorNormalized() => moveAction.ReadValue<Vector2>().normalized;
-    public bool IsSprintPressed() => sprintAction.IsPressed();
-    public bool IsDigPressed() => digAction.IsPressed();
-    public bool IsInteractPressed() => interactAction.IsPressed();
+    public Vector2 GetMovementVectorNormalized() => isInputLocked ? Vector2.zero : moveAction.ReadValue<Vector2>().normalized;
+    public bool IsSprintPressed() => !isInputLocked && sprintAction.IsPressed();
+    public bool IsDigPressed() => !isInputLocked && digAction.IsPressed();
+    public bool IsInteractPressed() => !isInputLocked && interactAction.IsPressed();
     public Vector2 GetPointerScreenPosition() => pointAction.ReadValue<Vector2>();
+
+    // developer tools only: while locked, every gameplay getter and event above reads as "nothing pressed"
+    public void SetInputLocked(bool isLocked) => isInputLocked = isLocked;
+
+    // developer tools shortcuts. Works while input is locked, so the menu can always be opened and closed.
+    public bool WasKeyPressedThisFrame(KeyCode keyCode)
+    {
+        if (Keyboard.current == null) return false;
+        if (!keyLookup.TryGetValue(keyCode, out Key key))
+        {
+            Enum.TryParse(keyCode.ToString(), out key); // KeyCode.F5 and Key.F5 share names; Key.None when there is no match
+            keyLookup[keyCode] = key;
+        }
+        return key != Key.None && Keyboard.current[key].wasPressedThisFrame;
+    }
 
     public string GetInteractBindingDisplay()
     {

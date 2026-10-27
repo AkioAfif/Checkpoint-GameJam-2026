@@ -84,6 +84,15 @@ public class FarmPlot : MonoBehaviour, IInteractable
     public State GetState() => state;
     public ItemDataSO GetCropItemDataSO() => cropItemDataSO;
     public CropDataSO GetPlantedCropDataSO() => plantedCropDataSO;
+    public CropDataSO GetPlantableCropDataSO() => plantableCropDataSO;
+
+    // developer tools: puts a saved plot back (visuals follow through OnStateChanged)
+    public void RestoreState(State state, CropDataSO plantedCropDataSO, CropDataSO plantableCropDataSO)
+    {
+        this.plantedCropDataSO = plantedCropDataSO;
+        this.plantableCropDataSO = plantableCropDataSO;
+        SetState(state);
+    }
 
     private void SetState(State state)
     {

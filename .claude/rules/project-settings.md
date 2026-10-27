@@ -39,7 +39,7 @@ Last verified: 2026-10-21. If you change a setting below, update this file in th
 
 ## Physics & time
 - Gravity (0, -9.81, 0). Fixed timestep 0.02. `Physics.autoSyncTransforms = false`.
-- Layers: built-ins + **Interactable (8)** (everything the player can target), **Portrait (9)** (dialogue portrait booth, filmed by its own cameras), **Puzzle (10)** (Fabricator diorama). Main Camera and the sun exclude Portrait + Puzzle. Tags: **none custom**. Sorting layers: default only.
+- Layers: built-ins + **Interactable (8)** (everything the player can target), **Portrait (9)** (dialogue portrait booth, filmed by its own cameras), **Puzzle (10)** (Fabricator diorama). Main Camera and the sun exclude Portrait + Puzzle. FixScene's `DistributorTruck` sits on built-in **Ignore Raycast (2)** so the cutscene cameras' Cinemachine Deoccluders (CollideAgainst = Default) don't pull in front of it; it still collides with the player and NPCs. Tags: **none custom**. Sorting layers: default only.
   - Before code uses `LayerMask.NameToLayer("X")`, `CompareTag("X")` or a serialized `LayerMask`, create that layer/tag (Unity MCP `set_tags_layers`) and add it to the list above.
 
 ## Scenes
@@ -110,3 +110,11 @@ Last verified: 2026-10-21. If you change a setting below, update this file in th
   - Ratna, Ijah and Rigel have override congratulation talks all day (Rigel's until he runs home).
 - Builder: **Tools > Day3 > Build Day 3 Scene** (any scene open). It copies `Level01_Day2` to `Level01_Day3`, removes Day 2's `Day2` director root (keeps `Day2_Graybox` and the HUD's savings book/money popup) and `Npc_Darto`, adds `Day3_World` (`NewStrip`: hidden `LandPlots` + `GhostPlots` (`Hologram` material); `Crater` quad) and `Day3` (director, `LandSequence`/`LandQTE` and visuals, `FlashbackVolume` with `Art/Day3_FlashbackProfile.asset`, the Distributor copy, cameras `CM_Day3EmptyLand`/`FlashbackTwo`/`FlashbackDistributor`/`Rigel`/`SmashFront`/`Forest`, points), the `EyeBlinkUI`/`LandQTEUI` panels under the HUD canvas (screen fade kept last), adds the scene to the build list, and sets `BedroomDirector.day3SO` in HouseInterior. Re-run it after rebuilding Day 2. Data: `Day3DataBuilder` (Day3SO, tasks `D3_*`). Prefabs: `Day2PrefabBuilder.RipePalmLv2`. Textures `GrayboxTextures.Crater` / `Glint`.
 - Testing: play `Level01_Day3` on its own (it opens the accounts with `Day3SO.testStartingDebt`), or tick `BedroomDirector.isTestingDay3` in HouseInterior.
+
+## Developer playtesting tools (added 2026-10-27)
+- Code in `Assets/_Project/Scripts/DevTools/`, every file wrapped in `#if DEVELOPER_TOOLS || UNITY_EDITOR`. Editor play always has the tools; a non-Editor build has them only when `DEVELOPER_TOOLS` is in Player Settings > Scripting Define Symbols. Remove the symbol for release builds.
+- `DevToolsBootstrap` adds a `DevTools` object to every scene at load (`RuntimeInitializeOnLoadMethod AfterSceneLoad`). Scenes without GameInput, GameManager, Player, Inventory and TaskManager (e.g. LoadingScene, HouseInterior) drop it.
+- Shortcuts: F1 menu, F5 quick save, F9 quick load, F6 skip cutscene/dialogue, F7 fast-forward (1x/2x/4x/8x), F8 skip Fabricator. Keys and speeds are fields on `DevToolsSettingsSO`; optional asset at `Assets/_Project/Resources/DevTools/DevToolsSettings.asset` (defaults in code without it).
+- Input: `GameInput.SetInputLocked` (menu open) and `GameInput.WasKeyPressedThisFrame(KeyCode)`. Only GameInput touches the Input System.
+- Quick save lives in memory on the `DevTools` object, so it is gone when the scene unloads. Restores the data layer only; Day director story beats and cutscene phases are not rolled back.
+- Speed: `DevCinematicControl.ApplyTimeScale` sets `Time.timeScale` in LateUpdate only in Cutscene, Dialogue and EnteringHouse states, not paused.
