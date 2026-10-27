@@ -22,10 +22,14 @@ public class Day1CameraVisual : MonoBehaviour
     [SerializeField] private float meetingHeight = 2.8f;
     [Tooltip("Once they stand further apart than meetingDistance, the camera keeps this much more distance than the gap between them.")]
     [SerializeField] private float meetingPadding = 3f;
+    [Tooltip("The side the meeting shot opens from (flattened). Put it on the gameplay camera's side so the hand-back to it is a short blend, not a swing round the player.")]
+    [SerializeField] private Vector3 meetingOpeningSide = new Vector3(1f, 0f, -1f);
     [Tooltip("The meeting camera's target group (player + Distributor). Without a delivery camera, the player's weight eases to 0 while the Distributor fetches and sets down the Fabricator, so the shot focuses on him.")]
     [SerializeField] private CinemachineTargetGroup meetingGroup;
     [Tooltip("Weight per second the player's share of the meeting focus changes by.")]
     [SerializeField] private float meetingFocusSpeed = 1.5f;
+    [Tooltip("Seconds the meeting camera takes to ease into a new side or distance, so it never snaps or pumps.")]
+    [SerializeField] private float meetingOffsetSmoothTime = .8f;
     [Tooltip("Optional: left empty, the meeting camera keeps filming while he fetches, carries and sets down the Fabricator.")]
     [SerializeField] private CinemachineCamera deliveryCamera;
     [SerializeField] private CinemachineCamera eveningCamera;
@@ -38,6 +42,8 @@ public class Day1CameraVisual : MonoBehaviour
     private Vector3 panVelocity;
     // which side of the player–Distributor line the meeting camera films from; zero until the shot starts
     private Vector3 meetingSide;
+    private Vector3 meetingOffset;
+    private Vector3 meetingOffsetVelocity;
 
     private void Start()
     {
@@ -69,18 +75,32 @@ public class Day1CameraVisual : MonoBehaviour
             return;
         }
 
-        Vector3 pair = distributor.position - Player.Instance.transform.position;
-        pair.y = 0f;
-        if (pair.sqrMagnitude < .01f) return;
-        Vector3 side = Vector3.Cross(Vector3.up, pair).normalized;
-        // the shot opens from the south-east (away from the house and from the truck parked to the west), then stays on
-        // that side as he walks round the player: switching sides would jump-cut across the line
-        Vector3 keepSide = meetingSide == Vector3.zero ? new Vector3(1f, 0f, -1f) : meetingSide;
-        if (Vector3.Dot(side, keepSide) < 0f) side = -side;
-        meetingSide = side;
-        // back off as they move apart (he carries the Fabricator away from the player) so both stay in frame
-        float distance = Mathf.Max(meetingDistance, pair.magnitude + meetingPadding);
-        meetingFollow.FollowOffset = side * distance + Vector3.up * meetingHeight;
+        bool isShotStarting = meetingSide == Vector3.zero;
+        // while he fetches and carries the Fabricator the shot is already on him alone (the player's weight is 0):
+        // hold the framing and just follow him, instead of re-aiming and pulling back as he walks away from the player
+        bool isFollowingDelivery = deliveryCamera == null && director.IsDelivering() && !isShotStarting;
+        if (!isFollowingDelivery)
+        {
+            Vector3 pair = distributor.position - Player.Instance.transform.position;
+            pair.y = 0f;
+            if (pair.sqrMagnitude < .01f) return;
+            Vector3 side = Vector3.Cross(Vector3.up, pair).normalized;
+            // the shot opens from meetingOpeningSide (Level01: the south-east, away from the house and the parked truck), then
+            // stays on that side as he walks round the player: switching sides would jump-cut across the line
+            Vector3 keepSide = isShotStarting ? meetingOpeningSide : meetingSide;
+            if (Vector3.Dot(side, keepSide) < 0f) side = -side;
+            meetingSide = side;
+            // back off as they move apart so both stay in frame
+            float distance = Mathf.Max(meetingDistance, pair.magnitude + meetingPadding);
+            meetingOffset = side * distance + Vector3.up * meetingHeight;
+        }
+        if (isShotStarting)
+        {
+            meetingFollow.FollowOffset = meetingOffset;
+            meetingOffsetVelocity = Vector3.zero;
+            return;
+        }
+        meetingFollow.FollowOffset = Vector3.SmoothDamp(meetingFollow.FollowOffset, meetingOffset, ref meetingOffsetVelocity, meetingOffsetSmoothTime);
     }
 
     private void Director_OnStateChanged(object sender, Day1Director.OnStateChangedEventArgs e) => Apply();

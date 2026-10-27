@@ -43,6 +43,11 @@ public class Day1Director : MonoBehaviour
     [SerializeField] private Transform eveningStopPoint;
     [SerializeField] private Transform farmInspectPoint;
     [SerializeField] private float strollDistance = 3f;
+    [Tooltip("Optional: when set, the truck comes once the player walks within arrivalTriggerRadius of this point (the garden) instead of strollDistance from the yard.")]
+    [SerializeField] private Transform arrivalTriggerPoint;
+    [SerializeField] private float arrivalTriggerRadius = 6f;
+    [Tooltip("Optional: the opening task list (\"Check your garden\"), ticked off when the player reaches the arrival trigger. Empty: the ticked-off letter task shows instead.")]
+    [SerializeField] private TaskObjectiveSO[] strollObjectiveArray;
     [SerializeField] private float startleDuration = .7f;
     [SerializeField] private float flipDuration = .9f;
     [Tooltip("The Distributor lands this far from wherever the player stopped, so every intro is framed the same.")]
@@ -94,9 +99,16 @@ public class Day1Director : MonoBehaviour
         houseDoor.SetLocked(true);
         // no "Finish today's tasks first" over the player's head during the opening
         houseDoor.SetHidden(true);
-        // the letter was read in the bedroom (HouseInterior): show it ticked off until the tutorial list replaces it
-        TaskManager.Instance.SetObjectives(day1SO.letterObjectiveArray);
-        TaskManager.Instance.CompleteStory();
+        if (strollObjectiveArray.Length > 0)
+        {
+            TaskManager.Instance.SetObjectives(strollObjectiveArray);
+        }
+        else
+        {
+            // the letter was read in the bedroom (HouseInterior): show it ticked off until the tutorial list replaces it
+            TaskManager.Instance.SetObjectives(day1SO.letterObjectiveArray);
+            TaskManager.Instance.CompleteStory();
+        }
         // just stepped out of the front door, facing the camera
         Player.Instance.Teleport(yardPoint.position);
         Player.Instance.FaceTowards(yardPoint.position + yardPoint.forward);
@@ -105,8 +117,8 @@ public class Day1Director : MonoBehaviour
 
     private void Update()
     {
-        // a few free steps out of the door, then the truck comes roaring in
-        if (state == State.Stroll && GameManager.Instance.IsGamePlaying() && Vector3.Distance(Player.Instance.transform.position, yardPoint.position) >= strollDistance)
+        // a few free steps out of the door (or, with a trigger point, a walk over to the garden), then the truck comes roaring in
+        if (state == State.Stroll && GameManager.Instance.IsGamePlaying() && HasStrolled())
             BeginArrival();
 
         // the leaving truck is about to run Sari over
@@ -168,8 +180,17 @@ public class Day1Director : MonoBehaviour
     // ---------- Arrival ----------
 
     // the player hears the truck coming in from the west and jumps
+    private bool HasStrolled()
+    {
+        Vector3 playerPosition = Player.Instance.transform.position;
+        if (arrivalTriggerPoint != null) return Vector3.Distance(playerPosition, arrivalTriggerPoint.position) <= arrivalTriggerRadius;
+        return Vector3.Distance(playerPosition, yardPoint.position) >= strollDistance;
+    }
+
     private void BeginArrival()
     {
+        // reached the garden: "Check your garden" is done
+        if (strollObjectiveArray.Length > 0) TaskManager.Instance.CompleteStory();
         GameManager.Instance.SetState(GameManager.State.Cutscene);
         Player.Instance.FaceTowards(Player.Instance.transform.position + Vector3.left);
         playerActor.PlayEmote(Emote.Surprised);
@@ -190,7 +211,7 @@ public class Day1Director : MonoBehaviour
             if (toDoor.sqrMagnitude < .01f) toDoor = Vector3.left;
             distributorNpc.transform.position = door;
             distributorNpc.gameObject.SetActive(true);
-            distributorActor.PlayEmote(Emote.GoofyFlip);
+            // distributorActor.PlayEmote(Emote.GoofyFlip);
             distributorActor.MoveTo(playerPosition + toDoor.normalized * talkDistance, flipDuration, 1.4f);
             step = Step.Flipping;
         }
