@@ -25,6 +25,7 @@ public static class HouseInteriorBuilder
         Bed();
         BedsideTable();
         Letter();
+        BedroomModelBuilder.Apply();
 
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         // NewScene unloads assets nobody references yet, so everything the scene points at is loaded after it
