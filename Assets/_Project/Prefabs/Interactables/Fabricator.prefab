@@ -147,12 +147,13 @@ MonoBehaviour:
       amount: 3
     output:
       itemDataSO: {fileID: 11400000, guid: 446006ae6efa8784fb8dd8ba712f28e5, type: 2}
-      amount: 2
+      amount: 3
     returned:
       itemDataSO: {fileID: 0}
       amount: 0
     puzzleSO: {fileID: 11400000, guid: 71a5e22a549a25f41b4719a15d6ca6c9, type: 2}
     blockedReason: Bring 3 plants from your field
+    isGuided: 1
   - inputArray:
     - itemDataSO: {fileID: 11400000, guid: c9881a738027758478493db9f4126671, type: 2}
       amount: 1
@@ -168,6 +169,7 @@ MonoBehaviour:
       amount: 1
     puzzleSO: {fileID: 11400000, guid: 7d764cda17ee75f40abe60dd3e84e3c4, type: 2}
     blockedReason: Needs water, a flower and a plant
+    isGuided: 0
   - inputArray:
     - itemDataSO: {fileID: 11400000, guid: c9881a738027758478493db9f4126671, type: 2}
       amount: 1
@@ -183,6 +185,7 @@ MonoBehaviour:
       amount: 1
     puzzleSO: {fileID: 11400000, guid: f174979f7d8d1764593ca8fc4e1cee8e, type: 2}
     blockedReason: Needs water, a flower and a plant
+    isGuided: 0
   - inputArray:
     - itemDataSO: {fileID: 11400000, guid: c9881a738027758478493db9f4126671, type: 2}
       amount: 1
@@ -198,10 +201,12 @@ MonoBehaviour:
       amount: 1
     puzzleSO: {fileID: 11400000, guid: 8eff97ac6202b914da760df93792c68b, type: 2}
     blockedReason: Needs water, a flower and a plant
+    isGuided: 0
   enterDuration: 0.9
   solvedDuration: 1.6
   exitDuration: 0.5
   comboBonus: 1
+  maxBatchCount: 9
   promptVerb: use the Fabricator
   promptAnchor: {fileID: 5168368708044366335}
 --- !u!114 &3811333319848291171

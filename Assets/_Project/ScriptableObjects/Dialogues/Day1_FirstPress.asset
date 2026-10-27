@@ -17,18 +17,26 @@ MonoBehaviour:
     text: Look at that! First try. You have a gift for this, partner.
     playerEmote: 0
     npcEmote: 6
+    isShaking: 0
+    isNpcGlaring: 0
   - speaker: 0
     text: That was easy.
     playerEmote: 4
     npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
   - speaker: 1
-    text: The best things usually are. Plant two seeds, and tomorrow you'll see what I mean.
+    text: The best things usually are. Plant them, and tomorrow you'll see what I mean.
     playerEmote: 0
     npcEmote: 1
+    isShaking: 0
+    isNpcGlaring: 0
   - speaker: 1
     text: Now, try gathering some water, plants, and flowers from around the village. Let's try making 3 more for today.
     playerEmote: 0
     npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

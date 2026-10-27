@@ -129,15 +129,15 @@ public static class InteractablePrefabBuilder
         SetField(fabricatorVisual, "bobTransform", swirl.transform);
         AddOutline(root, v, GrayboxPalette.Outline, .03f);
 
-        // press 1 (tutorial): 3 plants make 2 seeds. Presses 2+: water + flower + plant make 1 seed and hand the bottle back;
-        // each of presses 2-4 has its own puzzle, the last one repeats.
+        // press 1 (guided tutorial, no recipe panel): 3 plants make 3 seeds. Presses 2+: water + flower + plant make 1 seed and hand
+        // the bottle back; each of presses 2-4 has its own puzzle, the last one repeats.
         SerializedObject so = new SerializedObject(controller);
         SerializedProperty recipes = so.FindProperty("recipeArray");
         recipes.arraySize = 4;
-        SetRecipe(recipes.GetArrayElementAtIndex(0), new[] { (GameDataBuilder.Crop, 3) }, 2, null, GameDataBuilder.PuzzleIntro, "Bring 3 plants from your field");
-        SetRecipe(recipes.GetArrayElementAtIndex(1), new[] { (GameDataBuilder.Water, 1), (GameDataBuilder.Flower, 1), (GameDataBuilder.Crop, 1) }, 1, GameDataBuilder.EmptyBottle, GameDataBuilder.PuzzleTutorial, "Needs water, a flower and a plant");
-        SetRecipe(recipes.GetArrayElementAtIndex(2), new[] { (GameDataBuilder.Water, 1), (GameDataBuilder.Flower, 1), (GameDataBuilder.Crop, 1) }, 1, GameDataBuilder.EmptyBottle, GameDataBuilder.PuzzleNormal, "Needs water, a flower and a plant");
-        SetRecipe(recipes.GetArrayElementAtIndex(3), new[] { (GameDataBuilder.Water, 1), (GameDataBuilder.Flower, 1), (GameDataBuilder.Crop, 1) }, 1, GameDataBuilder.EmptyBottle, GameDataBuilder.PuzzleSplit, "Needs water, a flower and a plant");
+        SetRecipe(recipes.GetArrayElementAtIndex(0), new[] { (GameDataBuilder.Crop, 3) }, 3, null, GameDataBuilder.PuzzleIntro, "Bring 3 plants from your field", true);
+        SetRecipe(recipes.GetArrayElementAtIndex(1), new[] { (GameDataBuilder.Water, 1), (GameDataBuilder.Flower, 1), (GameDataBuilder.Crop, 1) }, 1, GameDataBuilder.EmptyBottle, GameDataBuilder.PuzzleTutorial, "Needs water, a flower and a plant", false);
+        SetRecipe(recipes.GetArrayElementAtIndex(2), new[] { (GameDataBuilder.Water, 1), (GameDataBuilder.Flower, 1), (GameDataBuilder.Crop, 1) }, 1, GameDataBuilder.EmptyBottle, GameDataBuilder.PuzzleNormal, "Needs water, a flower and a plant", false);
+        SetRecipe(recipes.GetArrayElementAtIndex(3), new[] { (GameDataBuilder.Water, 1), (GameDataBuilder.Flower, 1), (GameDataBuilder.Crop, 1) }, 1, GameDataBuilder.EmptyBottle, GameDataBuilder.PuzzleSplit, "Needs water, a flower and a plant", false);
         so.ApplyModifiedPropertiesWithoutUndo();
         SetField(controller, "promptAnchor", Anchor(root, "PromptAnchor", new Vector3(0f, 1.9f, 0f)));
         SetLayerRecursively(root, InteractableLayer);
@@ -157,8 +157,9 @@ public static class InteractablePrefabBuilder
         return GrayboxPalette.DarkGray;
     }
 
-    private static void SetRecipe(SerializedProperty recipe, (ItemDataSO item, int amount)[] inputs, int seedCount, ItemDataSO returned, FabricatorPuzzleSO puzzle, string blockedReason)
+    private static void SetRecipe(SerializedProperty recipe, (ItemDataSO item, int amount)[] inputs, int seedCount, ItemDataSO returned, FabricatorPuzzleSO puzzle, string blockedReason, bool isGuided)
     {
+        recipe.FindPropertyRelative("isGuided").boolValue = isGuided;
         SerializedProperty inputArray = recipe.FindPropertyRelative("inputArray");
         inputArray.arraySize = inputs.Length;
         for (int i = 0; i < inputs.Length; i++)

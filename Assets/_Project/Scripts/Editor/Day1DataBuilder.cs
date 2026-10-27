@@ -53,7 +53,7 @@ public static class Day1DataBuilder
         Day1.pressedDialogueSO = Dialogue("Day1_FirstPress",
             N("Look at that! First try. You have a gift for this, partner.", Emote.Cheer),
             P("That was easy.", Emote.Surprised),
-            N("The best things usually are. Plant two seeds, and tomorrow you'll see what I mean.", Emote.Nod),
+            N("The best things usually are. Plant them, and tomorrow you'll see what I mean.", Emote.Nod),
             N("Now, try gathering some water, plants, and flowers from around the village. Let's try making 3 more for today."));
 
         Day1.eveningWhatDialogueSO = Dialogue("Day1_EveningWhat", P("What?!", Emote.Surprised));
@@ -76,7 +76,8 @@ public static class Day1DataBuilder
         TaskObjectiveSO read = GameDataBuilder.Task("D1_ReadLetter", TaskObjectiveSO.Type.Story, "Read the letter on the bedside table", null, 1);
         TaskObjectiveSO collectCrops = GameDataBuilder.Task("D1_Collect3Plants", TaskObjectiveSO.Type.CollectItem, "Collect 3 plants from your field", crop, 3);
         TaskObjectiveSO fabricate = GameDataBuilder.Task("D1_FirstPress", TaskObjectiveSO.Type.FabricateSeed, "Make sawit seeds in the Fabricator", null, 1);
-        TaskObjectiveSO plant = GameDataBuilder.Task("D1_Plant2", TaskObjectiveSO.Type.PlantCrop, "Plant 2 sawit seeds", null, 2);
+        // the first press (3) plus the 3 more make exactly the 6 seeds this asks for
+        TaskObjectiveSO plant = GameDataBuilder.Task("D1_Plant6", TaskObjectiveSO.Type.PlantCrop, "Plant 6 sawit seeds", null, 6);
         TaskObjectiveSO gatherWater = GameDataBuilder.Task("D1_Gather3Water", TaskObjectiveSO.Type.CollectItem, "Gather 3 water", water, 3);
         TaskObjectiveSO gatherFlowers = GameDataBuilder.Task("D1_Gather3Flowers", TaskObjectiveSO.Type.CollectItem, "Gather 3 flowers", flower, 3);
         TaskObjectiveSO gatherPlants = GameDataBuilder.Task("D1_Gather3MorePlants", TaskObjectiveSO.Type.CollectItem, "Gather 3 more plants", crop, 3);
@@ -85,8 +86,8 @@ public static class Day1DataBuilder
         TaskObjectiveSO sari = GameDataBuilder.Task("D1_SaySari", TaskObjectiveSO.Type.Story, "Check on Sari on the bridge", null, 1);
         TaskObjectiveSO home = GameDataBuilder.Task("D1_GoHome", TaskObjectiveSO.Type.EnterHouse, "Go home", null, 1);
         Day1.letterObjectiveArray = new[] { read };
-        Day1.tutorialObjectiveArray = new[] { collectCrops, fabricate, plant };
-        Day1.gatherObjectiveArray = new[] { plant, gatherWater, gatherFlowers, gatherPlants, fabricateMore };
+        Day1.tutorialObjectiveArray = new[] { collectCrops, fabricate };
+        Day1.gatherObjectiveArray = new[] { gatherWater, gatherFlowers, gatherPlants, fabricateMore, plant };
         Day1.talkObjectiveArray = new[] { talk };
         Day1.sariObjectiveArray = new[] { sari };
         Day1.nightObjectiveArray = new[] { home };

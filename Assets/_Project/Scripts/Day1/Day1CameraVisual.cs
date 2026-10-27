@@ -59,8 +59,19 @@ public class Day1CameraVisual : MonoBehaviour
         truckCameraTarget.position = new Vector3(Mathf.Max(truckPosition.x, minX), 0f, truckPosition.z);
         if (deliveryCamera != null) deliveryCamera.enabled = director.IsDelivering();
         eveningCamera.enabled = director.IsEveningCutscene();
-        Vector3 shot = director.IsFarmShot() ? farmShotPoint.position : houseShotPoint.position;
-        eveningCameraTarget.position = Vector3.SmoothDamp(eveningCameraTarget.position, shot, ref panVelocity, panSmoothTime);
+        if (director.IsEveningFollowShot())
+        {
+            // the gameplay camera films the night walk and the "What?!"; the evening shot waits on the player (same offset), so
+            // it takes over without a jump and then pans to the garden
+            eveningCameraTarget.position = Player.Instance.transform.position;
+            panVelocity = Vector3.zero;
+        }
+        else
+        {
+            Vector3 farmShot = director.TryGetGardenFocus(out Vector3 gardenFocus) ? gardenFocus : farmShotPoint.position;
+            Vector3 shot = director.IsFarmShot() ? farmShot : houseShotPoint.position;
+            eveningCameraTarget.position = Vector3.SmoothDamp(eveningCameraTarget.position, shot, ref panVelocity, panSmoothTime);
+        }
 
         if (meetingGroup != null)
         {
