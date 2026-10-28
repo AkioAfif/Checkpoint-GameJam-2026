@@ -19,18 +19,21 @@ MonoBehaviour:
     npcEmote: 0
     isShaking: 0
     isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
   - speaker: 0
     text: Two weeks of harvests barely moved the debt. Sixteen more days won't do it either.
     playerEmote: 0
     npcEmote: 0
     isShaking: 0
     isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
   - speaker: 0
     text: The field is still too small.
     playerEmote: 10
     npcEmote: 0
     isShaking: 0
     isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

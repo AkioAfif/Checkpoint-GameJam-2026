@@ -22,13 +22,14 @@ MonoBehaviour:
   tryEatDialogueSO: {fileID: 11400000, guid: 98a74d4c01f9f504487d8ff46e0cc876, type: 2}
   noBunchDialogueSO: {fileID: 11400000, guid: 023f235343e77d245a9d4ef0cc5ceb1a, type: 2}
   rigelShoutDialogueSO: {fileID: 11400000, guid: c88b3ee8a10ac544ba09adfe321e83c2, type: 2}
-  buffDialogueSO: {fileID: 11400000, guid: af21fbc927a43dd4cb58f52fdf4a08bd, type: 2}
-  rigelPretendDialogueSO: {fileID: 11400000, guid: afc978386c00df041a781203504b26bf, type: 2}
+  buffDialogueSO: {fileID: 11400000, guid: 5a51bd38db47fbb4aaf518da0491b586, type: 2}
   treesIdeaDialogueSO: {fileID: 11400000, guid: 4c7b12c2b247cf44a82c86b06495c6f1, type: 2}
   firstTreeDialogueSO: {fileID: 11400000, guid: 007c5ae224bca4a438d75e58d9dd4e96, type: 2}
   treesClearedDialogueSO: {fileID: 11400000, guid: c615f49514f630f4a8f717d9cfb2d1ee, type: 2}
   bridgeIdeaDialogueSO: {fileID: 11400000, guid: 24f9e03886d88ba44936c2c9470e70ee, type: 2}
   bridgeDoneDialogueSO: {fileID: 11400000, guid: 51f8804cfb415084a82cd7b05bf25b9b, type: 2}
+  rigelBridgeDialogueSO: {fileID: 11400000, guid: 193c413e666497e468f246dffc891fd4, type: 2}
+  rigelBridgeAfterDialogueSO: {fileID: 11400000, guid: 7e5817f2e5fe8ce4aa1293a97f65bb29, type: 2}
   ratnaDialogueSO: {fileID: 11400000, guid: 4095af28314aa4340a35cede109848c1, type: 2}
   ijahDialogueSO: {fileID: 11400000, guid: 90ae6ac4f78deff4aa4fa51aff0ae0d8, type: 2}
   rigelDialogueSO: {fileID: 11400000, guid: 5569c480d615cac47a0c4788bc380313, type: 2}
@@ -45,6 +46,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3025a2de2e83f4f4b803f719efffe2ad, type: 2}
   bridgeObjectiveArray:
   - {fileID: 11400000, guid: a6a79d4dda66ff14a8adca403d111739, type: 2}
+  crossBridgeObjectiveArray:
+  - {fileID: 11400000, guid: d8f7ae4e3ba3063429b5d9425782cdea, type: 2}
   plantObjectiveArray:
   - {fileID: 11400000, guid: f765a24f12d9968489174bb2fa7a4f23, type: 2}
   - {fileID: 11400000, guid: 8edcbf1090b9f0542b1cab12f8241a07, type: 2}

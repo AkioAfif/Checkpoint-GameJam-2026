@@ -72,7 +72,6 @@ public static class Day3GrayboxBuilder
         Transform landCentre = Day2GrayboxBuilder.Point(points, "LandCentre", StripCentre, 0f);
         Transform smashPoint = Day2GrayboxBuilder.Point(points, "SmashPoint", SmashPosition, 180f);
         Transform rigelHousePoint = Day2GrayboxBuilder.Point(points, "RigelHousePoint", RigelHouseDoorPosition, 180f);
-        Transform rigelWatchPoint = Day2GrayboxBuilder.Point(points, "RigelWatchPoint", SmashPosition + new Vector3(-4.6f, 0f, -.3f), 90f);
         // the flashback: the two of them beside the Fabricator, the day it arrived
         FabricatorController fabricator = Object.FindAnyObjectByType<FabricatorController>(FindObjectsInactive.Include);
         Vector3 distributorPosition = fabricator.transform.position + new Vector3(1.6f, 0f, -1.6f);
@@ -87,7 +86,7 @@ public static class Day3GrayboxBuilder
         // from the field, over the new strip into the dark pines
         CinemachineCamera forestCamera = FixedCamera(director, "CM_Day3Forest", new Vector3(20.5f, 5f, 5.5f), new Vector3(23.5f, 1.8f, 18f), 45f);
 
-        LandSequence landSequence = BuildLandSequence(director, Day3DataBuilder.Day3, plotsRoot, rigel, landCentre, smashPoint, rigelHousePoint, rigelWatchPoint,
+        LandSequence landSequence = BuildLandSequence(director, Day3DataBuilder.Day3, plotsRoot, rigel, landCentre, smashPoint, rigelHousePoint,
             flashbackPlayerPoint, flashbackDistributorPoint, out Npc distributor);
         SetField(day3, "landSequence", landSequence);
         BuildLandVisuals(director, landSequence, plotsRoot, ghostPlots, crater, smashPoint, distributor);
@@ -221,7 +220,7 @@ public static class Day3GrayboxBuilder
     // ---------- the new land ----------
 
     public static LandSequence BuildLandSequence(Transform director, Day3SO day3SO, GameObject plotsRoot, Npc rigel, Transform landCentre, Transform smashPoint,
-        Transform rigelHousePoint, Transform rigelWatchPoint, Transform flashbackPlayerPoint, Transform flashbackDistributorPoint, out Npc distributor)
+        Transform rigelHousePoint, Transform flashbackPlayerPoint, Transform flashbackDistributorPoint, out Npc distributor)
     {
         Player player = Object.FindAnyObjectByType<Player>(FindObjectsInactive.Include);
         PlayerVisual playerVisual = player.GetComponentInChildren<PlayerVisual>(true);
@@ -258,7 +257,6 @@ public static class Day3GrayboxBuilder
         SetField(landSequence, "flashbackDistributorPoint", flashbackDistributorPoint);
         SetField(landSequence, "smashPoint", smashPoint);
         SetField(landSequence, "rigelHousePoint", rigelHousePoint);
-        SetField(landSequence, "rigelWatchPoint", rigelWatchPoint);
         return landSequence;
     }
 
