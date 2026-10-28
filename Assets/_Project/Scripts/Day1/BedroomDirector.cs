@@ -95,7 +95,7 @@ public class BedroomDirector : MonoBehaviour
     {
         // the same fade shows the time-skip caption first thing in the morning
         if (isSkipCaptionPlaying) return;
-        Loader.Load(day == 3 ? Loader.Scene.Level01_Day3 : day == 2 ? Loader.Scene.Level01_Day2 : Loader.Scene.Level01_VillagePrototype);
+        Loader.Load(day == 3 ? Loader.Scene.Level01_Day3 : day == 2 ? Loader.Scene.FixScene_Day2 : Loader.Scene.FixScene);
     }
 
     private void ScreenFade_OnFinished(object sender, EventArgs e)
