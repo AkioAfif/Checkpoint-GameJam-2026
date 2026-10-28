@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbe653a2e780ab0439615d45a72b01cb, type: 3}
+  m_Name: BorderStyle_RockyEdge
+  m_EditorClassIdentifier: Assembly-CSharp::BorderStyleSO
+  placement: 0
+  pieceArray:
+  - prefab: {fileID: 8437802485618699668, guid: ebfeb901568888f4fa67197f2a2d0890, type: 3}
+    weight: 2
+    scaleRange: {x: 1.3, y: 2}
+    radius: 1.6
+  - prefab: {fileID: 8135460472353920720, guid: 084e3be8533a6ed4988452805a109856, type: 3}
+    weight: 2
+    scaleRange: {x: 1.2, y: 1.9}
+    radius: 1.4
+  - prefab: {fileID: 5696425869818304427, guid: de43d3d7aa102114eb2504138cc9fe78, type: 3}
+    weight: 1
+    scaleRange: {x: 0.8, y: 1.5}
+    radius: 0.9
+  - prefab: {fileID: 4826002618174268522, guid: e1a8d12a953c59a4a84def7a9a0046f9, type: 3}
+    weight: 1
+    scaleRange: {x: 0.8, y: 1.5}
+    radius: 0.9
+  - prefab: {fileID: -4256819269048665544, guid: b59147f36688f5644962594f1818087c, type: 3}
+    weight: 0.6
+    scaleRange: {x: 0.9, y: 1.2}
+    radius: 0.7
+  spacing: 3.6
+  jitter: 0.3
+  emptyChance: 0.05
+  sinkDepth: 0.45
+  maxTilt: 8
+  alignToStrip: 1
+  yawJitter: 25
+  stretchToFit: 0
+  pieceLength: 2.4
+  endCapPrefab: {fileID: 0}
+  allowInWater: 0

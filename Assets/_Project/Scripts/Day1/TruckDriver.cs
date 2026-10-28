@@ -288,6 +288,12 @@ public class TruckDriver : MonoBehaviour
                 foreach (Collider npcCollider in npc.GetComponentsInChildren<Collider>(true))
                     Physics.IgnoreCollision(truckCollider, npcCollider, isIgnored);
         }
+
+        // the truck enters from past the map's west edge, so the world border must let it through
+        foreach (WorldBorder worldBorder in FindObjectsByType<WorldBorder>(FindObjectsInactive.Include))
+            foreach (Collider borderCollider in worldBorder.GetColliderArray())
+                foreach (Collider truckCollider in GetComponentsInChildren<Collider>())
+                    Physics.IgnoreCollision(truckCollider, borderCollider, isIgnored);
     }
 
     private void Arrive()

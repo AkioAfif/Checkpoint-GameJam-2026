@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbe653a2e780ab0439615d45a72b01cb, type: 3}
+  m_Name: BorderStyle_BackgroundForest
+  m_EditorClassIdentifier: Assembly-CSharp::BorderStyleSO
+  placement: 0
+  pieceArray:
+  - prefab: {fileID: 7814997827280149208, guid: 67994be306b643e418661095abaa1219, type: 3}
+    weight: 4
+    scaleRange: {x: 1.15, y: 1.55}
+    radius: 1
+  - prefab: {fileID: -9161279980338325058, guid: 701586f21ebb0374db4f9db27e961641, type: 3}
+    weight: 1
+    scaleRange: {x: 1.05, y: 1.35}
+    radius: 0.8
+  - prefab: {fileID: -5841913854848883157, guid: 4272a0396c5d8b248a9b28dc97343b97, type: 3}
+    weight: 0.8
+    scaleRange: {x: 1.1, y: 1.4}
+    radius: 1
+  spacing: 8.5
+  jitter: 0.45
+  emptyChance: 0.05
+  sinkDepth: 0.2
+  maxTilt: 0
+  alignToStrip: 0
+  yawJitter: 0
+  stretchToFit: 0
+  pieceLength: 2.4
+  endCapPrefab: {fileID: 0}
+  allowInWater: 0

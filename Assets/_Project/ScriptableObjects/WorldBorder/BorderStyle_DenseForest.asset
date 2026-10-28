@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbe653a2e780ab0439615d45a72b01cb, type: 3}
+  m_Name: BorderStyle_DenseForest
+  m_EditorClassIdentifier: Assembly-CSharp::BorderStyleSO
+  placement: 0
+  pieceArray:
+  - prefab: {fileID: 7814997827280149208, guid: 67994be306b643e418661095abaa1219, type: 3}
+    weight: 4
+    scaleRange: {x: 0.9, y: 1.25}
+    radius: 0.8
+  - prefab: {fileID: -5841913854848883157, guid: 4272a0396c5d8b248a9b28dc97343b97, type: 3}
+    weight: 1.4
+    scaleRange: {x: 0.85, y: 1.15}
+    radius: 0.9
+  - prefab: {fileID: -9161279980338325058, guid: 701586f21ebb0374db4f9db27e961641, type: 3}
+    weight: 1.2
+    scaleRange: {x: 0.85, y: 1.1}
+    radius: 0.7
+  - prefab: {fileID: -8770436645742267721, guid: d5b60ac762a52594d863bd76df6d0e36, type: 3}
+    weight: 1
+    scaleRange: {x: 0.9, y: 1.3}
+    radius: 1
+  - prefab: {fileID: -4256819269048665544, guid: b59147f36688f5644962594f1818087c, type: 3}
+    weight: 0.8
+    scaleRange: {x: 0.9, y: 1.2}
+    radius: 0.7
+  - prefab: {fileID: 5696425869818304427, guid: de43d3d7aa102114eb2504138cc9fe78, type: 3}
+    weight: 0.6
+    scaleRange: {x: 0.6, y: 1.2}
+    radius: 0.8
+  spacing: 3.4
+  jitter: 0.42
+  emptyChance: 0.06
+  sinkDepth: 0.15
+  maxTilt: 0
+  alignToStrip: 0
+  yawJitter: 0
+  stretchToFit: 0
+  pieceLength: 2.4
+  endCapPrefab: {fileID: 0}
+  allowInWater: 0

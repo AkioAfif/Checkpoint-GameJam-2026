@@ -1,0 +1,158 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e828af367c56cf49a308a64837e54c4, type: 3}
+  m_Name: FixScene_WorldBorderLayout
+  m_EditorClassIdentifier: Assembly-CSharp::WorldBorderLayoutSO
+  groundObjectName: Terrain
+  groundMaterial: {fileID: -5528438864433532372, guid: fa8e9dbe5469505469e489676e525d5b, type: 3}
+  skirtWidth: 70
+  skirtCellSize: 2.5
+  farGrassColor: {r: 0.48452914, g: 0.66518503, b: 0.33183, a: 1}
+  hillColor: {r: 0.3958812, g: 0.6097116, b: 0.293372, a: 1}
+  bankColor: {r: 0.7, g: 0.62, b: 0.45, a: 1}
+  hillHeight: 7
+  hillStartDistance: 16
+  roadMaterial: {fileID: -8954150522969177760, guid: fa8e9dbe5469505469e489676e525d5b, type: 3}
+  roadEdgeMaterial: {fileID: -339934453321504122, guid: fa8e9dbe5469505469e489676e525d5b, type: 3}
+  riverObjectName: River_Water
+  riverColumnCount: 11
+  riverExtension: 60
+  riverMaterial: {fileID: 2100000, guid: 75a780f2ce913a848ae2bc8f36e43f39, type: 2}
+  riverBankStyleSO: {fileID: 11400000, guid: 9e0103b0cbef8804ba71b019c2d4ba2e, type: 2}
+  stripArray:
+  - label: South_Forest
+    borderStyleSO: {fileID: 11400000, guid: 22464166e1d0da34683fa17281a532f2, type: 2}
+    start: {x: -88.5, y: -48.5}
+    end: {x: 78.5, y: -48.5}
+    nearOffset: 0.6
+    farOffset: 13
+    seed: 101
+  - label: South_Background
+    borderStyleSO: {fileID: 11400000, guid: da10e6c2c7ab086428ad916ed78b29d4, type: 2}
+    start: {x: -88.5, y: -48.5}
+    end: {x: 78.5, y: -48.5}
+    nearOffset: 13
+    farOffset: 34
+    seed: 102
+  - label: East_Rocks
+    borderStyleSO: {fileID: 11400000, guid: f3fb437e73d756b4ba588cc84692d6d8, type: 2}
+    start: {x: 58.5, y: -68.5}
+    end: {x: 58.5, y: 68.5}
+    nearOffset: 0.6
+    farOffset: 4.5
+    seed: 201
+  - label: East_Forest
+    borderStyleSO: {fileID: 11400000, guid: 22464166e1d0da34683fa17281a532f2, type: 2}
+    start: {x: 58.5, y: -68.5}
+    end: {x: 58.5, y: 68.5}
+    nearOffset: 4.5
+    farOffset: 15
+    seed: 202
+  - label: East_Background
+    borderStyleSO: {fileID: 11400000, guid: da10e6c2c7ab086428ad916ed78b29d4, type: 2}
+    start: {x: 58.5, y: -68.5}
+    end: {x: 58.5, y: 68.5}
+    nearOffset: 15
+    farOffset: 34
+    seed: 203
+  - label: East_Gate
+    borderStyleSO: {fileID: 11400000, guid: 5667c1a7491569c4cbebd63819e69964, type: 2}
+    start: {x: 59.6, y: -6.75}
+    end: {x: 59.6, y: -1.15}
+    nearOffset: 0
+    farOffset: 0
+    seed: 204
+  - label: West_Hedge
+    borderStyleSO: {fileID: 11400000, guid: 415488cff7deba44785a8eabe826c6e7, type: 2}
+    start: {x: -68.5, y: -68.5}
+    end: {x: -68.5, y: 68.5}
+    nearOffset: 0.6
+    farOffset: 6.5
+    seed: 301
+  - label: West_Forest
+    borderStyleSO: {fileID: 11400000, guid: 22464166e1d0da34683fa17281a532f2, type: 2}
+    start: {x: -68.5, y: -68.5}
+    end: {x: -68.5, y: 68.5}
+    nearOffset: 6.5
+    farOffset: 15
+    seed: 302
+  - label: West_Background
+    borderStyleSO: {fileID: 11400000, guid: da10e6c2c7ab086428ad916ed78b29d4, type: 2}
+    start: {x: -68.5, y: -68.5}
+    end: {x: -68.5, y: 68.5}
+    nearOffset: 15
+    farOffset: 34
+    seed: 303
+  - label: West_Gate
+    borderStyleSO: {fileID: 11400000, guid: 1d7596b854d75a54bb7bec384cb9c918, type: 2}
+    start: {x: -69.7, y: 18.8}
+    end: {x: -69.7, y: 13.2}
+    nearOffset: 0
+    farOffset: 0
+    seed: 304
+  - label: North_Bank
+    borderStyleSO: {fileID: 11400000, guid: 306b41af75c81ca4293f8e66434688f8, type: 2}
+    start: {x: -88.5, y: 48.5}
+    end: {x: 78.5, y: 48.5}
+    nearOffset: 0.6
+    farOffset: 5
+    seed: 401
+  - label: North_Shrubs
+    borderStyleSO: {fileID: 11400000, guid: 739a95150b555784fadd1a72ec5b9a2f, type: 2}
+    start: {x: -88.5, y: 48.5}
+    end: {x: 78.5, y: 48.5}
+    nearOffset: 5
+    farOffset: 11.5
+    seed: 402
+  - label: North_Forest
+    borderStyleSO: {fileID: 11400000, guid: 22464166e1d0da34683fa17281a532f2, type: 2}
+    start: {x: -88.5, y: 48.5}
+    end: {x: 78.5, y: 48.5}
+    nearOffset: 11.5
+    farOffset: 22
+    seed: 403
+  - label: North_Background
+    borderStyleSO: {fileID: 11400000, guid: da10e6c2c7ab086428ad916ed78b29d4, type: 2}
+    start: {x: -88.5, y: 48.5}
+    end: {x: 78.5, y: 48.5}
+    nearOffset: 22
+    farOffset: 38
+    seed: 404
+  roadArray:
+  - label: West_Road
+    start: {x: -70, y: 15.95}
+    direction: {x: -1, y: 0}
+    width: 3.2
+    length: 45
+  - label: East_Road
+    start: {x: 60, y: -3.95}
+    direction: {x: 1, y: 0}
+    width: 3
+    length: 32
+  blockedSurfaceNameArray:
+  - Path
+  - River
+  - Bridge
+  mountainPrefabArray:
+  - {fileID: 4192200826572709201, guid: a73bc41f64af05a408118d7f806b226b, type: 3}
+  - {fileID: 7350578402285462482, guid: 3e457d956205b2441ab672b6f27693a7, type: 3}
+  - {fileID: 508839258593822498, guid: c724168321f3e164abc220b1409f6e05, type: 3}
+  - {fileID: 2175531368143388202, guid: 7bbe7e41801ea1043a16c16c36ff9ca3, type: 3}
+  mountainCount: 22
+  mountainDistanceRange: {x: 22, y: 40}
+  mountainWidthRange: {x: 28, y: 45}
+  mountainHeightRange: {x: 20, y: 38}
+  mountainSeed: 7
+  applyHaze: 1
+  hazeColor: {r: 0.8, g: 0.88, b: 0.93, a: 1}
+  hazeStart: 90
+  hazeEnd: 260
