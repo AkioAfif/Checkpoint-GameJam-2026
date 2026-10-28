@@ -23,6 +23,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Project/Scenes/Level01_Day3.unity
     guid: 8bade036791daef4ca199f207ee2be4c
+  - enabled: 1
+    path: Assets/_Project/Scenes/FixScene_Day2.unity
+    guid: d087d4d534795bb4eaace1699edc271a
+  - enabled: 1
+    path: Assets/_Project/Scenes/FixScene.unity
+    guid: aa67599ac0762c8488e34c085ab7700e
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
