@@ -25,10 +25,8 @@ public class Day3SO : ScriptableObject
     public DialogueSO noBunchDialogueSO;
     // Rigel, sprinting over (a shaking line)
     public DialogueSO rigelShoutDialogueSO;
-    // after the glitch (Rigel speaks too)
+    // after the glitch (the MC alone: Rigel is already running home)
     public DialogueSO buffDialogueSO;
-    // Rigel, backing off toward his house
-    public DialogueSO rigelPretendDialogueSO;
     // the CozyFarm map's forest field: after the buff, after the first tree falls, once they all have
     public DialogueSO treesIdeaDialogueSO;
     public DialogueSO firstTreeDialogueSO;
@@ -36,6 +34,9 @@ public class Day3SO : ScriptableObject
     // the CozyFarm map's second bridge: looking at the river, and once it stands
     public DialogueSO bridgeIdeaDialogueSO;
     public DialogueSO bridgeDoneDialogueSO;
+    // the CozyFarm map: Rigel stops the MC halfway across the new bridge, then the MC's verdict once he has gone
+    public DialogueSO rigelBridgeDialogueSO;
+    public DialogueSO rigelBridgeAfterDialogueSO;
     // optional talks while the player works
     public DialogueSO ratnaDialogueSO;
     public DialogueSO ijahDialogueSO;
@@ -51,6 +52,7 @@ public class Day3SO : ScriptableObject
     public TaskObjectiveSO[] treeObjectiveArray;
     public TaskObjectiveSO[] smashObjectiveArray;
     public TaskObjectiveSO[] bridgeObjectiveArray;
+    public TaskObjectiveSO[] crossBridgeObjectiveArray;
     public TaskObjectiveSO[] plantObjectiveArray;
     public TaskObjectiveSO[] nightObjectiveArray;
 

@@ -25,8 +25,8 @@ Left for later: Sawit Lv.3 / further mutation (Chapter 4), the lender NPC, defor
 | 3a | Empty grass | Cutscene: the camera turns to the empty grass north of the field; 4 hologram plots blink every 0.5 s while the MC wishes for more land | Watch | (cutscene) |
 | 3b | Flashback | MC realises → 1 s black → grayscale. Two-shot of the MC and the Distributor by the Fabricator, then his close-up: he pushes up his glasses (glint) and says the harvest gives a power when eaten → 1 s black → colour. MC: "Let me try eating one." | Watch | (cutscene) |
 | 3c | Anywhere | "[E] Eat Sawit" (needs a Lv.2 bunch, eats one). Hard cut to Rigel: startled hop, sprints over, shouts (shaking caps). Hold [E] 1 s to finish eating | Eat, hold | Eat a Lv.2 sawit bunch |
-| 3d | | Blink ×2, full-screen world glitch 0.7 s, blink ×1. MC feels different; Rigel: "...." / "This guy man..." and backs off 3 steps | Watch | (cutscene) |
-| 3e | Empty grass | Walk to the grass: the MC crouches and pounds it. Mash [E]: 4 presses per blow, 5 blows, the plots rise a stage per blow. The 5th is a two-fisted overhead slam, filmed from the front, leaving a crater for 3 s. Rigel backs off, waits 1 s, backs off, "I'll pretend nothing is happening..." and runs home (gone for the day) | Walk, mash | Go to the empty grass by the forest |
+| 3d | | Blink ×2, full-screen world glitch 0.7 s, blink ×1. Rigel runs home without a word (gone until the bridge); the MC, alone, feels different | Watch | (cutscene) |
+| 3e | Empty grass | Walk to the grass: the MC crouches and pounds it. Mash [E]: 4 presses per blow, 5 blows, the plots rise a stage per blow. The 5th is a two-fisted overhead slam, filmed from the front, leaving a crater for 3 s. Nobody watches | Walk, mash | Go to the empty grass by the forest |
 | 4 | Fabricator, new strip | One press makes 4 Lv.2 seeds; plant the new strip. Ratna and Ijah have optional congratulation talks (Rigel's is unreachable once he has run home) | Press, plant | Press Sawit Lv.2 seeds · Plant 4 seeds in the new field |
 | 5 | Field edge, dusk | "That evening..." The savings book shows a big day but bad math. The camera turns to the forest past the strip | Read, watch | (cutscene) |
 | 6 | Home | Walk home | Enter the house | Go home |
@@ -49,9 +49,27 @@ Left for later: Sawit Lv.3 / further mutation (Chapter 4), the lender NPC, defor
 
 **Day3_RigelShout**: Rigel: "WHAT ARE YOU TRYING TO DO" (Surprised, shaking letters)
 
-**Day3_Buff**: MC: "I feel... really like a different person right now." (Cheer) / Rigel: "...." / Rigel: "This guy man..." (Shake)
+**Day3_Buff**: MC: "I feel... really like a different person right now." (Cheer). Rigel has already run off.
 
-**Day3_RigelPretend**: Rigel: "I'll pretend nothing is happening..." (HeavySigh)
+**Day3_RigelBridge** (CozyFarm only, halfway across the new bridge; see 5b, 3g)
+- Rigel: "Stop right there." (Shake)
+- MC: "Rigel? You ran off this morning like you'd seen a ghost." (TiltHead)
+- Rigel: "I watched from my fence. Half that forest edge, gone before noon. And now a bridge that wasn't here an hour ago." (TiltHead)
+- Rigel: "Nobody does that. Not with their hands. Not with a sawit."
+- MC: "Yesterday you said land should be made with your back. Well... it was." (WideSmile)
+- Rigel: "Don't twist it. That was work. This is... something else." (Shake)
+- Rigel: "Ten years the elders have said nobody clears that edge. Not for rice, not for anyone."
+- MC: "Funny. You never cared about those trees before today."
+- Rigel: "You don't know what I cared about." (HeavySigh)
+- MC: "I know exactly what this is. My sawit outsold your rice, and now I've got more land than you."
+- MC: "You're jealous, Rigel. Just say it." (WideSmile)
+- Rigel: "...Jealous."
+- Rigel: "That ground was supposed to be—" (Surprised)
+- Rigel: "Forget it. Enjoy your field while it lasts."
+
+**Day3_RigelBridgeAfter** (MC, as Rigel walks off): "...Sore loser." (HeavySigh)
+
+*Rigel's subtext (not said on Day 4):* for years he has asked the village elders to let him open that forest edge into a new rice paddy, and they refused. His suspicion of the MC is real, but so is his wounded ambition: he is not the story's moral compass yet. His slips ("not for rice", "what I cared about", "supposed to be—") are the only hints. The MC hears none of it and decides it's jealousy.
 
 **Ratna_Day3**: "The whole village is talking about your sawit! My boy wants to be a farmer now." (WideSmile) / MC: "Thank you, Bu Ratna!"
 
@@ -105,7 +123,8 @@ The beats above stay, with the new land moved to the forest grass across the riv
 | 3b | The flashback stands the MC and the Distributor in front of the Fabricator, filmed with Day 1's meeting angle. |
 | 3d+ | After the buff: "This strength... I bet I could knock those trees down." Objective "Punch down the 3 trees across the river". At each tree, [E], then mash (4 presses × 3 blows) and it topples. The first gets "One tree... with my bare hands?!". After the third, the pine and bushes fall too: "That's the last of them. Now there's room for a real field." |
 | 3e | The smash (objective "Pound the cleared ground into a field") raises 4 plots in a square on the cleared ground. |
-| 3f (new) | After Rigel leaves: the camera on the river by the garden, a see-through bridge, "Walking all the way round to that old bridge every day is exhausting..." / "What if there was a bridge right here, next to my farm?". Objective "Go to the riverbank by the new field", then mash (4 × 4) and the bridge rises out of the water. "Ha! Now the new field is only a few steps from home." The bridge stays walkable. |
+| 3f (new) | After the smash: the camera on the river by the garden, a see-through bridge, "Walking all the way round to that old bridge every day is exhausting..." / "What if there was a bridge right here, next to my farm?". Objective "Go to the riverbank by the new field", then mash (4 × 4) and the bridge rises out of the water. "Ha! Now the new field is only a few steps from home." The bridge stays walkable. |
+| 3g (new) | Objective "Cross the new bridge home". Halfway across, a cutscene: Rigel strides onto the garden end and stops a few steps ahead of the MC, filmed side-on from downstream (`CM_Day3BridgeConfront`). `Day3_RigelBridge`, then Rigel walks back off the bridge (gone for the day) and the MC mutters "...Sore loser." Then the press-and-plant objectives. |
 | 5 | The evening math and the forest hook have CozyFarm wording (a new field and a bridge; "There's still a whole forest out there..."). |
 
 The ponds fill an empty bottle like the river, and the player can't walk onto them (every day, not only Day 3).
@@ -114,4 +133,4 @@ The ponds fill an empty bottle like the river, and the player can't walk onto th
 
 - The MC has decided, privately, that the trees are next.
 - The MC now has an unnatural strength from eating the Lv.2 sawit (story only, no gameplay buff yet), and the forest hook points it at the trees.
-- Rigel saw it all and chose to look away, ready for his suspicion in Chapter 4.
+- Rigel saw the MC eat the sawit and the forest fall, confronted him on the new bridge, and was brushed off as jealous. His own claim on that forest edge is still unspoken, ready for Chapter 4.

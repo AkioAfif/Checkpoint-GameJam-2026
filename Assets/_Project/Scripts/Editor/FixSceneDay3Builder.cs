@@ -33,6 +33,8 @@ public static class FixSceneDay3Builder
     private const float GARDEN_COLUMN_SPACING = 2.3f;
     // how far a bed reaches from its plot's centre
     private const float BED_HALF_SIZE = .85f;
+    // the 3x4 model's height, so it sits on the ground instead of sinking into it (its beds and ghost pieces follow it)
+    private const float GARDEN_3X4_Y = .19f;
     // the model's materials: 1 furrows and 2 ridges make the beds, 3 and 4 the wooden fences
     private static readonly int[] BedSubMeshArray = { 1, 2 };
     private static readonly int[] FenceSubMeshArray = { 3, 4 };
@@ -45,6 +47,18 @@ public static class FixSceneDay3Builder
     private static readonly Vector3 PorchCratePosition = new Vector3(-20.9f, 0f, -26.3f);
     // up the river bank north of the old bridge, near Darto
     private static readonly Vector3 DimasDigPosition = new Vector3(-6.5f, 0f, 9f);
+    // side-on to the gameplay camera (which looks south), so his swing reads
+    private const float DIMAS_DIG_YAW = 90f;
+    private const string HELD_HOE = "HeldHoe";
+    // the hoe in his right hand, flipped so the handle runs on down the arm and the blade hooks back toward the ground
+    private static readonly Vector3 HeldHoePosition = new Vector3(0f, -.3f, 0f);
+    private static readonly Vector3 HeldHoeEuler = new Vector3(180f, 0f, 0f);
+    private const float HELD_HOE_SCALE = .8f;
+    // the mention shot: high and in front of whoever a line talks about, from the gameplay camera's side
+    private static readonly Vector3 FocusCameraOffset = new Vector3(2.5f, 3.2f, 5.5f);
+    // in the upper part of the screen, clear of the dialogue box (negative y = higher)
+    private static readonly Vector2 FocusScreenPosition = new Vector2(0f, -.22f);
+    private const float FOCUS_CAMERA_FOV = 38f;
 
     [MenuItem("Tools/FixScene/Build Day 3 Scene")]
     public static void Build()
@@ -128,6 +142,8 @@ public static class FixSceneDay3Builder
         LandQTEUI qteUi = Day3GrayboxBuilder.BuildUi(null, landQTE);
         SetText(qteUi, "holdHint", "Hold [{0}]!");
         YardErrands errands = BuildErrands(director, yardDaySO, dimas);
+        BuildDimasDig(director, errands, dimas);
+        BuildDialogueFocus(director, dimas);
 
         YardDayDirector yard = director.gameObject.AddComponent<YardDayDirector>();
         SetField(yard, "yardDaySO", yardDaySO);
@@ -191,6 +207,9 @@ public static class FixSceneDay3Builder
     public static void StripYardDay(Transform gameplay)
     {
         Object.DestroyImmediate(gameplay.Find(DIRECTOR_ROOT).gameObject);
+        // Dimas gave the hoe back two weeks ago
+        Transform heldHoe = Day3GrayboxBuilder.FindNpc("Npc_Dimas").GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == HELD_HOE);
+        if (heldHoe != null) Object.DestroyImmediate(heldHoe.gameObject);
         Transform clutter = gameplay.Find(FixSceneMapBuilder.YARD_CLUTTER_ROOT);
         if (clutter != null) Object.DestroyImmediate(clutter.gameObject);
         Transform graybox = gameplay.Find(GRAYBOX_ROOT);
@@ -240,7 +259,9 @@ public static class FixSceneDay3Builder
         Transform old = oldGarden.transform;
         GameObject expanded = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(GARDEN_3X4_MODEL), graybox);
         expanded.name = EXPANDED_GARDEN;
-        expanded.transform.SetPositionAndRotation(old.position + old.rotation * Vector3.left * (GARDEN_COLUMN_SPACING / 2f), old.rotation);
+        Vector3 expandedPosition = old.position + old.rotation * Vector3.left * (GARDEN_COLUMN_SPACING / 2f);
+        expandedPosition.y = GARDEN_3X4_Y;
+        expanded.transform.SetPositionAndRotation(expandedPosition, old.rotation);
         expanded.SetActive(false);
         MeshFilter model = expanded.GetComponentInChildren<MeshFilter>(true);
         Material[] materialArray = model.GetComponent<MeshRenderer>().sharedMaterials;
@@ -368,6 +389,54 @@ public static class FixSceneDay3Builder
         SetField(errands, "hoeItemDataSO", YardDayDataBuilder.Hoe);
         SetField(errands, "ropeItemDataSO", YardDayDataBuilder.Rope);
         return errands;
+    }
+
+    // Dimas faces the bank with Darto's hoe in his hands; the hole's pile beside him grows with each blow
+    public static void BuildDimasDig(Transform director, YardErrands errands, Npc dimas)
+    {
+        dimas.transform.rotation = Quaternion.Euler(0f, DIMAS_DIG_YAW, 0f);
+        Animator animator = (Animator)new SerializedObject(dimas.GetComponentInChildren<NpcVisual>(true)).FindProperty("animator").objectReferenceValue;
+        Transform armR = animator.transform.Find("Hips/ArmR");
+        Transform oldHoe = armR.Find(HELD_HOE);
+        if (oldHoe != null) Object.DestroyImmediate(oldHoe.gameObject);
+        GameObject hoe = (GameObject)PrefabUtility.InstantiatePrefab(YardDayDataBuilder.Hoe.prefab.gameObject, armR);
+        hoe.name = HELD_HOE;
+        hoe.transform.localPosition = HeldHoePosition;
+        hoe.transform.localEulerAngles = HeldHoeEuler;
+        hoe.transform.localScale = Vector3.one * HELD_HOE_SCALE;
+
+        Transform dig = Root("DimasDig", director).transform;
+        dig.SetPositionAndRotation(dimas.transform.position, dimas.transform.rotation);
+        Transform strike = Root("StrikePoint", dig).transform;
+        strike.localPosition = new Vector3(0f, .05f, 1.2f);
+        Transform mound = Part(dig, "DirtMound", GrayboxMeshFactory.Blob(.24f, .2f), GrayboxPalette.Lit("DugSoil", new Color(.33f, .24f, .17f)),
+            new Vector3(.6f, 0f, .5f)).transform;
+
+        DimasDigVisual visual = director.gameObject.AddComponent<DimasDigVisual>();
+        SetField(visual, "errands", errands);
+        SetField(visual, "dimasNpc", dimas);
+        SetField(visual, "animator", animator);
+        SetField(visual, "hoeModel", hoe);
+        SetField(visual, "strikePoint", strike);
+        SetField(visual, "dirtMound", mound);
+        SetField(visual, "dirtPrefab", VfxBuilder.DigDirt().transform);
+    }
+
+    // lines that talk about another villager cut to them (DialogueLine.focusNpcSO)
+    public static void BuildDialogueFocus(Transform director, Npc anyNpc)
+    {
+        CinemachineCamera cam = Day3GrayboxBuilder.ChaseCamera(director, "CM_NpcFocus", anyNpc.transform, FocusCameraOffset, FOCUS_CAMERA_FOV);
+        CinemachineRotationComposer composer = cam.GetComponent<CinemachineRotationComposer>();
+        composer.TargetOffset = new Vector3(0f, .7f, 0f);
+        ScreenComposerSettings composition = composer.Composition;
+        composition.ScreenPosition = FocusScreenPosition;
+        composer.Composition = composition;
+        // never behind a roof or inside a wall
+        cam.gameObject.AddComponent<CinemachineDeoccluder>();
+        cam.gameObject.AddComponent<CinemachineDecollider>();
+        DialogueFocusCameraVisual visual = director.gameObject.AddComponent<DialogueFocusCameraVisual>();
+        SetField(visual, "focusCamera", cam);
+        SetArray(visual, "npcArray", Object.FindObjectsByType<Npc>(FindObjectsInactive.Include));
     }
 
     // a wooden crate by the front door with a dark Lv.2 bunch on it

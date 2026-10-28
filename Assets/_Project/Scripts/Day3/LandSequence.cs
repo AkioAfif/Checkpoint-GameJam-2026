@@ -2,9 +2,10 @@ using System;
 using UnityEngine;
 
 // Day 3's new land, played after the first sale. The MC wishes for more field over the empty grass, remembers the Distributor
-// (a grayscale flashback), eats a Lv.2 bunch while Rigel sprints over in shock, glitches, and pounds the four plots up out of
-// the ground. Rigel backs off into his house. Visuals, cameras and UI listen to OnStepChanged / OnSmash.
-// On the CozyFarm map the new field is forest: TreeClearing runs between the buff and the smash, and BridgeBuild after Rigel leaves.
+// (a grayscale flashback), eats a Lv.2 bunch while Rigel sprints over in shock, glitches (Rigel runs home without a word),
+// and pounds the four plots up out of the ground. Visuals, cameras and UI listen to OnStepChanged / OnSmash.
+// On the CozyFarm map the new field is forest: TreeClearing runs between the buff and the smash, BridgeBuild after the smash,
+// and RigelBridgeConfrontation once the bridge stands.
 public class LandSequence : MonoBehaviour
 {
     public event EventHandler<OnStepChangedEventArgs> OnStepChanged;
@@ -13,11 +14,11 @@ public class LandSequence : MonoBehaviour
     public class OnSmashEventArgs : EventArgs { public float progressNormalized; public bool isFinal; }
     public event EventHandler OnFinished;
 
-    public enum Step { None, Inspect, Realise, Flashback, FlashbackSolo, Return, WaitEat, RigelAlarm, Eat, BlinkIn, Glitch, BlinkOut, BuffTalk, Clearing, WaitSmash, Smash, FinalSmash, Retreat, Bridge, Done }
+    public enum Step { None, Inspect, Realise, Flashback, FlashbackSolo, Return, WaitEat, RigelAlarm, Eat, BlinkIn, Glitch, BlinkOut, BuffTalk, Clearing, WaitSmash, Smash, FinalSmash, Bridge, Confrontation, Done }
     public enum Shot { None, EmptyLand, FlashbackTwo, FlashbackDistributor, Rigel, SmashFront, SmashClose }
 
     // Rigel's cutscene moves, in order
-    private enum RigelMove { None, Hop, Sprint, StepBack, StepBackAgain, RunHome }
+    private enum RigelMove { None, Hop, Sprint, RunHome }
 
     [SerializeField] private Day3SO day3SO;
     [SerializeField] private ScreenFadeUI screenFade;
@@ -38,12 +39,12 @@ public class LandSequence : MonoBehaviour
     [Tooltip("Where the MC kneels to pound the ground, facing the camera (the plots rise behind them).")]
     [SerializeField] private Transform smashPoint;
     [SerializeField] private Transform rigelHousePoint;
-    [Tooltip("Where Rigel has followed to, watching the MC pound the ground.")]
-    [SerializeField] private Transform rigelWatchPoint;
     [Tooltip("Optional (the CozyFarm map): punch the trees off the new field before the smash.")]
     [SerializeField] private TreeClearing treeClearing;
     [Tooltip("Optional (the CozyFarm map): pound a second bridge out of the river after the smash.")]
     [SerializeField] private BridgeBuild bridgeBuild;
+    [Tooltip("Optional (the CozyFarm map, with the bridge): Rigel stops the MC halfway across it.")]
+    [SerializeField] private RigelBridgeConfrontation rigelBridgeConfrontation;
     [SerializeField] private float smashRadius = 2.2f;
     [SerializeField] private int pressesPerSmash = 4;
     [SerializeField] private int smashCount = 5;
@@ -51,9 +52,6 @@ public class LandSequence : MonoBehaviour
     [SerializeField] private float blackHoldDuration = 1f;
     [SerializeField] private float blinkDuration = .3f;
     [SerializeField] private float glitchDuration = .7f;
-    [Tooltip("Three small steps.")]
-    [SerializeField] private float rigelStepBackDistance = 1.2f;
-    [SerializeField] private float rigelStepBackDuration = 1.5f;
     [SerializeField] private float rigelSprintSpeed = 9f;
     [SerializeField] private float handOffDelay = .4f;
 
@@ -77,6 +75,7 @@ public class LandSequence : MonoBehaviour
         landQTE.OnFilled += LandQTE_OnFilled;
         if (treeClearing != null) treeClearing.OnFinished += TreeClearing_OnFinished;
         if (bridgeBuild != null) bridgeBuild.OnFinished += BridgeBuild_OnFinished;
+        if (rigelBridgeConfrontation != null) rigelBridgeConfrontation.OnFinished += RigelBridgeConfrontation_OnFinished;
     }
 
     private void Update()
@@ -127,7 +126,6 @@ public class LandSequence : MonoBehaviour
                 landQTE.StartHold(eatHoldDuration);
                 break;
             case Step.BuffTalk:
-                MoveRigel(RigelMove.StepBack);
                 if (treeClearing == null)
                 {
                     StartWaitSmash();
@@ -136,17 +134,6 @@ public class LandSequence : MonoBehaviour
                 // a beat later: started inside this callback, its first talk would hear this same "dialogue ended"
                 Hold();
                 SetStep(Step.Clearing, Shot.None);
-                timer = handOffDelay;
-                break;
-            case Step.Retreat:
-                MoveRigel(RigelMove.RunHome);
-                if (bridgeBuild == null)
-                {
-                    Finish();
-                    break;
-                }
-                Hold();
-                SetStep(Step.Bridge, Shot.None);
                 timer = handOffDelay;
                 break;
         }
@@ -215,13 +202,6 @@ public class LandSequence : MonoBehaviour
                 SetStep(Step.RigelAlarm, Shot.None);
                 DialogueManager.Instance.StartDialogue(rigelNpc, day3SO.rigelShoutDialogueSO);
                 break;
-            case RigelMove.StepBack:
-                if (step == Step.Retreat) timer = 1f;
-                break;
-            case RigelMove.StepBackAgain:
-                Hold();
-                DialogueManager.Instance.StartDialogue(rigelNpc, day3SO.rigelPretendDialogueSO);
-                break;
             case RigelMove.RunHome:
                 // inside for the rest of the day
                 rigelNpc.gameObject.SetActive(false);
@@ -256,7 +236,18 @@ public class LandSequence : MonoBehaviour
     // the trees are down: on to the smash
     private void TreeClearing_OnFinished(object sender, EventArgs e) => StartWaitSmash();
 
-    private void BridgeBuild_OnFinished(object sender, EventArgs e) => Finish();
+    private void BridgeBuild_OnFinished(object sender, EventArgs e)
+    {
+        if (rigelBridgeConfrontation == null)
+        {
+            Finish();
+            return;
+        }
+        SetStep(Step.Confrontation, Shot.None);
+        rigelBridgeConfrontation.Play();
+    }
+
+    private void RigelBridgeConfrontation_OnFinished(object sender, EventArgs e) => Finish();
 
     // ---------- public ----------
 
@@ -312,8 +303,10 @@ public class LandSequence : MonoBehaviour
                 bridgeBuild.Play();
                 break;
             case Step.BlinkOut:
+                // he has seen enough: home without a word, while the MC finds his feet
+                MoveRigel(RigelMove.RunHome);
                 SetStep(Step.BuffTalk, Shot.None);
-                DialogueManager.Instance.StartDialogue(rigelNpc, day3SO.buffDialogueSO);
+                DialogueManager.Instance.StartDialogue(null, day3SO.buffDialogueSO);
                 break;
             case Step.FinalSmash:
                 if (smashIndex < smashCount)
@@ -322,13 +315,15 @@ public class LandSequence : MonoBehaviour
                     timer = 2f;
                     break;
                 }
-                // the dust settles: Rigel has seen enough
+                // the dust settles
                 playerActor.SetPose(CutscenePose.None);
-                SetStep(Step.Retreat, Shot.None);
-                MoveRigel(RigelMove.StepBack);
-                break;
-            case Step.Retreat:
-                MoveRigel(RigelMove.StepBackAgain);
+                if (bridgeBuild == null)
+                {
+                    Finish();
+                    break;
+                }
+                SetStep(Step.Bridge, Shot.None);
+                timer = handOffDelay;
                 break;
         }
     }
@@ -354,11 +349,6 @@ public class LandSequence : MonoBehaviour
         Player.Instance.FaceTowards(smashPoint.position + smashPoint.forward);
         playerActor.SetPose(CutscenePose.Crouch);
         landPlotsRoot.SetActive(true);
-        // he followed at a safe distance, staring
-        Vector3 toPlayer = smashPoint.position - rigelWatchPoint.position;
-        toPlayer.y = 0f;
-        rigelActor.transform.rotation = Quaternion.LookRotation(toPlayer);
-        rigelActor.MoveTo(rigelWatchPoint.position, .05f, 0f, true);
         smashIndex = 0;
         // the ordinary blows play in the gameplay camera; only the last one cuts in close
         SetStep(Step.Smash, Shot.None);
@@ -388,11 +378,6 @@ public class LandSequence : MonoBehaviour
             case RigelMove.Sprint:
                 Vector3 target = player + away * 1.4f;
                 rigelActor.MoveTo(target, Mathf.Max(.3f, Vector3.Distance(rigel, target) / rigelSprintSpeed), 0f);
-                break;
-            case RigelMove.StepBack:
-            case RigelMove.StepBackAgain:
-                rigelActor.FaceTowards(player);
-                rigelActor.MoveTo(rigel + away * rigelStepBackDistance, rigelStepBackDuration, 0f, true);
                 break;
             case RigelMove.RunHome:
                 rigelActor.MoveTo(rigelHousePoint.position, Mathf.Max(.3f, Vector3.Distance(rigel, rigelHousePoint.position) / rigelSprintSpeed), 0f);

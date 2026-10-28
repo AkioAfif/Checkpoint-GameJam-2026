@@ -19,18 +19,21 @@ MonoBehaviour:
     npcEmote: 4
     isShaking: 0
     isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
   - speaker: 1
     text: That boy. He took it again. Dimas! DIMAS!
     playerEmote: 0
     npcEmote: 3
     isShaking: 0
     isNpcGlaring: 0
+    focusNpcSO: {fileID: 11400000, guid: ec69cc29c19ef9a4da4252de82d35ef2, type: 2}
   - speaker: 1
     text: ...He's off digging by the river. Probably.
     playerEmote: 0
     npcEmote: 0
     isShaking: 0
     isNpcGlaring: 0
+    focusNpcSO: {fileID: 11400000, guid: ec69cc29c19ef9a4da4252de82d35ef2, type: 2}
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

@@ -25,6 +25,9 @@ public class Day3CameraVisual : MonoBehaviour
     [SerializeField] private BridgeBuild bridgeBuild;
     [SerializeField] private CinemachineCamera bridgeIdeaCamera;
     [SerializeField] private CinemachineCamera bridgeSmashCamera;
+    [Tooltip("Optional (the CozyFarm map): side-on to Rigel and the MC on the new bridge.")]
+    [SerializeField] private RigelBridgeConfrontation rigelBridgeConfrontation;
+    [SerializeField] private CinemachineCamera confrontCamera;
 
     private CinemachineBlendDefinition defaultBlend;
 
@@ -34,6 +37,7 @@ public class Day3CameraVisual : MonoBehaviour
         landSequence.OnStepChanged += LandSequence_OnStepChanged;
         if (bridgeBuild != null) bridgeBuild.OnStepChanged += BridgeBuild_OnStepChanged;
         if (treeClearing != null) treeClearing.OnStepChanged += TreeClearing_OnStepChanged;
+        if (rigelBridgeConfrontation != null) rigelBridgeConfrontation.OnStepChanged += RigelBridgeConfrontation_OnStepChanged;
     }
 
     private void Update()
@@ -66,5 +70,11 @@ public class Day3CameraVisual : MonoBehaviour
         brain.DefaultBlend = defaultBlend;
         bridgeIdeaCamera.enabled = e.step == BridgeBuild.Step.Think || e.step == BridgeBuild.Step.Idea;
         bridgeSmashCamera.enabled = e.step == BridgeBuild.Step.Smash || e.step == BridgeBuild.Step.Settle || e.step == BridgeBuild.Step.DoneTalk;
+    }
+
+    private void RigelBridgeConfrontation_OnStepChanged(object sender, RigelBridgeConfrontation.OnStepChangedEventArgs e)
+    {
+        brain.DefaultBlend = defaultBlend;
+        confrontCamera.enabled = e.step == RigelBridgeConfrontation.Step.Approach || e.step == RigelBridgeConfrontation.Step.Talk;
     }
 }

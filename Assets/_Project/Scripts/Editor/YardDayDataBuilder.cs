@@ -19,6 +19,14 @@ public static class YardDayDataBuilder
         DialogueSO.DialogueLine N(string text, Emote npcEmote = Emote.None) => new DialogueSO.DialogueLine { speaker = DialogueSO.Speaker.Npc, text = text, npcEmote = npcEmote };
         DialogueSO.DialogueLine P(string text, Emote playerEmote = Emote.None) => new DialogueSO.DialogueLine { speaker = DialogueSO.Speaker.Player, text = text, playerEmote = playerEmote };
         ItemAmount Give(ItemDataSO item) => new ItemAmount { itemDataSO = item, amount = 1 };
+        // a line about someone else: the camera cuts to them while it shows
+        NpcSO dimas = GameDataBuilder.Load<NpcSO>("Npcs", "Dimas");
+        NpcSO darto = GameDataBuilder.Load<NpcSO>("Npcs", "Darto");
+        DialogueSO.DialogueLine Focus(DialogueSO.DialogueLine line, NpcSO npcSO)
+        {
+            line.focusNpcSO = npcSO;
+            return line;
+        }
 
         Sickle = GameDataBuilder.Item("Sickle", "Sickle", "Nek Ijah's late husband's arit. Old, but it still bites through weeds.", SickleModel(), new Color(.7f, .72f, .75f));
         Hoe = GameDataBuilder.Item("Hoe", "Hoe", "Pak Darto's cangkul, a little muddy from Dimas's treasure hunt.", HoeModel(), new Color(.6f, .5f, .4f));
@@ -60,17 +68,17 @@ public static class YardDayDataBuilder
             N("Good things grow slowly, dear.", Emote.Nod));
         Yard.dartoHoeMissingDialogueSO = Dialogue("Yard_DartoHoeMissing",
             N("My hoe? Of course, take— ...where is it?", Emote.Surprised),
-            N("That boy. He took it again. Dimas! DIMAS!", Emote.Shake),
-            N("...He's off digging by the river. Probably."));
+            Focus(N("That boy. He took it again. Dimas! DIMAS!", Emote.Shake), dimas),
+            Focus(N("...He's off digging by the river. Probably."), dimas));
         Yard.dartoWhereDialogueSO = Dialogue("Yard_DartoWhere",
-            N("Dimas has it. Up the river bank, digging for 'treasure'.", Emote.HeavySigh));
+            Focus(N("Dimas has it. Up the river bank, digging for 'treasure'.", Emote.HeavySigh), dimas));
         Yard.dartoRopeDialogueSO = GameDataBuilder.Dialogue("Yard_DartoRope", Give(Rope),
             N("You got it back! Good lad."),
             N("Clearing a stump too? Then take this rope. I built that bridge with it.", Emote.Hop),
             N("A stump's like a stubborn goat. You don't lift it, you drag it."));
         Yard.dimasAskDialogueSO = Dialogue("Yard_DimasAsk",
             N("There's TREASURE under here, I just know it!", Emote.Hop),
-            P("Dimas, that's Pak Darto's hoe. I need it."),
+            Focus(P("Dimas, that's Pak Darto's hoe. I need it."), darto),
             N("Hmm... Give me one of your sawit seeds and it's yours!", Emote.WideSmile),
             N("The ones from your big machine!"));
         Yard.dimasTradeDialogueSO = GameDataBuilder.Dialogue("Yard_DimasTrade", Give(Hoe),
@@ -80,7 +88,7 @@ public static class YardDayDataBuilder
             N("When my sawit grows, I'll be rich like you!", Emote.Hop));
         Yard.ratnaLunchDialogueSO = GameDataBuilder.Dialogue("Yard_RatnaLunch", Give(Compost),
             N("There you are! You've been running round the village all morning. Sit. Eat.", Emote.Wave),
-            N("Since my husband passed, it's just me and Dimas. We get by."),
+            Focus(N("Since my husband passed, it's just me and Dimas. We get by."), dimas),
             N("ICAN pays well, doesn't it? Almost too well...", Emote.TiltHead),
             N("Here, compost from my garden. New soil is hungry soil.", Emote.Nod),
             P("Thank you, Bu Ratna. Really.", Emote.Nod));

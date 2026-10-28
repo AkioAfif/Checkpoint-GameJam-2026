@@ -64,6 +64,9 @@ public class YardErrands : MonoBehaviour
 
     public void Open() => isOpen = true;
 
+    // until he swaps it for the seed
+    public bool HasDimasGotHoe() => !hasPaidDimas;
+
     // everyone back to their usual talk
     public void Close()
     {

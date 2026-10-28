@@ -31,8 +31,6 @@ public static class FixSceneDay4Builder
     private const float SMASH_YAW = -90f;
     // the field's west edge, looking east over it toward the forest
     private static readonly Vector3 EveningPosition = new Vector3(12.9f, 0f, -29.4f);
-    // north of the field, staring at the MC
-    private static readonly Vector3 RigelWatchPosition = new Vector3(13.4f, 0f, -25.2f);
     // up the east bank toward the old bridge, on his way home (he is switched off there for the day)
     private static readonly Vector3 RigelHomewardPosition = new Vector3(12.6f, 0f, -6.5f);
 
@@ -56,6 +54,8 @@ public static class FixSceneDay4Builder
     // how far in from the bridge's west end the fence is cleared, and how far past the deck's sides
     private const float FENCE_GAP_REACH = 3f;
     private const float FENCE_GAP_MARGIN = .6f;
+    // how far short of the bridge's middle (toward the garden) Rigel stops, facing the MC
+    private const float RIGEL_STOP_DISTANCE = 1.8f;
 
     // Day 1's meeting shot as FixScene has it (CM_Meeting + Day1CameraVisual on its Day1 root): side-on to the pair, from the
     // north (the gameplay camera's side), 8 m back and 6.5 m up, FOV 40, aimed 0.4 m above the pair
@@ -104,7 +104,6 @@ public static class FixSceneDay4Builder
         Transform landCentre = Day2GrayboxBuilder.Point(points, "LandCentre", Ground(FieldCentre), 0f);
         Transform smashPoint = Day2GrayboxBuilder.Point(points, "SmashPoint", Ground(SmashPosition), SMASH_YAW);
         Transform rigelHousePoint = Day2GrayboxBuilder.Point(points, "RigelHousePoint", Ground(RigelHomewardPosition), 0f);
-        Transform rigelWatchPoint = Day2GrayboxBuilder.Point(points, "RigelWatchPoint", Ground(RigelWatchPosition), 180f);
         // the flashback: the two of them in front of the Fabricator, the day it arrived; on its north side, so Day 1's meeting angle
         // (from the north) films them with the machine behind them, not in the way
         FabricatorController fabricator = Object.FindAnyObjectByType<FabricatorController>(FindObjectsInactive.Include);
@@ -118,7 +117,7 @@ public static class FixSceneDay4Builder
             day2Graybox.Find("Points/MorningPoint"), eveningPoint, RenderSettings.sun, day2Graybox.Find("DoorLamp").gameObject);
 
         LandSequence landSequence = Day3GrayboxBuilder.BuildLandSequence(director, day3SO, plotsRoot, rigel, landCentre, smashPoint, rigelHousePoint,
-            rigelWatchPoint, flashbackPlayerPoint, flashbackDistributorPoint, out Npc distributor);
+            flashbackPlayerPoint, flashbackDistributorPoint, out Npc distributor);
         SetField(day3, "landSequence", landSequence);
         Day3GrayboxBuilder.BuildLandVisuals(director, landSequence, plotsRoot, null, crater, smashPoint, distributor);
 
@@ -127,8 +126,10 @@ public static class FixSceneDay4Builder
         Transform dust = VfxBuilder.SmashDust().transform;
         TreeClearing treeClearing = BuildTreeClearing(director, graybox, day3SO, landQTE, playerActor, dust, out Transform[] fieldTreeArray);
         BridgeBuild bridgeBuild = BuildBridge(director, graybox, day3SO, landQTE, playerActor, out Transform bridgePoint, out GameObject ghostBridge);
+        RigelBridgeConfrontation confrontation = BuildConfrontation(director, day3SO, rigel, bridgePoint, out CinemachineCamera confrontCamera);
         SetField(landSequence, "treeClearing", treeClearing);
         SetField(landSequence, "bridgeBuild", bridgeBuild);
+        SetField(landSequence, "rigelBridgeConfrontation", confrontation);
 
         ImaginationVisual imagination = director.gameObject.AddComponent<ImaginationVisual>();
         SetField(imagination, "landSequence", landSequence);
@@ -137,7 +138,9 @@ public static class FixSceneDay4Builder
         SetField(imagination, "ghostBridgeRoot", ghostBridge);
         SetArray(imagination, "imaginedAwayTreeArray", fieldTreeArray);
 
-        BuildCameras(director, day3, landSequence, treeClearing, bridgeBuild, rigel, distributor, distributorPosition, smashPoint, bridgePoint);
+        Day3CameraVisual cameraVisual = BuildCameras(director, day3, landSequence, treeClearing, bridgeBuild, rigel, distributor, distributorPosition, smashPoint, bridgePoint);
+        SetField(cameraVisual, "rigelBridgeConfrontation", confrontation);
+        SetField(cameraVisual, "confrontCamera", confrontCamera);
         SmashImpactVisual impact = director.GetComponent<SmashImpactVisual>();
         SetField(impact, "treeClearing", treeClearing);
         SetField(impact, "bridgeBuild", bridgeBuild);
@@ -360,9 +363,36 @@ public static class FixSceneDay4Builder
         else copy.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
     }
 
+    // Rigel steps on at the bridge's garden (west) end and stops the MC halfway across, filmed side-on from downstream
+    private static RigelBridgeConfrontation BuildConfrontation(Transform director, Day3SO day3SO, Npc rigel, Transform bridgePoint, out CinemachineCamera confrontCamera)
+    {
+        Bounds sourceBounds = GameObject.Find(BRIDGE_SOURCE_PATH).GetComponent<Renderer>().bounds;
+        Transform points = director.Find("Points");
+        float midX = sourceBounds.center.x;
+        // the deck is off at build time, so heights come from the east bank; Rigel's stop takes the MC's height at runtime
+        float deckY = bridgePoint.position.y;
+        Transform mid = Day2GrayboxBuilder.Point(points, "BridgeMidPoint", new Vector3(midX, deckY, BRIDGE_Z), -90f);
+        Transform entry = Day2GrayboxBuilder.Point(points, "RigelBridgeEntryPoint", Ground(new Vector3(sourceBounds.min.x - .7f, 0f, BRIDGE_Z)), 90f);
+        Transform stop = Day2GrayboxBuilder.Point(points, "RigelBridgeStopPoint", new Vector3(midX - RIGEL_STOP_DISTANCE, deckY, BRIDGE_Z), 90f);
+
+        RigelBridgeConfrontation confrontation = director.gameObject.AddComponent<RigelBridgeConfrontation>();
+        SetField(confrontation, "day3SO", day3SO);
+        SetField(confrontation, "rigelNpc", rigel);
+        SetField(confrontation, "rigelActor", rigel.GetComponent<CutsceneActor>());
+        SetField(confrontation, "bridgeMidPoint", mid);
+        SetField(confrontation, "rigelEntryPoint", entry);
+        SetField(confrontation, "rigelStopPoint", stop);
+
+        // downstream (south) and above the railing: the two of them face to face, whole, above the dialogue box
+        Vector3 between = new Vector3(midX - RIGEL_STOP_DISTANCE / 2f, deckY + .9f, BRIDGE_Z);
+        confrontCamera = Day3GrayboxBuilder.FixedCamera(director, "CM_Day3BridgeConfront", between + new Vector3(0f, 3.2f, -6.5f), between + Vector3.down * .3f, 40f);
+        confrontCamera.gameObject.AddComponent<CinemachineDeoccluder>();
+        return confrontation;
+    }
+
     // ---------- cameras ----------
 
-    private static void BuildCameras(Transform director, Day3Director day3, LandSequence landSequence, TreeClearing treeClearing, BridgeBuild bridgeBuild, Npc rigel, Npc distributor,
+    private static Day3CameraVisual BuildCameras(Transform director, Day3Director day3, LandSequence landSequence, TreeClearing treeClearing, BridgeBuild bridgeBuild, Npc rigel, Npc distributor,
         Vector3 distributorPosition, Transform smashPoint, Transform bridgePoint)
     {
         Day3CameraVisual cameraVisual = director.gameObject.AddComponent<Day3CameraVisual>();
@@ -432,6 +462,7 @@ public static class FixSceneDay4Builder
         }
         so.ApplyModifiedPropertiesWithoutUndo();
         Day3GrayboxBuilder.AddImpulseListeners();
+        return cameraVisual;
     }
 
     // ---------- helpers ----------

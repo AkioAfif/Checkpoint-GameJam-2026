@@ -50,11 +50,7 @@ public static class Day3DataBuilder
         shout.isShaking = true;
         Day3.rigelShoutDialogueSO = Dialogue("Day3_RigelShout", shout);
         Day3.buffDialogueSO = Dialogue("Day3_Buff",
-            P("I feel... really like a different person right now.", Emote.Cheer),
-            N("...."),
-            N("This guy man...", Emote.Shake));
-        Day3.rigelPretendDialogueSO = Dialogue("Day3_RigelPretend",
-            N("I'll pretend nothing is happening...", Emote.HeavySigh));
+            P("I feel... really like a different person right now.", Emote.Cheer));
         Day3.ratnaDialogueSO = Dialogue("Ratna_Day3",
             N("The whole village is talking about your sawit! My boy wants to be a farmer now.", Emote.WideSmile),
             P("Thank you, Bu Ratna!", Emote.Nod));
@@ -93,6 +89,7 @@ public static class Day3DataBuilder
     // the garden, so the MC punches its trees down first, and pounds a second bridge up afterwards. Only loads the existing data.
     public static Day3SO BuildCozyFarm()
     {
+        DialogueSO.DialogueLine N(string text, Emote npcEmote = Emote.None) => new DialogueSO.DialogueLine { speaker = DialogueSO.Speaker.Npc, text = text, npcEmote = npcEmote };
         DialogueSO.DialogueLine P(string text, Emote playerEmote = Emote.None) => new DialogueSO.DialogueLine { speaker = DialogueSO.Speaker.Player, text = text, playerEmote = playerEmote };
 
         Day3 = GameDataBuilder.Load<Day3SO>("Day3", "Day3");
@@ -104,6 +101,9 @@ public static class Day3DataBuilder
         cozy.landWishDialogueSO = Dialogue("Day3_LandWish_CozyFarm",
             P("If only I could add more land there..."),
             P("But those trees are in the way, and I don't have the strength to clear them.", Emote.HeavySigh));
+        // Rigel is already running home by now
+        cozy.buffDialogueSO = Dialogue("Day3_Buff_CozyFarm",
+            P("I feel... really like a different person right now.", Emote.Cheer));
         cozy.treesIdeaDialogueSO = Dialogue("Day3_TreesIdea",
             P("This strength... I bet I could knock those trees down.", Emote.WideSmile));
         cozy.firstTreeDialogueSO = Dialogue("Day3_FirstTree",
@@ -115,6 +115,24 @@ public static class Day3DataBuilder
             P("What if there was a bridge right here, next to my farm?"));
         cozy.bridgeDoneDialogueSO = Dialogue("Day3_BridgeDone",
             P("Ha! Now the new field is only a few steps from home.", Emote.Cheer));
+        // Rigel's suspicion is real, but he wanted that forest edge for his own paddy: he slips, the MC hears only jealousy
+        cozy.rigelBridgeDialogueSO = Dialogue("Day3_RigelBridge",
+            N("Stop right there.", Emote.Shake),
+            P("Rigel? You ran off this morning like you'd seen a ghost.", Emote.TiltHead),
+            N("I watched from my fence. Half that forest edge, gone before noon. And now a bridge that wasn't here an hour ago.", Emote.TiltHead),
+            N("Nobody does that. Not with their hands. Not with a sawit."),
+            P("Yesterday you said land should be made with your back. Well... it was.", Emote.WideSmile),
+            N("Don't twist it. That was work. This is... something else.", Emote.Shake),
+            N("Ten years the elders have said nobody clears that edge. Not for rice, not for anyone."),
+            P("Funny. You never cared about those trees before today."),
+            N("You don't know what I cared about.", Emote.HeavySigh),
+            P("I know exactly what this is. My sawit outsold your rice, and now I've got more land than you."),
+            P("You're jealous, Rigel. Just say it.", Emote.WideSmile),
+            N("...Jealous."),
+            N("That ground was supposed to be—", Emote.Surprised),
+            N("Forget it. Enjoy your field while it lasts."));
+        cozy.rigelBridgeAfterDialogueSO = Dialogue("Day3_RigelBridgeAfter",
+            P("...Sore loser.", Emote.HeavySigh));
         cozy.eveningMathDialogueSO = Dialogue("Day3_EveningMath_CozyFarm",
             P("A good day. A new field and a new bridge, and all it cost me was one sawit."),
             P("Two weeks of harvests barely moved the debt. Sixteen more days won't do it either."),
@@ -126,6 +144,7 @@ public static class Day3DataBuilder
         cozy.treeObjectiveArray = new[] { GameDataBuilder.Task("D3_PunchTrees", TaskObjectiveSO.Type.Story, "Punch down the 3 trees across the river", null, 3) };
         cozy.smashObjectiveArray = new[] { GameDataBuilder.Task("D3_SmashClearing", TaskObjectiveSO.Type.Story, "Pound the cleared ground into a field", null, 1) };
         cozy.bridgeObjectiveArray = new[] { GameDataBuilder.Task("D3_BuildBridge", TaskObjectiveSO.Type.Story, "Go to the riverbank by the new field", null, 1) };
+        cozy.crossBridgeObjectiveArray = new[] { GameDataBuilder.Task("D3_CrossBridge", TaskObjectiveSO.Type.Story, "Cross the new bridge home", null, 1) };
         EditorUtility.SetDirty(cozy);
         AssetDatabase.SaveAssets();
         return cozy;
