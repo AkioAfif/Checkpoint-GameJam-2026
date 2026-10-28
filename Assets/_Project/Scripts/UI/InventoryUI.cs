@@ -7,12 +7,23 @@ public class InventoryUI : MonoBehaviour
 {
     [SerializeField] private Transform container;
     [SerializeField] private InventorySingleUI slotTemplate;
+    [Tooltip("Kept clear on both sides: a longer strip than the screen allows shrinks to fit.")]
+    [SerializeField] private float sideMargin = 40f;
 
     private readonly Dictionary<ItemDataSO, InventorySingleUI> slotDictionary = new Dictionary<ItemDataSO, InventorySingleUI>();
 
     private void Awake()
     {
         slotTemplate.gameObject.SetActive(false);
+    }
+
+    // the strip sizes itself to its slots (ContentSizeFitter) around a centred pivot, so it grows to both sides evenly
+    private void Update()
+    {
+        RectTransform stripRect = (RectTransform)transform;
+        float maxWidth = ((RectTransform)stripRect.parent).rect.width - 2f * sideMargin;
+        float scale = stripRect.rect.width > maxWidth ? maxWidth / stripRect.rect.width : 1f;
+        if (!Mathf.Approximately(stripRect.localScale.x, scale)) stripRect.localScale = new Vector3(scale, scale, 1f);
     }
 
     private void Start()

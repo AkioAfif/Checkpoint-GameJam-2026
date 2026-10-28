@@ -196,6 +196,7 @@ public class Day3Director : MonoBehaviour
     private void HouseDoor_OnStateChanged(object sender, HouseDoor.OnStateChangedEventArgs e)
     {
         if (state != State.Night || e.state != HouseDoor.State.IrisClosing) return;
+        WorldState.RecordGarden(FindObjectsByType<FarmPlot>());
         WorldState.CompleteDay3();
         SetState(State.Done);
     }

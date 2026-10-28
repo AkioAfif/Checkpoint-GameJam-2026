@@ -29,6 +29,8 @@ public class TaskManager : MonoBehaviour
         Inventory.Instance.OnItemChanged += Inventory_OnItemChanged;
         FabricatorController.OnAnySeedFabricated += FabricatorController_OnAnySeedFabricated;
         FarmPlot.OnAnyPlanted += FarmPlot_OnAnyPlanted;
+        FarmPlot.OnAnyHarvested += FarmPlot_OnAnyHarvested;
+        SellCrate.OnAnySold += SellCrate_OnAnySold;
     }
 
     private void OnDestroy()
@@ -36,6 +38,8 @@ public class TaskManager : MonoBehaviour
         if (Inventory.Instance != null) Inventory.Instance.OnItemChanged -= Inventory_OnItemChanged;
         FabricatorController.OnAnySeedFabricated -= FabricatorController_OnAnySeedFabricated;
         FarmPlot.OnAnyPlanted -= FarmPlot_OnAnyPlanted;
+        FarmPlot.OnAnyHarvested -= FarmPlot_OnAnyHarvested;
+        SellCrate.OnAnySold -= SellCrate_OnAnySold;
     }
 
     private void Inventory_OnItemChanged(object sender, Inventory.OnItemChangedEventArgs e)
@@ -45,7 +49,17 @@ public class TaskManager : MonoBehaviour
 
     // "make N seeds" counts seeds, not presses: a run of several batches (or a combo) counts every seed it made
     private void FabricatorController_OnAnySeedFabricated(object sender, FabricatorController.OnAnySeedFabricatedEventArgs e) => AddProgress(TaskObjectiveSO.Type.FabricateSeed, e.seedItemDataSO, e.seedCount);
-    private void FarmPlot_OnAnyPlanted(object sender, EventArgs e) => AddProgress(TaskObjectiveSO.Type.PlantCrop, null, 1);
+    private void FarmPlot_OnAnyPlanted(object sender, FarmPlot.OnAnyPlantedEventArgs e) => AddProgress(TaskObjectiveSO.Type.PlantCrop, e.cropDataSO.seedItemDataSO, 1);
+
+    private void FarmPlot_OnAnyHarvested(object sender, FarmPlot.OnAnyHarvestedEventArgs e)
+    {
+        if (e.isFruit) AddProgress(TaskObjectiveSO.Type.HarvestFruit, e.itemDataSO, 1);
+    }
+
+    private void SellCrate_OnAnySold(object sender, SellCrate.OnAnySoldEventArgs e)
+    {
+        foreach (ItemAmount sold in e.soldItemList) AddProgress(TaskObjectiveSO.Type.SellItem, sold.itemDataSO, sold.amount);
+    }
 
     public void CompleteEnterHouse() => AddProgress(TaskObjectiveSO.Type.EnterHouse, null, 1);
     public void CompleteStory() => AddProgress(TaskObjectiveSO.Type.Story, null, 1);
@@ -84,9 +98,8 @@ public class TaskManager : MonoBehaviour
         {
             TaskObjectiveSO objectiveSO = objectiveSOArray[i];
             if (objectiveSO.type != type || IsComplete(i)) continue;
-            if (type == TaskObjectiveSO.Type.CollectItem && objectiveSO.itemDataSO != itemDataSO) continue;
-            // a press of an older recipe doesn't count toward "press Lv.2 seeds"
-            if (type == TaskObjectiveSO.Type.FabricateSeed && objectiveSO.itemDataSO != null && objectiveSO.itemDataSO != itemDataSO) continue;
+            // an objective naming an item only counts that item ("press Lv.2 seeds", "sell the sawit")
+            if (objectiveSO.itemDataSO != null && objectiveSO.itemDataSO != itemDataSO) continue;
             progressArray[i] = Mathf.Min(progressArray[i] + amount, objectiveSO.requiredCount);
             OnObjectiveProgress?.Invoke(this, new OnObjectiveProgressEventArgs { index = i, isComplete = IsComplete(i) });
         }

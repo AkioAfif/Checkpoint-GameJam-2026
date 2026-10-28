@@ -37,7 +37,7 @@ public class BedroomDirector : MonoBehaviour
     private void Start()
     {
         bool isTesting = isTestingDay2 || isTestingDay3 || isTestingDay4;
-        if (isTesting && !WorldState.IsDay1Complete()) WorldState.CompleteDay1(new Vector3[0]);
+        if (isTesting && !WorldState.IsDay1Complete()) WorldState.CompleteDay1();
         if ((isTestingDay3 || isTestingDay4) && !WorldState.IsDay2Complete()) WorldState.CompleteDay2();
         if (isTestingDay4 && !WorldState.IsDay3Complete()) WorldState.CompleteDay3();
         day = WorldState.IsDay3Complete() ? 4 : WorldState.IsDay2Complete() ? 3 : WorldState.IsDay1Complete() ? 2 : 1;

@@ -115,8 +115,8 @@ public static class GameDataBuilder
             N("Then take these spare bottles. The river water is lovely and cool today.", Emote.Hop),
             P("Two bottles? Thank you so much!", Emote.Cheer),
             N("Don't mention it. Come by any time!", Emote.Nod));
-        // the bottles are a Day 1 welcome; later days (and later talks) play the repeat
-        ratnaFirst.rewardDay = 1;
+        // the bottles wait for the first talk, whatever day it comes on (given once per playthrough); later talks play the repeat
+        ratnaFirst.rewardDay = 0;
         EditorUtility.SetDirty(ratnaFirst);
         ratnaRepeat = Dialogue("Ratna_Repeat", default,
             N("Still using those bottles? The river water is lovely and cool today.", Emote.Wave),

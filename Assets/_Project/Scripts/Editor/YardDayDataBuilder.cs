@@ -107,8 +107,8 @@ public static class YardDayDataBuilder
             P("Three plots. One whole day, half the village... and Rigel's back.", Emote.HeavySigh),
             P("Twenty-nine days. I can't do this every day."));
 
-        TaskObjectiveSO harvest = GameDataBuilder.Task("D3Y_Harvest", TaskObjectiveSO.Type.CollectItem, "Harvest the ripe sawit", lv1Bunch, 4);
-        TaskObjectiveSO sell = GameDataBuilder.Task("D3Y_Sell", TaskObjectiveSO.Type.Story, "Sell the sawit at the ICAN crate", null, 1);
+        TaskObjectiveSO harvest = GameDataBuilder.Task("D3Y_Harvest", TaskObjectiveSO.Type.HarvestFruit, "Harvest the ripe sawit", null, 1);
+        TaskObjectiveSO sell = GameDataBuilder.Task("D3Y_Sell", TaskObjectiveSO.Type.SellItem, "Sell the sawit at the ICAN crate", null, 1);
         TaskObjectiveSO clear = GameDataBuilder.Task("D3Y_Clear", TaskObjectiveSO.Type.Story, "Clear the strip by the garden", null, 1);
         TaskObjectiveSO sickle = GameDataBuilder.Task("D3Y_Sickle", TaskObjectiveSO.Type.CollectItem, "Borrow a sickle (Nek Ijah)", Sickle, 1);
         TaskObjectiveSO hoe = GameDataBuilder.Task("D3Y_Hoe", TaskObjectiveSO.Type.CollectItem, "Borrow a hoe (Pak Darto)", Hoe, 1);

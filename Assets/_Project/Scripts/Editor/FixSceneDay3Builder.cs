@@ -13,7 +13,7 @@ using static GrayboxBuild;
 // - the clutter FixSceneMapBuilder put there (weeds, rocks, the stump) becomes jobs that need the borrowed tools;
 // - three hidden plots in a fourth column east of the garden appear as the MC tills their patches, each with its bed cut from
 //   the 3x4 garden model; the last one swaps the old 3x3 garden for the whole 3x4 model (GardenExpansionVisual);
-// - Dimas digs by the river with Darto's hoe; a Lv.2 bunch sits on a crate by the front door for the evening's pulse.
+// - Dimas digs by the river with Darto's hoe.
 // Re-runnable: FixScene_Day3 is regenerated each time. FixScene_Day4 copies it (StripYardDay), so rebuild Day 4 after it.
 public static class FixSceneDay3Builder
 {
@@ -44,7 +44,6 @@ public static class FixSceneDay3Builder
     private static readonly Vector3 RigelHelpPosition = new Vector3(-5.7f, 0f, -34f);
     private static readonly Vector3 AfternoonPosition = new Vector3(-6.2f, 0f, -30.6f);
     // a crate beside the front door (the morning point) holding the Lv.2 bunch he kept
-    private static readonly Vector3 PorchCratePosition = new Vector3(-20.9f, 0f, -26.3f);
     // up the river bank north of the old bridge, near Darto
     private static readonly Vector3 DimasDigPosition = new Vector3(-6.5f, 0f, 9f);
     // side-on to the gameplay camera (which looks south), so his swing reads
@@ -86,16 +85,15 @@ public static class FixSceneDay3Builder
 
         Transform gameplay = GameObject.Find(GAMEPLAY_ROOT).transform;
         Transform day2 = gameplay.Find(DAY2_DIRECTOR_ROOT);
-        Material pulseMaterial = (Material)new SerializedObject(day2.GetComponent<MutationPulseVisual>()).FindProperty("pulseMaterial").objectReferenceValue;
         Object.DestroyImmediate(day2.gameObject);
         // the garden, front (north) row first: the first ones are ripe this morning
         FarmPlot[] gardenPlots = Object.FindObjectsByType<FarmPlot>(FindObjectsInactive.Include)
             .Where(p => p.gameObject.activeSelf)
             .OrderBy(p => -Mathf.Round(p.transform.position.z * 10f)).ThenBy(p => p.transform.position.x).ToArray();
 
-        // ICAN only buys the usual bunches today, so the MC keeps the dark Lv.2 ones
+        // ICAN buys every level of sawit
         SellCrate crate = Object.FindAnyObjectByType<SellCrate>(FindObjectsInactive.Include);
-        SetArray(crate, "sellableItemDataSOArray", new Object[] { Day2DataBuilder.SawitBunch });
+        SetArray(crate, "sellableItemDataSOArray", new Object[] { Day2DataBuilder.SawitBunch, Day3DataBuilder.SawitBunchLv2 });
 
         Transform graybox = Root(GRAYBOX_ROOT, gameplay).transform;
         Transform director = Root(DIRECTOR_ROOT, gameplay).transform;
@@ -106,9 +104,7 @@ public static class FixSceneDay3Builder
         Transform stumpPullPoint = Day2GrayboxBuilder.Point(points, "StumpPullPoint", Ground(StumpPullPosition), -90f);
         Transform rigelHelpPoint = Day2GrayboxBuilder.Point(points, "RigelHelpPoint", Ground(RigelHelpPosition), -90f);
         Transform afternoonPoint = Day2GrayboxBuilder.Point(points, "AfternoonPoint", Ground(AfternoonPosition), 180f);
-        Vector3 porchCrate = Ground(PorchCratePosition);
-        Vector3 toCrate = porchCrate - morningPoint.position;
-        Transform eveningPoint = Day2GrayboxBuilder.Point(points, "EveningPoint", morningPoint.position, Mathf.Atan2(toCrate.x, toCrate.z) * Mathf.Rad2Deg);
+        Transform eveningPoint = Day2GrayboxBuilder.Point(points, "EveningPoint", morningPoint.position, morningPoint.eulerAngles.y);
 
         Transform dust = VfxBuilder.SmashDust().transform;
         Transform jobs = Root("Jobs", director).transform;
@@ -179,13 +175,8 @@ public static class FixSceneDay3Builder
         SetField(night, "worldCamera", Camera.main);
         SetField(night, "doorLamp", day2Graybox.Find("DoorLamp").gameObject);
 
-        Transform bunch = BuildPorchBunch(director, porchCrate);
-        BunchPulseVisual pulse = director.gameObject.AddComponent<BunchPulseVisual>();
-        SetField(pulse, "director", yard);
-        SetField(pulse, "bunch", bunch);
-        SetField(pulse, "pulseMaterial", pulseMaterial);
         BuildRope(director, yard, landQTE, stumpModel);
-        BuildCameras(director, yard, stumpModel.position, bunch.position);
+        BuildCameras(director, yard, stumpModel.position);
 
         // the wish: the garden's new column, see-through on the strip, and the clutter gone from the picture
         ImaginationVisual imagination = director.gameObject.AddComponent<ImaginationVisual>();
@@ -439,18 +430,6 @@ public static class FixSceneDay3Builder
         SetArray(visual, "npcArray", Object.FindObjectsByType<Npc>(FindObjectsInactive.Include));
     }
 
-    // a wooden crate by the front door with a dark Lv.2 bunch on it
-    private static Transform BuildPorchBunch(Transform director, Vector3 position)
-    {
-        Transform root = Root("PorchBunch", director).transform;
-        root.position = position;
-        Part(root, "Crate", GrayboxMeshFactory.RoundedBox(new Vector3(.6f, .45f, .5f), .03f), GrayboxPalette.Wood, new Vector3(0f, .225f, 0f));
-        GameObject bunch = (GameObject)PrefabUtility.InstantiatePrefab(Day3DataBuilder.SawitBunchLv2.prefab.gameObject, root);
-        bunch.name = "SawitBunchLv2";
-        bunch.transform.localPosition = new Vector3(0f, .45f, 0f);
-        return bunch.transform;
-    }
-
     private static void BuildRope(Transform director, YardDayDirector yard, LandQTE landQTE, Transform stumpModel)
     {
         GameObject rope = Root("Rope", director);
@@ -467,7 +446,7 @@ public static class FixSceneDay3Builder
         SetField(ropeVisual, "stumpEnd", tied);
     }
 
-    private static void BuildCameras(Transform director, YardDayDirector yard, Vector3 stump, Vector3 bunch)
+    private static void BuildCameras(Transform director, YardDayDirector yard, Vector3 stump)
     {
         YardCameraVisual cameraVisual = director.gameObject.AddComponent<YardCameraVisual>();
         SetField(cameraVisual, "director", yard);
@@ -477,8 +456,6 @@ public static class FixSceneDay3Builder
         // from the south-east, both of them on the rope with the stump on the left
         SetField(cameraVisual, "stumpCamera", Day3GrayboxBuilder.FixedCamera(director, "CM_YardStump", Ground(new Vector3(-4f, 0f, -38.6f)) + Vector3.up * 2.4f,
             stump + new Vector3(1.4f, .7f, 0f), 42f));
-        // close on the bunch on the crate, the MC turned away beside it
-        SetField(cameraVisual, "pulseCamera", Day3GrayboxBuilder.FixedCamera(director, "CM_YardPulse", bunch + new Vector3(1.4f, 1.1f, 1.6f), bunch, 35f));
     }
 
     // ---------- data ----------

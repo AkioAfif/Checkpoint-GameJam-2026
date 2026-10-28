@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5eef9af9623baf47817cd10c4ddca09, type: 3}
   m_Name: D3Y_Sell
   m_EditorClassIdentifier: Assembly-CSharp::TaskObjectiveSO
-  type: 4
+  type: 6
   description: Sell the sawit at the ICAN crate
   itemDataSO: {fileID: 0}
   requiredCount: 1

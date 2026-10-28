@@ -11,6 +11,10 @@ public class DialogueUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private Image nameTagImage;
     [SerializeField] private GameObject npcPortraitFrame;
+    [SerializeField] private RawImage playerPortraitImage;
+    [SerializeField] private RawImage npcPortraitImage;
+    [Tooltip("Tint of the portrait whose character isn't speaking the current line.")]
+    [SerializeField] private Color silentPortraitColor = new Color(.32f, .32f, .32f);
     [SerializeField] private GameObject continueIndicator;
     [SerializeField] private UIPop boxPop;
     [SerializeField] private string playerName = "You";
@@ -72,6 +76,9 @@ public class DialogueUI : MonoBehaviour
         lineText.text = e.line.text;
         lineText.maxVisibleCharacters = 0;
         isShaking = e.line.isShaking;
+        // the speaker stays clear, the listener goes dark
+        playerPortraitImage.color = isPlayer ? Color.white : silentPortraitColor;
+        npcPortraitImage.color = isPlayer ? silentPortraitColor : Color.white;
     }
 
     // jitters every visible letter's vertices from the freshly generated mesh, so the offsets never pile up

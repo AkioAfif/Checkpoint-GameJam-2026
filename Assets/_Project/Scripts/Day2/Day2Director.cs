@@ -213,19 +213,16 @@ public class Day2Director : MonoBehaviour
     private void HouseDoor_OnStateChanged(object sender, HouseDoor.OnStateChangedEventArgs e)
     {
         if (state != State.Night || e.state != HouseDoor.State.IrisClosing) return;
+        WorldState.RecordGarden(FindObjectsByType<FarmPlot>());
         WorldState.CompleteDay2();
         SetState(State.Done);
     }
 
-    // exactly the plots Day 1 planted; without a Day 1 before this scene, the first few stand in
+    // Day 1's garden wakes up by itself (FarmPlot); without a Day 1 before this scene, the first few plots stand in
     private void RipenYesterdaysPalms()
     {
-        bool hasDay1Plots = WorldState.GetSaplingCount() > 0;
-        for (int i = 0; i < farmPlotArray.Length; i++)
-        {
-            bool isRipe = hasDay1Plots ? WorldState.WasPlantedOnDay1(farmPlotArray[i].transform.position) : i < testRipeCount;
-            if (isRipe) farmPlotArray[i].SetRipe(ripeCropDataSO);
-        }
+        if (WorldState.HasGarden()) return;
+        for (int i = 0; i < farmPlotArray.Length && i < testRipeCount; i++) farmPlotArray[i].SetRipe(ripeCropDataSO);
     }
 
     public State GetState() => state;

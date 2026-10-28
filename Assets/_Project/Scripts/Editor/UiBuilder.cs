@@ -54,6 +54,7 @@ public static class UiBuilder
         BuildInventory(hud);
         BuildPrompt(canvas);
         BuildQte(canvas);
+        BuildSeedChoice(canvas);
         // scenes without a Fabricator or a house door (HouseInterior) skip the panels that listen to them
         if (refs.fabricator != null) FabricatorGridPuzzleBuilder.BuildHud(canvas, refs.fabricator, refs.miniGame);
         BuildDialogue(canvas, refs);
@@ -75,8 +76,9 @@ public static class UiBuilder
         layout.childControlWidth = true;
         layout.childForceExpandHeight = false;
         panel.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-        TextMeshProUGUI header = Text(panel, "Header", "Today", 34, Ink, TextAlignmentOptions.Left, FontStyles.Bold);
+        TextMeshProUGUI header = Text(panel, "Header", "Quest", 34, Ink, TextAlignmentOptions.Left, FontStyles.Bold);
         UIPop headerPop = header.gameObject.AddComponent<UIPop>();
+        TextMeshProUGUI debt = Text(panel, "Debt", "Remaining debt: 0 Koin", 24, Ink, TextAlignmentOptions.Left);
 
         RectTransform row = Rect(panel, "RowTemplate", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(.5f, 1f), Vector2.zero, new Vector2(0f, 40f));
         row.gameObject.AddComponent<LayoutElement>().preferredHeight = 40f;
@@ -98,6 +100,7 @@ public static class UiBuilder
         SetField(taskUI, "container", panel);
         SetField(taskUI, "rowTemplate", single);
         SetField(taskUI, "headerPop", headerPop);
+        SetField(taskUI, "debtText", debt);
     }
 
     private static void BuildInventory(Transform canvas)
@@ -109,6 +112,8 @@ public static class UiBuilder
         layout.childControlWidth = false;
         layout.childControlHeight = false;
         layout.childForceExpandWidth = false;
+        // as wide as its slots around the centred pivot: more items grow it to both sides evenly
+        strip.gameObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
 
         RectTransform slot = Panel(strip, "SlotTemplate", new Vector2(.5f, .5f), new Vector2(.5f, .5f), new Vector2(.5f, .5f), Vector2.zero, new Vector2(104f, 104f), Cream);
         Image icon = Img(slot, "Icon", null, Color.white, new Vector2(.5f, .5f), new Vector2(.5f, .5f), new Vector2(.5f, .5f), new Vector2(0f, 4f), new Vector2(84f, 84f));
@@ -124,6 +129,34 @@ public static class UiBuilder
         InventoryUI inventoryUI = strip.gameObject.AddComponent<InventoryUI>();
         SetField(inventoryUI, "container", strip);
         SetField(inventoryUI, "slotTemplate", single);
+    }
+
+    // above the hotbar while the player picks which seed to plant
+    public static void BuildSeedChoice(Transform canvas)
+    {
+        RectTransform panel = Panel(canvas, "SeedChoiceUI", new Vector2(.5f, 0f), new Vector2(.5f, 0f), new Vector2(.5f, 0f), new Vector2(0f, 170f), new Vector2(560f, 300f), Cream);
+        TextMeshProUGUI title = Text(panel, "Title", "Plant which seed?", 34, Ink, TextAlignmentOptions.Center, FontStyles.Bold);
+        Place(title.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -40f), new Vector2(500f, 50f));
+        Image icon = Img(panel, "SeedIcon", null, Color.white, new Vector2(.5f, 1f), new Vector2(.5f, 1f), Centre, new Vector2(-140f, -118f), new Vector2(72f, 72f));
+        icon.preserveAspect = true;
+        TextMeshProUGUI seedName = Text(panel, "SeedName", "Sawit Seed", 30, Ink, TextAlignmentOptions.Left, FontStyles.Bold);
+        Place(seedName.rectTransform, new Vector2(.5f, 1f), new Vector2(50f, -102f), new Vector2(300f, 44f));
+        TextMeshProUGUI seedCount = Text(panel, "SeedCount", "You have 1   (1/2)", 24, Ink, TextAlignmentOptions.Left);
+        Place(seedCount.rectTransform, new Vector2(.5f, 1f), new Vector2(50f, -140f), new Vector2(300f, 34f));
+        Button previous = Button(panel, "PreviousSeedButton", "<", new Vector2(-235f, 157f), new Vector2(56f, 56f));
+        Button next = Button(panel, "NextSeedButton", ">", new Vector2(235f, 157f), new Vector2(56f, 56f));
+        Button plant = Button(panel, "PlantButton", "Plant", new Vector2(-100f, 52f), new Vector2(180f, 60f));
+        Button cancel = Button(panel, "CancelButton", "Cancel", new Vector2(100f, 52f), new Vector2(180f, 60f));
+        TextMeshProUGUI hint = Text(panel, "Hint", "A / D  seed    E  plant    Esc  cancel", 18, Ink, TextAlignmentOptions.Center);
+        Place(hint.rectTransform, new Vector2(.5f, 0f), new Vector2(0f, 24f), new Vector2(520f, 28f));
+        SeedChoiceUI seedChoiceUI = panel.gameObject.AddComponent<SeedChoiceUI>();
+        SetField(seedChoiceUI, "seedIconImage", icon);
+        SetField(seedChoiceUI, "seedNameText", seedName);
+        SetField(seedChoiceUI, "seedCountText", seedCount);
+        SetField(seedChoiceUI, "previousSeedButton", previous);
+        SetField(seedChoiceUI, "nextSeedButton", next);
+        SetField(seedChoiceUI, "plantButton", plant);
+        SetField(seedChoiceUI, "cancelButton", cancel);
     }
 
     private static void BuildPrompt(Transform canvas)
@@ -201,7 +234,7 @@ public static class UiBuilder
         root.gameObject.AddComponent<CanvasGroup>();
         RectTransform box = Panel(root, "Box", new Vector2(.5f, 0f), new Vector2(.5f, 0f), new Vector2(.5f, 0f), new Vector2(0f, 40f), new Vector2(1320f, 270f), Cream);
         Outline(box.gameObject);
-        Portrait(box, "PlayerPortrait", refs.playerPortrait, new Vector2(0f, 1f), new Vector2(150f, 10f));
+        RectTransform playerFrame = Portrait(box, "PlayerPortrait", refs.playerPortrait, new Vector2(0f, 1f), new Vector2(150f, 10f));
         RectTransform npcFrame = Portrait(box, "NpcPortrait", refs.npcPortrait, new Vector2(1f, 1f), new Vector2(-150f, 10f));
 
         RectTransform nameTag = Panel(box, "NameTag", new Vector2(.5f, 1f), new Vector2(.5f, 1f), new Vector2(.5f, .5f), new Vector2(0f, 0f), new Vector2(300f, 56f), Sky);
@@ -217,6 +250,8 @@ public static class UiBuilder
         SetField(ui, "nameText", name);
         SetField(ui, "nameTagImage", nameTag.GetComponent<Image>());
         SetField(ui, "npcPortraitFrame", npcFrame.gameObject);
+        SetField(ui, "playerPortraitImage", playerFrame.GetComponentInChildren<RawImage>());
+        SetField(ui, "npcPortraitImage", npcFrame.GetComponentInChildren<RawImage>());
         SetField(ui, "continueIndicator", Wrap(arrow.gameObject));
         SetField(ui, "boxPop", box.gameObject.AddComponent<UIPop>());
     }

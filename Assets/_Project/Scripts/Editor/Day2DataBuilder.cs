@@ -84,7 +84,7 @@ public static class Day2DataBuilder
         TaskObjectiveSO meetRigel = GameDataBuilder.Task("D2_MeetRigel", TaskObjectiveSO.Type.Story, "Talk to Rigel by his field", null, 1);
         TaskObjectiveSO gatherResin = GameDataBuilder.Task("D2_GatherResin", TaskObjectiveSO.Type.CollectItem, "Scrape 2 resin at the forest edge", Resin, 2);
         TaskObjectiveSO fabricate = GameDataBuilder.Task("D2_MakeLv2", TaskObjectiveSO.Type.FabricateSeed, "Press Sawit Lv.2 seeds in the Fabricator", SawitSeedLv2, 1);
-        TaskObjectiveSO plant = GameDataBuilder.Task("D2_PlantLv2", TaskObjectiveSO.Type.PlantCrop, "Plant 2 Sawit Lv.2 seeds", null, 2);
+        TaskObjectiveSO plant = GameDataBuilder.Task("D2_PlantLv2", TaskObjectiveSO.Type.PlantCrop, "Plant 2 Sawit Lv.2 seeds", SawitSeedLv2, 2);
         TaskObjectiveSO showRigel = GameDataBuilder.Task("D2_ShowRigel", TaskObjectiveSO.Type.Story, "Show Rigel your new sawit", null, 1);
         TaskObjectiveSO home = GameDataBuilder.Task("D2_GoHome", TaskObjectiveSO.Type.EnterHouse, "Go home", null, 1);
         Day2.morningObjectiveArray = new[] { readBook };

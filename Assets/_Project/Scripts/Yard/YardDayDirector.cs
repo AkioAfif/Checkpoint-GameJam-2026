@@ -1,22 +1,22 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 // Runs Day 3 on the CozyFarm map, "Dirt Under Your Nails" (the morning savings book is BedroomDirector in HouseInterior):
 // the MC widens the garden onto the overgrown strip beside it, by hand. Harvest and sell → the math doesn't work → he pictures
 // a farm on the strip → bare hands fail → errands for a sickle, a hoe and a rope (YardErrands) → lunch at Ratna's →
 // the afternoon's work (weeds, rocks) → the stump, which only comes out once Rigel lends a hand → till and plant 4 plots →
-// the evening book and the quiet hook (the Lv.2 bunch he kept pulses red; he doesn't see it) → home.
-// Cameras, light and the pulse listen to its events and getters.
+// the evening book and monologue → home.
+// Cameras and light listen to its events and getters.
 public class YardDayDirector : MonoBehaviour
 {
     public event EventHandler<OnStateChangedEventArgs> OnStateChanged;
     public class OnStateChangedEventArgs : EventArgs { public State state; }
-    public event EventHandler OnBunchPulsed;
 
     public enum State { Harvest, Wish, BareHands, Errands, Lunch, Work, Stump, Till, Night, Done }
 
     // the stump and the evening, a beat at a time
-    public enum Step { None, Fail, PullAlone, RigelWalk, RigelHelp, PullTogether, Fallen, RigelTalk, Book, Monologue, Pulse }
+    public enum Step { None, Fail, PullAlone, RigelWalk, RigelHelp, PullTogether, Fallen, RigelTalk, Book, Monologue }
 
     [SerializeField] private YardDaySO yardDaySO;
     [SerializeField] private YardErrands errands;
@@ -64,7 +64,6 @@ public class YardDayDirector : MonoBehaviour
     [SerializeField] private float tillHoldDuration = 1f;
     [SerializeField] private float rigelWalkSpeed = 3f;
     [SerializeField] private float wishShotDelay = 1.2f;
-    [SerializeField] private float pulseDuration = 1.6f;
 
     private State state;
     private Step step;
@@ -91,7 +90,6 @@ public class YardDayDirector : MonoBehaviour
         screenFade.OnFinished += ScreenFade_OnFinished;
         DialogueManager.Instance.OnDialogueEnded += DialogueManager_OnDialogueEnded;
         TaskManager.Instance.OnRequiredTasksCompleted += TaskManager_OnRequiredTasksCompleted;
-        SellCrate.OnAnySold += SellCrate_OnAnySold;
         houseDoor.OnStateChanged += HouseDoor_OnStateChanged;
         landQTE.OnStateChanged += LandQTE_OnStateChanged;
         landQTE.OnFilled += LandQTE_OnFilled;
@@ -111,7 +109,6 @@ public class YardDayDirector : MonoBehaviour
         // no "Finish today's tasks first" over the player's head all day
         houseDoor.SetHidden(true);
         houseDoor.SetNextScene(Loader.Scene.HouseInterior);
-        TaskManager.Instance.SetObjectives(yardDaySO.harvestObjectiveArray);
         Player.Instance.Teleport(morningPoint.position);
         Player.Instance.FaceTowards(morningPoint.position + morningPoint.forward);
         SetState(State.Harvest);
@@ -119,12 +116,15 @@ public class YardDayDirector : MonoBehaviour
 
     private void Update()
     {
-        // the plots set their start state in their own Start, so yesterday's palms ripen on the first frame
+        // the plots wake up from yesterday's garden in their own Start, so the harvest is only known on the first frame
         if (!hasStarted)
         {
             hasStarted = true;
-            for (int i = 0; i < gardenPlotArray.Length && i < ripeLv2Count + ripeLv1Count; i++)
-                gardenPlotArray[i].SetRipe(i < ripeLv2Count ? lv2CropDataSO : lv1CropDataSO);
+            // played on its own (no Day 2 before it), a few garden plots stand in for yesterday's palms
+            if (!WorldState.HasGarden())
+                for (int i = 0; i < gardenPlotArray.Length && i < ripeLv2Count + ripeLv1Count; i++)
+                    gardenPlotArray[i].SetRipe(i < ripeLv2Count ? lv2CropDataSO : lv1CropDataSO);
+            TaskManager.Instance.SetObjectives(GetHarvestObjectiveArray());
         }
 
         if (timer >= 0f)
@@ -152,17 +152,11 @@ public class YardDayDirector : MonoBehaviour
 
     private void OnDestroy()
     {
-        SellCrate.OnAnySold -= SellCrate_OnAnySold;
         if (DialogueManager.Instance != null) DialogueManager.Instance.OnDialogueEnded -= DialogueManager_OnDialogueEnded;
         if (TaskManager.Instance != null) TaskManager.Instance.OnRequiredTasksCompleted -= TaskManager_OnRequiredTasksCompleted;
     }
 
     // ---------- handlers ----------
-
-    private void SellCrate_OnAnySold(object sender, SellCrate.OnAnySoldEventArgs e)
-    {
-        if (state == State.Harvest) TaskManager.Instance.CompleteStory();
-    }
 
     private void TaskManager_OnRequiredTasksCompleted(object sender, EventArgs e)
     {
@@ -230,12 +224,12 @@ public class YardDayDirector : MonoBehaviour
         else if (state == State.Stump) OnStumpDialogueEnded();
         else if (state == State.Night && step == Step.Monologue)
         {
-            // he turns to the door; the bunch on the crate behind him pulses
-            step = Step.Pulse;
-            Hold();
-            Player.Instance.FaceTowards(eveningPoint.position - eveningPoint.forward);
-            OnBunchPulsed?.Invoke(this, EventArgs.Empty);
-            timer = pulseDuration;
+            // back in control: walk home to end the day
+            step = Step.None;
+            GameManager.Instance.SetState(GameManager.State.Playing);
+            houseDoor.SetHidden(false);
+            houseDoor.SetLocked(false);
+            TaskManager.Instance.SetObjectives(yardDaySO.nightObjectiveArray);
         }
     }
 
@@ -391,8 +385,43 @@ public class YardDayDirector : MonoBehaviour
     private void HouseDoor_OnStateChanged(object sender, HouseDoor.OnStateChangedEventArgs e)
     {
         if (state != State.Night || e.state != HouseDoor.State.IrisClosing) return;
+        WorldState.RecordGarden(FindObjectsByType<FarmPlot>());
         WorldState.CompleteDay3();
         SetState(State.Done);
+    }
+
+    // harvest one ripe sawit, then sell one; an objective the garden and bag can't serve today is left out, so the day
+    // can't get stuck (yesterday's palms may all have been picked already)
+    private TaskObjectiveSO[] GetHarvestObjectiveArray()
+    {
+        FarmPlot[] farmPlotArray = FindObjectsByType<FarmPlot>();
+        List<TaskObjectiveSO> objectiveSOList = new List<TaskObjectiveSO>();
+        foreach (TaskObjectiveSO objectiveSO in yardDaySO.harvestObjectiveArray)
+        {
+            if (objectiveSO.type == TaskObjectiveSO.Type.HarvestFruit && !HasRipeFruit(farmPlotArray, objectiveSO.itemDataSO)) continue;
+            if (objectiveSO.type == TaskObjectiveSO.Type.SellItem && !HasRipeFruit(farmPlotArray, objectiveSO.itemDataSO) && !CanSellFromBag(objectiveSO.itemDataSO)) continue;
+            objectiveSOList.Add(objectiveSO);
+        }
+        return objectiveSOList.ToArray();
+    }
+
+    // the bag already holds something to sell (null = anything the crate buys)
+    private static bool CanSellFromBag(ItemDataSO itemDataSO)
+    {
+        if (itemDataSO != null) return Inventory.Instance.GetCount(itemDataSO) > 0;
+        SellCrate crate = FindAnyObjectByType<SellCrate>();
+        return crate != null && crate.CanInteract(Player.Instance);
+    }
+
+    // a ripe palm bearing this fruit (null = any fruit)
+    private static bool HasRipeFruit(FarmPlot[] farmPlotArray, ItemDataSO fruitItemDataSO)
+    {
+        foreach (FarmPlot farmPlot in farmPlotArray)
+        {
+            if (farmPlot.GetState() != FarmPlot.State.Ripe) continue;
+            if (fruitItemDataSO == null || farmPlot.GetPlantedCropDataSO().harvestItemDataSO == fruitItemDataSO) return true;
+        }
+        return false;
     }
 
     // ---------- public ----------
@@ -403,7 +432,6 @@ public class YardDayDirector : MonoBehaviour
     public bool IsWishShot() => state == State.Wish;
     // the rope scene, from Rigel's arrival to his talk
     public bool IsStumpShot() => state == State.Stump && step != Step.None && step != Step.PullAlone;
-    public bool IsPulseShot() => step == Step.Pulse;
 
     // ---------- helpers ----------
 
@@ -427,14 +455,6 @@ public class YardDayDirector : MonoBehaviour
             case Step.Fallen:
                 step = Step.RigelTalk;
                 DialogueManager.Instance.StartDialogue(rigelNpc, yardDaySO.rigelTalkDialogueSO);
-                break;
-            case Step.Pulse:
-                // back in control: walk home to end the day
-                step = Step.None;
-                GameManager.Instance.SetState(GameManager.State.Playing);
-                houseDoor.SetHidden(false);
-                houseDoor.SetLocked(false);
-                TaskManager.Instance.SetObjectives(yardDaySO.nightObjectiveArray);
                 break;
         }
     }

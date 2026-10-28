@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 // Runs "Day 1: The Crisis" in the village, from the truck's arrival to the evening at the farm and the front door (the bedroom
@@ -483,10 +482,8 @@ public class Day1Director : MonoBehaviour
     {
         if (state != State.Night || e.state != HouseDoor.State.IrisClosing) return;
         // every sapling in the ground tonight, including any planted after dusk, stands ripe in the Day 2 scene
-        List<Vector3> plantedPositionList = new List<Vector3>();
-        foreach (FarmPlot farmPlot in farmPlotArray)
-            if (farmPlot.GetState() == FarmPlot.State.Planted || farmPlot.GetState() == FarmPlot.State.Grown) plantedPositionList.Add(farmPlot.transform.position);
-        WorldState.CompleteDay1(plantedPositionList);
+        WorldState.RecordGarden(farmPlotArray);
+        WorldState.CompleteDay1();
         SetState(State.Done);
     }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,6 +6,12 @@ using UnityEngine;
 // scene loads (like Loader), but it is not saved to disk.
 public static class WorldState
 {
+    // the debt went up or down (raised once per change)
+    public static event EventHandler OnDebtChanged;
+
+    // one plot of last night's garden; the day scenes share the map, so a plot is found again by where it stands
+    public struct GardenPlot { public Vector3 position; public FarmPlot.State state; public CropDataSO cropDataSO; }
+
     // how close a plot must sit to a recorded position to count as the same plot (the day scenes share the field layout)
     private const float SAME_PLOT_DISTANCE = .1f;
 
@@ -13,8 +20,9 @@ public static class WorldState
     private static bool isDay3Complete;
     private static bool hasSkippedTime;
     private static bool isFabricatorPlaced;
-    // where Day 1's saplings stand; they are ripe the next morning
-    private static readonly List<Vector3> plantedPositionList = new List<Vector3>();
+    // every plot as the last day's door closed on it; the next morning's plots wake up from these (FarmPlot.Start)
+    private static bool hasGarden;
+    private static readonly List<GardenPlot> gardenPlotList = new List<GardenPlot>();
     // the money only exists from the first look at the savings book (Day 2's morning) on
     private static bool hasAccounts;
     private static long savings;
@@ -32,12 +40,19 @@ public static class WorldState
     // Fabricator recipes made at least once (the latest per seed type), choosable in the recipe panel on later presses
     private static readonly List<FabricatorController.Recipe> unlockedRecipeList = new List<FabricatorController.Recipe>();
 
-    public static void CompleteDay1(IEnumerable<Vector3> plantedPositions)
+    public static void CompleteDay1()
     {
         isDay1Complete = true;
         isFabricatorPlaced = true;
-        plantedPositionList.Clear();
-        plantedPositionList.AddRange(plantedPositions);
+    }
+
+    // called as each day's door closes, so the next day starts from this garden
+    public static void RecordGarden(FarmPlot[] farmPlotArray)
+    {
+        hasGarden = true;
+        gardenPlotList.Clear();
+        foreach (FarmPlot farmPlot in farmPlotArray)
+            gardenPlotList.Add(new GardenPlot { position = farmPlot.transform.position, state = farmPlot.GetState(), cropDataSO = farmPlot.GetPlantedCropDataSO() });
     }
 
     public static void CompleteDay2() => isDay2Complete = true;
@@ -51,6 +66,7 @@ public static class WorldState
         savings = startingSavings;
         debt = startingDebt;
         daysUntilDue = startingDaysUntilDue;
+        OnDebtChanged?.Invoke(null, EventArgs.Empty);
     }
 
     // a new morning (Day 2 on): one day less until the debt is due, and a fresh "earned today" (applied once per day)
@@ -69,7 +85,8 @@ public static class WorldState
     public static void Earn(long amount)
     {
         earnedToday += amount;
-        debt = System.Math.Max(0L, debt - amount);
+        debt = Math.Max(0L, debt - amount);
+        OnDebtChanged?.Invoke(null, EventArgs.Empty);
     }
 
     // the weeks between Day 2 and Day 3: the harvests in between went to the lender (applied once)
@@ -77,7 +94,8 @@ public static class WorldState
     {
         if (hasSkippedTime) return;
         hasSkippedTime = true;
-        debt = System.Math.Max(0L, debt - paidMeanwhile);
+        debt = Math.Max(0L, debt - paidMeanwhile);
+        OnDebtChanged?.Invoke(null, EventArgs.Empty);
         daysUntilDue = newDaysUntilDue;
         earnedToday = 0L;
     }
@@ -122,12 +140,29 @@ public static class WorldState
     public static bool IsDay2Complete() => isDay2Complete;
     public static bool IsDay3Complete() => isDay3Complete;
     public static bool IsFabricatorPlaced() => isFabricatorPlaced;
-    public static int GetSaplingCount() => plantedPositionList.Count;
+    public static bool HasAccounts() => hasAccounts;
+    public static bool HasGarden() => hasGarden;
 
-    public static bool WasPlantedOnDay1(Vector3 position)
+    // saplings in the ground when the last day ended
+    public static int GetSaplingCount()
     {
-        foreach (Vector3 planted in plantedPositionList)
-            if (Vector3.Distance(planted, position) < SAME_PLOT_DISTANCE) return true;
+        int count = 0;
+        foreach (GardenPlot gardenPlot in gardenPlotList)
+            if (gardenPlot.state == FarmPlot.State.Planted || gardenPlot.state == FarmPlot.State.Grown) count++;
+        return count;
+    }
+
+    // matched on the ground plane: a later day may set the same bed a little higher or lower
+    public static bool TryGetGardenPlot(Vector3 position, out GardenPlot gardenPlot)
+    {
+        foreach (GardenPlot recorded in gardenPlotList)
+        {
+            Vector2 offset = new Vector2(recorded.position.x - position.x, recorded.position.z - position.z);
+            if (offset.magnitude >= SAME_PLOT_DISTANCE) continue;
+            gardenPlot = recorded;
+            return true;
+        }
+        gardenPlot = default;
         return false;
     }
     public static long GetSavings() => savings;
@@ -151,7 +186,8 @@ public static class WorldState
         isDay3Complete = false;
         hasSkippedTime = false;
         isFabricatorPlaced = false;
-        plantedPositionList.Clear();
+        hasGarden = false;
+        gardenPlotList.Clear();
         hasAccounts = false;
         savings = 0L;
         debt = 0L;
@@ -164,4 +200,8 @@ public static class WorldState
         givenRewardSet.Clear();
         unlockedRecipeList.Clear();
     }
+
+    // kept apart from ResetStaticData: Clear() (replay) must not drop the open scene's listeners
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStaticEvents() => OnDebtChanged = null;
 }
