@@ -1,9 +1,10 @@
 using TMPro;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using static GrayboxBuild;
 
-// Day 2 prefabs and models: the item models (resin, sawit bunch, Lv.2 seed), the palms (yesterday's ripe one, the Lv.2
+// Day 2 prefabs and models: the item models (resin, the sawit seeds and bunches), the palms (yesterday's ripe one, the Lv.2
 // sapling and its grown form), ICAN's sell crate, the resin node at the forest edge, the savings book and Rigel.
 public static class Day2PrefabBuilder
 {
@@ -12,9 +13,6 @@ public static class Day2PrefabBuilder
     private static Material Amber => GrayboxPalette.Lit("Resin", new Color(.88f, .55f, .16f), .9f);
     private static Material PalmFruit => GrayboxPalette.Lit("SawitFruit", new Color(.82f, .28f, .14f), .5f);
     private static Material SawitLeaf => GrayboxPalette.Lit("SawitLeaf", new Color(.56f, .74f, .36f));
-    // the forest-resin palm: darker, bluer leaves and a red heart instead of the warm glow
-    private static Material SawitLeafLv2 => GrayboxPalette.Lit("SawitLeafLv2", new Color(.27f, .46f, .36f));
-    private static Material GlowLv2 => GrayboxPalette.Lit("SawitGlowLv2", new Color(.78f, .16f, .2f), .7f);
     private static Material IcanBlue => GrayboxPalette.Lit("IcanBlue", new Color(.22f, .42f, .72f));
 
     // ---------- item models ----------
@@ -27,28 +25,30 @@ public static class Day2PrefabBuilder
         return SavePrefab(root, "Items", "Item_Resin");
     }
 
-    public static GameObject BunchModel()
-    {
-        GameObject root = Root("Item_SawitBunch");
-        Part(root.transform, "Core", GrayboxMeshFactory.Blob(.17f, .3f), GrayboxPalette.Lit("SawitFruitDark", new Color(.42f, .14f, .1f)), Vector3.zero);
-        Mesh fruit = GrayboxMeshFactory.Blob(.075f, .1f, 10, 5);
-        for (int i = 0; i < 9; i++)
-        {
-            float a = i * 40f * Mathf.Deg2Rad;
-            float y = .05f + (i % 3) * .08f;
-            Part(root.transform, "Fruit", fruit, PalmFruit, new Vector3(Mathf.Cos(a) * .15f, y, Mathf.Sin(a) * .15f));
-        }
-        Part(root.transform, "Stem", GrayboxMeshFactory.Cylinder(.025f, .12f, .01f, 8), GrayboxPalette.Trunk, new Vector3(0f, .28f, 0f));
-        return SavePrefab(root, "Items", "Item_SawitBunch");
-    }
+    // the seeds and bunches are the Blender plants' seed/fruit models, like the palms (Lv.1 = duskbell, Lv.2 = gloamplum);
+    // sized like the graybox items they replaced (seed ~0.32 m, bunch ~0.42 m across)
+    public static GameObject SeedLv1Model() => BlenderItem("Item_SawitSeed", "plant_1_duskbell_seed", .32f);
+    public static GameObject SeedLv2Model() => BlenderItem("Item_SawitSeedLv2", "plant_2_gloamplum_seed", .32f);
+    public static GameObject BunchModel() => BlenderItem("Item_SawitBunch", "plant_1_duskbell_fruit", .42f);
+    public static GameObject BunchLv2Model() => BlenderItem("Item_SawitBunchLv2", "plant_2_gloamplum_fruit", .42f);
 
-    public static GameObject SeedLv2Model()
+    // re-points the four sawit items at their Blender models and re-bakes their icons, without re-running the data builders
+    // (GameDataBuilder.LoadAll would reset the Lv.1 palm)
+    [MenuItem("Tools/Items/Apply Sawit Seed + Bunch Models")]
+    public static void ApplySawitItemModels()
     {
-        GameObject root = Root("Item_SawitSeedLv2");
-        Part(root.transform, "Seed", GrayboxMeshFactory.Blob(.15f, .24f), GrayboxPalette.Lit("SeedLv2", new Color(.48f, .12f, .14f), .6f), Vector3.zero);
-        Part(root.transform, "Vein", GrayboxMeshFactory.Blob(.06f, .2f, 8, 4), GlowLv2, new Vector3(0f, .03f, -.11f));
-        Part(root.transform, "Sprout", GrayboxMeshFactory.Cylinder(.02f, .14f, .01f, 8), SawitLeafLv2, new Vector3(0f, .22f, 0f));
-        return SavePrefab(root, "Items", "Item_SawitSeedLv2");
+        string scenePath = EditorSceneManager.GetActiveScene().path;
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+        ItemDataSO[] itemArray =
+        {
+            SetItemPrefab("SawitSeed", SeedLv1Model()),
+            SetItemPrefab("SawitSeedLv2", SeedLv2Model()),
+            SetItemPrefab("SawitBunch", BunchModel()),
+            SetItemPrefab("SawitBunchLv2", BunchLv2Model()),
+        };
+        AssetDatabase.SaveAssets();
+        GrayboxIconBaker.BakeIcons(itemArray);
+        if (scenePath.Length > 0) EditorSceneManager.OpenScene(scenePath);
     }
 
     // ---------- palms ----------
@@ -61,6 +61,31 @@ public static class Day2PrefabBuilder
     public static GameObject SaplingLv2() => BlenderPlant("Sapling_GloamplumLv2", "plant_2_gloamplum_sprout", 2.2f, true);
     public static GameObject GrownPalmLv2() => BlenderPlant("Plant_GloamplumLv2_Grown", "plant_2_gloamplum_harvest_ready", 1.4f, false);
     public static GameObject RipePalmLv2() => BlenderPlant("Plant_GloamplumLv2_Ripe", "plant_2_gloamplum_harvest_ready", 1.4f, true);
+
+    private static ItemDataSO SetItemPrefab(string itemFile, GameObject prefab)
+    {
+        ItemDataSO item = GameDataBuilder.Load<ItemDataSO>("Items", itemFile);
+        item.prefab = prefab.transform;
+        EditorUtility.SetDirty(item);
+        return item;
+    }
+
+    // the .glb under a "Model" child scaled so its largest side is 'size', standing centred on the root (the root stays
+    // unscaled: ItemFloatUp and the reward marker scale and spin it)
+    private static GameObject BlenderItem(string name, string model, float size)
+    {
+        GameObject root = Root(name);
+        GameObject glb = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Ilkham/models/plants/{model}.glb");
+        GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(glb, root.transform);
+        instance.name = "Model";
+        Renderer[] rendererArray = instance.GetComponentsInChildren<Renderer>();
+        Bounds bounds = rendererArray[0].bounds;
+        foreach (Renderer r in rendererArray) bounds.Encapsulate(r.bounds);
+        float scale = size / Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
+        instance.transform.localScale = Vector3.one * scale;
+        instance.transform.localPosition = new Vector3(-bounds.center.x, -bounds.min.y, -bounds.center.z) * scale;
+        return SavePrefab(root, "Items", name);
+    }
 
     // the model under a "Model" child (the root stays unscaled for the plot), fruit meshes off until ripe
     private static GameObject BlenderPlant(string name, string model, float scale, bool hasFruit)

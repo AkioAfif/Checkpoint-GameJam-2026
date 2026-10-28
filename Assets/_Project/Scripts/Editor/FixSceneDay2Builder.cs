@@ -6,8 +6,8 @@ using static GrayboxBuild;
 
 // Builds "Day 2: The First Harvest" on the CozyFarm map as FixScene_Day2 (Tools > FixScene > Build Day 2 Scene, with FixScene open).
 // It copies FixScene, takes Day 1's story out of the copy and adds Day 2 laid out for this map, not the old village's:
-// - Rigel lives at Rival_Property_House, ~48 m north of the player's garden, so after the sale he walks down the path to the
-//   garden and waits there (the old village put his fence right next to the field);
+// - Rigel lives at Rival_Property_House, ~48 m north of the player's garden; on Day 2 he is already waiting at the garden
+//   in the morning (the old village put his fence right next to the field);
 // - the resin stumps stand in the map's own forest across the bridge, so no pine grove or rice field is built;
 // - the ICAN crate stands by the path between the garden and the Fabricator; the river right behind them gives the water.
 // Re-runnable: FixScene_Day2 is regenerated each time, so tune the map in FixScene and rebuild.
@@ -27,7 +27,6 @@ public static class FixSceneDay2Builder
     private static readonly Vector3 CratePosition = new Vector3(-9.6f, 0f, -27.8f);
     // he waits at the garden's north fence; he arrives down the path from the village
     private static readonly Vector3 RigelStand = new Vector3(-13.1f, 0f, -27.6f);
-    private static readonly Vector3 RigelArrival = new Vector3(-14.4f, 0f, -16f);
     // under the pines just across the bridge, either side of the forest path
     private static readonly Vector3[] ResinPositions = { new Vector3(15.5f, 0f, -8.5f), new Vector3(24.2f, 0f, -10f), new Vector3(23f, 0f, 2.5f) };
     // above the yard's north-west corner, looking down over the garden toward the river
@@ -69,7 +68,6 @@ public static class FixSceneDay2Builder
         Transform points = Root("Points", graybox).transform;
         Transform morningPoint = Day2GrayboxBuilder.Point(points, "MorningPoint", Ground(MorningPosition), 0f);
         Transform eveningPoint = Day2GrayboxBuilder.Point(points, "EveningPoint", Ground(EveningPosition), 180f);
-        Transform rigelArrivalPoint = Day2GrayboxBuilder.Point(points, "RigelArrivalPoint", Ground(RigelArrival), 180f);
 
         Transform hud = Object.FindAnyObjectByType<HudUI>(FindObjectsInactive.Include).transform.parent;
         SavingsBookUI savingsBookUI = Day2UiBuilder.BuildSavingsBook(hud, day2SO);
@@ -85,7 +83,6 @@ public static class FixSceneDay2Builder
         Light sun = RenderSettings.sun;
         Day2Director day2 = Day2GrayboxBuilder.AddDirector(director, day2SO, savingsBookUI, rigel.GetComponent<Npc>(), morningPoint, eveningPoint,
             plots, doorLamp, sun, FarmCameraPosition, FarmCameraLookAt);
-        SetField(day2, "rigelArrivalPoint", rigelArrivalPoint);
 
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
@@ -124,7 +121,7 @@ public static class FixSceneDay2Builder
         Day2SO day2SO = GameDataBuilder.Asset<Day2SO>("Day2", "Day2_CozyFarm");
         EditorUtility.CopySerialized(Day2DataBuilder.Day2, day2SO);
         day2SO.name = "Day2_CozyFarm";
-        day2SO.rigelObjectiveArray = new[] { GameDataBuilder.Task("D2_MeetRigelAtGarden", TaskObjectiveSO.Type.Story, "Talk to Rigel at your garden", null, 1) };
+        day2SO.rigelObjectiveArray = new[] { GameDataBuilder.Task("D2_MeetRigelAtGarden", TaskObjectiveSO.Type.Story, "Talk to Rigel in your garden", null, 1) };
         EditorUtility.SetDirty(day2SO);
         return day2SO;
     }

@@ -37,4 +37,6 @@ public class Day2SO : ScriptableObject
 
     [Header("Screens")]
     public string nightCaption;
+    // over the ICAN crate until Rigel's talk opens the day's work
+    public string crateLockedReason = "Talk to Rigel first";
 }

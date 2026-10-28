@@ -277,10 +277,11 @@ public static class UiBuilder
         root.gameObject.AddComponent<CanvasGroup>();
         Image dim = Img(root, "Dim", null, new Color(.15f, .12f, .12f, .55f), Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero);
         dim.raycastTarget = true;
-        RectTransform card = Panel(root, "Card", Centre, Centre, Centre, Vector2.zero, new Vector2(560f, 450f), Cream);
+        RectTransform card = Panel(root, "Card", Centre, Centre, Centre, Vector2.zero, new Vector2(560f, 545f), Cream);
         TextMeshProUGUI title = Text(card, "Title", "Paused", 52, Ink, TextAlignmentOptions.Center, FontStyles.Bold);
         Place(title.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -70f), new Vector2(500f, 70f));
-        Button resume = Button(card, "ResumeButton", "Resume", new Vector2(0f, 240f), new Vector2(420f, 74f));
+        Button resume = Button(card, "ResumeButton", "Resume", new Vector2(0f, 335f), new Vector2(420f, 74f));
+        Button unstuck = Button(card, "UnstuckButton", "Unstuck Me", new Vector2(0f, 240f), new Vector2(420f, 74f));
         Button rebind = Button(card, "RebindButton", "Interact key: [E]", new Vector2(0f, 145f), new Vector2(420f, 74f));
         Button reset = Button(card, "ResetButton", "Reset keys", new Vector2(0f, 50f), new Vector2(420f, 74f));
         RectTransform overlay = Panel(card, "PressKeyOverlay", Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero, Accent);
@@ -288,6 +289,8 @@ public static class UiBuilder
         Stretch(overlayText.rectTransform, Vector2.zero, Vector2.zero);
         PauseUI ui = root.gameObject.AddComponent<PauseUI>();
         SetField(ui, "resumeButton", resume);
+        SetField(ui, "unstuckButton", unstuck);
+        SetField(ui, "unstuckButtonText", unstuck.GetComponentInChildren<TextMeshProUGUI>());
         SetField(ui, "rebindButton", rebind);
         SetField(ui, "resetButton", reset);
         SetField(ui, "rebindButtonText", rebind.GetComponentInChildren<TextMeshProUGUI>());

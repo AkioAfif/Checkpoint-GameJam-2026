@@ -2,7 +2,8 @@ using System;
 using UnityEngine;
 
 // The two Interact challenges of Day 3's new land: hold [Interact] for a while (eating), or mash it to fill a meter
-// several times (each fill is one blow on the ground). There is no fail state; letting go only drains the meter.
+// several times (each fill is one blow on the ground). There is no fail state; letting go only drains the meter. A capped
+// mash (maxProgress below 1) raises OnCapReached the moment a press hits the cap, so a director can play the give-up.
 public class LandQTE : MonoBehaviour
 {
     public event EventHandler<OnStateChangedEventArgs> OnStateChanged;
@@ -11,6 +12,7 @@ public class LandQTE : MonoBehaviour
     public class OnProgressChangedEventArgs : EventArgs { public float progressNormalized; }
     public event EventHandler<OnFilledEventArgs> OnFilled;
     public class OnFilledEventArgs : EventArgs { public int index; public bool isLast; }
+    public event EventHandler OnCapReached;
 
     public enum State { Idle, Hold, Mash }
 
@@ -61,6 +63,8 @@ public class LandQTE : MonoBehaviour
     {
         if (state != State.Mash || GameManager.Instance.IsGamePaused()) return;
         SetProgress(Mathf.Min(progress + 1f / pressesPerFill, maxProgress));
+        // the meter drains every frame, so the cap is only reliably seen here, on the press that reaches it
+        if (maxProgress < 1f && progress >= maxProgress) OnCapReached?.Invoke(this, EventArgs.Empty);
         if (progress < 1f) return;
 
         bool isLast = fillIndex == fillCount - 1;

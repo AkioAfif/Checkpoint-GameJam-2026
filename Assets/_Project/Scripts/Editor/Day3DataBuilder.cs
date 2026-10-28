@@ -14,10 +14,10 @@ public static class Day3DataBuilder
         DialogueSO.DialogueLine N(string text, Emote npcEmote = Emote.None) => new DialogueSO.DialogueLine { speaker = DialogueSO.Speaker.Npc, text = text, npcEmote = npcEmote };
         DialogueSO.DialogueLine P(string text, Emote playerEmote = Emote.None) => new DialogueSO.DialogueLine { speaker = DialogueSO.Speaker.Player, text = text, playerEmote = playerEmote };
 
-        // the same bunch model and icon as Lv.1's, but ICAN pays more for it
+        // the gloamplum fruit (Lv.1's is the duskbell's); until its own icon is baked it borrows Lv.1's
         ItemDataSO lv1Bunch = Day2DataBuilder.SawitBunch;
-        SawitBunchLv2 = GameDataBuilder.Item("SawitBunchLv2", "Sawit Bunch Lv.2", "A dark, heavy bunch from the resin palms. ICAN pays extra, and asks no questions.", lv1Bunch.prefab.gameObject, new Color(.62f, .12f, .14f));
-        SawitBunchLv2.icon = lv1Bunch.icon;
+        SawitBunchLv2 = GameDataBuilder.Item("SawitBunchLv2", "Sawit Bunch Lv.2", "A dark, heavy bunch from the resin palms. ICAN pays extra, and asks no questions.", Day2PrefabBuilder.BunchLv2Model(), new Color(.62f, .12f, .14f));
+        if (SawitBunchLv2.icon == null) SawitBunchLv2.icon = lv1Bunch.icon;
         SawitBunchLv2.sellPrice = 1000000;
         EditorUtility.SetDirty(SawitBunchLv2);
 

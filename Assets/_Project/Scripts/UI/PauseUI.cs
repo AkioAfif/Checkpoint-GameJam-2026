@@ -3,11 +3,15 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-// Esc menu: resume, and rebind the Interact key (every "Press [E]" prompt follows the new key).
+// Esc menu: resume, "unstuck me" (back to the front of the house), and rebind the Interact key (every "Press [E]" prompt follows the new key).
 [RequireComponent(typeof(CanvasGroup))]
 public class PauseUI : MonoBehaviour
 {
     [SerializeField] private Button resumeButton;
+    [SerializeField] private Button unstuckButton;
+    [SerializeField] private TextMeshProUGUI unstuckButtonText;
+    [Tooltip("Shown on the Unstuck button when this scene has no PlayerHomeReturnPoint.")]
+    [SerializeField] private string unstuckUnavailableText = "Can't find home here";
     [SerializeField] private Button rebindButton;
     [SerializeField] private Button resetButton;
     [SerializeField] private TextMeshProUGUI rebindButtonText;
@@ -15,11 +19,14 @@ public class PauseUI : MonoBehaviour
     [SerializeField] private string rebindFormat = "Interact key: [{0}]";
 
     private CanvasGroup canvasGroup;
+    private string unstuckLabel;
 
     private void Awake()
     {
         canvasGroup = GetComponent<CanvasGroup>();
         resumeButton.onClick.AddListener(() => GameManager.Instance.TogglePauseGame());
+        unstuckButton.onClick.AddListener(Unstuck);
+        unstuckLabel = unstuckButtonText.text;
         rebindButton.onClick.AddListener(StartRebind);
         resetButton.onClick.AddListener(() => GameInput.Instance.ResetBindings());
         Hide();
@@ -46,6 +53,7 @@ public class PauseUI : MonoBehaviour
     private void GameManager_OnGamePaused(object sender, EventArgs e)
     {
         RefreshRebindText();
+        unstuckButtonText.text = unstuckLabel;
         canvasGroup.SetVisible(true);
         resumeButton.Select();
     }
@@ -53,6 +61,14 @@ public class PauseUI : MonoBehaviour
     private void GameManager_OnGameUnpaused(object sender, EventArgs e) => Hide();
 
     private void GameInput_OnBindingDisplayChanged(object sender, EventArgs e) => RefreshRebindText();
+
+    // closes the menu the way Resume does
+    private void Unstuck()
+    {
+        // the bedroom has no walking player
+        if (Player.Instance != null && Player.Instance.TryReturnHome()) GameManager.Instance.TogglePauseGame();
+        else unstuckButtonText.text = unstuckUnavailableText;
+    }
 
     private void StartRebind()
     {

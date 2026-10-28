@@ -18,26 +18,32 @@ MonoBehaviour:
     playerEmote: 0
     npcEmote: 5
     isShaking: 0
+    isNpcGlaring: 0
   - speaker: 0
     text: Morning, Bu Ratna! Just gathering a few things.
     playerEmote: 1
     npcEmote: 0
     isShaking: 0
+    isNpcGlaring: 0
   - speaker: 1
     text: Then take these spare bottles. The river water is lovely and cool today.
     playerEmote: 0
     npcEmote: 2
     isShaking: 0
+    isNpcGlaring: 0
   - speaker: 0
     text: Two bottles? Thank you so much!
     playerEmote: 6
     npcEmote: 0
     isShaking: 0
+    isNpcGlaring: 0
   - speaker: 1
     text: Don't mention it. Come by any time!
     playerEmote: 0
     npcEmote: 1
     isShaking: 0
+    isNpcGlaring: 0
   reward:
     itemDataSO: {fileID: 11400000, guid: d816e2484100c384fbc5007dd96ec3dc, type: 2}
     amount: 2
+  rewardDay: 1

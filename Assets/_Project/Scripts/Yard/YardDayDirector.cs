@@ -95,6 +95,7 @@ public class YardDayDirector : MonoBehaviour
         houseDoor.OnStateChanged += HouseDoor_OnStateChanged;
         landQTE.OnStateChanged += LandQTE_OnStateChanged;
         landQTE.OnFilled += LandQTE_OnFilled;
+        landQTE.OnCapReached += LandQTE_OnCapReached;
         foreach (YardObstacle job in weedArray) job.OnWorkRequested += Job_OnWorkRequested;
         foreach (YardObstacle job in rockArray) job.OnWorkRequested += Job_OnWorkRequested;
         foreach (YardObstacle job in tillArray) job.OnWorkRequested += Job_OnWorkRequested;
@@ -131,9 +132,6 @@ public class YardDayDirector : MonoBehaviour
             timer -= Time.deltaTime;
             if (timer < 0f) TimerFinished();
         }
-
-        // pulling alone: the meter stalls short of the top, and he gives out
-        if (step == Step.PullAlone && timer < 0f && landQTE.GetProgress() >= pullCap - .001f) timer = .6f;
 
         // beats triggered during free play wait until nothing else (a discovery card, a planting) holds the player
         if (GameManager.Instance.GetState() != GameManager.State.Playing) return;
@@ -312,6 +310,12 @@ public class YardDayDirector : MonoBehaviour
     {
         if (e.state != LandQTE.State.Idle || !isJobRunning || Array.IndexOf(rockArray, currentJob) >= 0) return;
         FinishJob();
+    }
+
+    // pulling alone: the meter stalls short of the top, and he gives out
+    private void LandQTE_OnCapReached(object sender, EventArgs e)
+    {
+        if (step == Step.PullAlone && timer < 0f) timer = .6f;
     }
 
     private void LandQTE_OnFilled(object sender, LandQTE.OnFilledEventArgs e)

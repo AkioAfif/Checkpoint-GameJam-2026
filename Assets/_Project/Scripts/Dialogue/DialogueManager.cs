@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 // Runs one conversation: [Interact] first reveals the whole line, then moves to the next one.
@@ -19,7 +18,6 @@ public class DialogueManager : MonoBehaviour
     private DialogueSO dialogueSO;
     private int lineIndex = -1;
     private float revealedCharacters;
-    private readonly HashSet<DialogueSO> rewardGivenSet = new HashSet<DialogueSO>();
 
     private void Awake()
     {
@@ -62,7 +60,10 @@ public class DialogueManager : MonoBehaviour
 
     public bool IsActive() => lineIndex >= 0;
     public DialogueSO.DialogueLine GetCurrentLine() => dialogueSO.lineArray[lineIndex];
-    public bool HasPendingReward(DialogueSO dialogueSO) => dialogueSO != null && dialogueSO.reward.amount > 0 && !rewardGivenSet.Contains(dialogueSO);
+    // a reward still to give today (each is given once per playthrough, on its day if it has one)
+    public bool HasPendingReward(DialogueSO dialogueSO) =>
+        dialogueSO != null && dialogueSO.reward.amount > 0 && !WorldState.HasRewardBeenGiven(dialogueSO) &&
+        (dialogueSO.rewardDay == 0 || dialogueSO.rewardDay == WorldState.GetCurrentDay());
     public int GetVisibleCharacterCount() => Mathf.FloorToInt(revealedCharacters);
     public bool IsLineFullyRevealed() => revealedCharacters >= GetCurrentLine().text.Length;
 
@@ -81,7 +82,7 @@ public class DialogueManager : MonoBehaviour
     private void EndDialogue()
     {
         lineIndex = -1;
-        if (dialogueSO.reward.amount > 0 && rewardGivenSet.Add(dialogueSO)) Inventory.Instance.AddItem(dialogueSO.reward.itemDataSO, dialogueSO.reward.amount);
+        if (HasPendingReward(dialogueSO) && WorldState.TryGiveReward(dialogueSO)) Inventory.Instance.AddItem(dialogueSO.reward.itemDataSO, dialogueSO.reward.amount);
         GameManager.Instance.SetState(GameManager.State.Playing);
         OnDialogueEnded?.Invoke(this, new OnDialogueEventArgs { npc = npc });
     }
