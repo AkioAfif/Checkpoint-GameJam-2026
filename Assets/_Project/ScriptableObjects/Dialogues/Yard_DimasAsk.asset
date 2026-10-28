@@ -19,24 +19,28 @@ MonoBehaviour:
     npcEmote: 2
     isShaking: 0
     isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
   - speaker: 0
     text: Dimas, that's Pak Darto's hoe. I need it.
     playerEmote: 0
     npcEmote: 0
     isShaking: 0
     isNpcGlaring: 0
+    focusNpcSO: {fileID: 11400000, guid: 2cb243ba450b8ff48ad7622ae71da5ba, type: 2}
   - speaker: 1
     text: Hmm... Give me one of your sawit seeds and it's yours!
     playerEmote: 0
     npcEmote: 14
     isShaking: 0
     isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
   - speaker: 1
     text: The ones from your big machine!
     playerEmote: 0
     npcEmote: 0
     isShaking: 0
     isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

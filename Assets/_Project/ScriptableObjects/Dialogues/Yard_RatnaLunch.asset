@@ -19,30 +19,35 @@ MonoBehaviour:
     npcEmote: 5
     isShaking: 0
     isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
   - speaker: 1
     text: Since my husband passed, it's just me and Dimas. We get by.
     playerEmote: 0
     npcEmote: 0
     isShaking: 0
     isNpcGlaring: 0
+    focusNpcSO: {fileID: 11400000, guid: ec69cc29c19ef9a4da4252de82d35ef2, type: 2}
   - speaker: 1
     text: ICAN pays well, doesn't it? Almost too well...
     playerEmote: 0
     npcEmote: 13
     isShaking: 0
     isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
   - speaker: 1
     text: Here, compost from my garden. New soil is hungry soil.
     playerEmote: 0
     npcEmote: 1
     isShaking: 0
     isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
   - speaker: 0
     text: Thank you, Bu Ratna. Really.
     playerEmote: 1
     npcEmote: 0
     isShaking: 0
     isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
   reward:
     itemDataSO: {fileID: 11400000, guid: e4609a76591f778478d1bf1c31a77745, type: 2}
     amount: 1

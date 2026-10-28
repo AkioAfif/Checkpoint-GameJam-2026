@@ -19,6 +19,7 @@ MonoBehaviour:
     npcEmote: 10
     isShaking: 0
     isNpcGlaring: 0
+    focusNpcSO: {fileID: 11400000, guid: ec69cc29c19ef9a4da4252de82d35ef2, type: 2}
   reward:
     itemDataSO: {fileID: 0}
     amount: 0

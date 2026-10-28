@@ -18,6 +18,8 @@ public class DialogueSO : ScriptableObject
         public bool isShaking;
         // the Distributor's glasses flash opaque white (weird, uneasy, suspicious moments)
         public bool isNpcGlaring;
+        // someone the line talks about: the camera cuts to them while it shows (empty = no cut)
+        public NpcSO focusNpcSO;
     }
 
     public DialogueLine[] lineArray;
