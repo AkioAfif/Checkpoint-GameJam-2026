@@ -12,45 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50f3a50fce47d814fa2203e7bb7250f3, type: 3}
   m_Name: Puzzle_02_Rocks
   m_EditorClassIdentifier: Assembly-CSharp::FabricatorPuzzleSO
-  puzzleName: Rocky Road
-  layout: 'RRRRRRRRRRRRRR
+  puzzleName: Bramble Guard
+  layout: '#########
 
-    RWWWRFFFFRCCCR
+    #S..R..S#
 
-    RWWWRFFFFRCCCR
+    #.......#
 
-    R###R####R###R
+    #..#g#..#
 
-    R############R
+    #.......#
 
-    R###RRRRRR###R
+    #B..#...#
 
-    R############R
-
-    R############R
-
-    RRRR######RRRR
-
-    R############R
-
-    R##RR####RR##R
-
-    R############R
-
-    R#####RR#####R
-
-    R############R
-
-    R############R
-
-    R##RMMMMMMR##R
-
-    R##RMMMMMMR##R
-
-    R##RMMMMMMR##R
-
-    R##RRRRRRRR##R
-
-    RRRRRRRRRRRRRR'
-  particlesPerLiquid: 24
-  requiredFraction: 0.5
+    #########'
+  retractTurns: 2
+  parMoves: 5
+  hasHint: 0
+  hintFromCell: {x: 0, y: 0}
+  hintToCell: {x: 0, y: 0}

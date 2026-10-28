@@ -1,6 +1,5 @@
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 using static GrayboxBuild;
 
 // Creates (or refreshes) every ScriptableObject + item model the level needs. Content text lives here only to seed the assets;
@@ -15,8 +14,6 @@ public static class GameDataBuilder
     public static TaskObjectiveSO[] Tasks;
     public static NpcSO Ratna, Darto, Dimas, Ijah, Distributor;
     public static AudioClipRefsSO AudioRefs;
-    public static TileBase DirtTile, RockTile;
-    public static PhysicsMaterial2D LiquidPhysics;
 
     public static readonly Color WaterColor = new Color(.35f, .65f, .95f);
     public static readonly Color NectarColor = new Color(.98f, .52f, .72f);
@@ -37,12 +34,8 @@ public static class GameDataBuilder
         SawitLv1.qteCheckCount = 2;
         EditorUtility.SetDirty(SawitLv1);
 
-        BuildIntroPuzzle();
+        BuildPuzzles();
         BuildDay1Extras();
-        PuzzleTutorial = Puzzle("Puzzle_01_Tutorial", "First Press",
-            "RRRRRRRRRRRRRR\nRWWWRFFFFRCCCR\nRWWWRFFFFRCCCR\nR###R####R###R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR##RMMMMMMR##R\nR##RMMMMMMR##R\nR##RMMMMMMR##R\nR##RRRRRRRR##R\nRRRRRRRRRRRRRR");
-        PuzzleNormal = Puzzle("Puzzle_02_Rocks", "Rocky Road",
-            "RRRRRRRRRRRRRR\nRWWWRFFFFRCCCR\nRWWWRFFFFRCCCR\nR###R####R###R\nR############R\nR###RRRRRR###R\nR############R\nR############R\nRRRR######RRRR\nR############R\nR##RR####RR##R\nR############R\nR#####RR#####R\nR############R\nR############R\nR##RMMMMMMR##R\nR##RMMMMMMR##R\nR##RMMMMMMR##R\nR##RRRRRRRR##R\nRRRRRRRRRRRRRR");
 
         Tasks = new[]
         {
@@ -58,15 +51,6 @@ public static class GameDataBuilder
 
         AudioRefs = Asset<AudioClipRefsSO>("", "AudioClipRefs");
 
-        DirtTile = PuzzleTile("PuzzleDirtTile");
-        RockTile = PuzzleTile("PuzzleRockTile");
-        LiquidPhysics = AssetDatabase.LoadAssetAtPath<PhysicsMaterial2D>($"{SO}/Puzzles/LiquidPhysics.asset");
-        if (LiquidPhysics == null)
-        {
-            LiquidPhysics = new PhysicsMaterial2D("LiquidPhysics") { friction = .02f, bounciness = 0f };
-            AssetDatabase.CreateAsset(LiquidPhysics, $"{SO}/Puzzles/LiquidPhysics.asset");
-        }
-
         AssetDatabase.SaveAssets();
     }
 
@@ -79,10 +63,8 @@ public static class GameDataBuilder
         Crop = Load<ItemDataSO>("Items", "Crop");
         SawitSeed = Load<ItemDataSO>("Items", "SawitSeed");
         SawitLv1 = Load<CropDataSO>("Crops", "SawitLv1");
-        PuzzleTutorial = Load<FabricatorPuzzleSO>("Puzzles", "Puzzle_01_Tutorial");
-        PuzzleNormal = Load<FabricatorPuzzleSO>("Puzzles", "Puzzle_02_Rocks");
         Distributor = Load<NpcSO>("Npcs", "Distributor");
-        BuildIntroPuzzle();
+        BuildPuzzles();
         BuildDay1Extras();
         BuildDialogues();
         AssetDatabase.SaveAssets();
@@ -92,25 +74,33 @@ public static class GameDataBuilder
 
     private static DialogueSO ratnaFirst, ratnaRepeat, dartoFirst, dartoRepeat, dimasFirst, dimasRepeat, ijahFirst, ijahRepeat, distributorFirst, distributorRepeat;
 
-    // Day 1's first press: one liquid (plant juice) that you simply dig down to the mould
-    private static void BuildIntroPuzzle()
+    // The Fabricator's grid puzzles (Sawit-Fabricator rules, symbols in FabricatorPuzzleSO). The assets keep their old file
+    // names (and GUIDs) because recipes, Day2SO and Day3SO point at them. Each layout is checked solvable in its par.
+    public static void BuildPuzzles()
     {
-        PuzzleIntro = Puzzle("Puzzle_00_Intro", "Plant Juice",
-            "RRRRRRRRRRRRRR\nR####CCCC####R\nR####CCCC####R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR############R\nR##RMMMMMMR##R\nR##RMMMMMMR##R\nR##RMMMMMMR##R\nR##RRRRRRRR##R\nRRRRRRRRRRRRRR");
+        // Day 1's first press: one straight slide onto the embryo, with the ghost cursor showing where to click
+        PuzzleIntro = Puzzle("Puzzle_00_Intro", "First Corruption", 0,
+            "#######\n#..S..#\n#.....#\n#.....#\n#.....#\n#..B..#\n#######");
         PuzzleIntro.hasHint = true;
-        PuzzleIntro.hintFromCell = new Vector2Int(6, 3);
-        PuzzleIntro.hintToCell = new Vector2Int(6, 12);
+        PuzzleIntro.hintFromCell = new Vector2Int(3, 5);
+        PuzzleIntro.hintToCell = new Vector2Int(3, 4);
         EditorUtility.SetDirty(PuzzleIntro);
+        // walls stop the slide; two embryos, three slides
+        PuzzleTutorial = Puzzle("Puzzle_01_Tutorial", "Slide and Stop", 3,
+            "#########\n#S......#\n#.......#\n#...#...#\n#.......#\n#B.....S#\n#########");
+        // a Root Sentinel walls off its neighbours; capture it or go around
+        PuzzleNormal = Puzzle("Puzzle_02_Rocks", "Bramble Guard", 5,
+            "#########\n#S..R..S#\n#.......#\n#..#g#..#\n#.......#\n#B..#...#\n#########");
+        // the left embryo is only reachable through the sap router; the gland pulls back the thorny roots
+        PuzzleSplit = Puzzle("Puzzle_03_Split", "Sap Router", 4,
+            "#########\n#S#....S#\n#.#...T.#\n#.#..#..#\n#^......#\n##I.#..B#\n#########");
     }
 
-    // the evening's grown sawit and the 4th press's puzzle: new assets no scene instance sits on, so both build paths make them
+    // the evening's grown sawit: a new asset no scene instance sits on, so both build paths make it
     private static void BuildDay1Extras()
     {
         SawitLv1.grownPrefab = GrownSaplingModel().transform;
         EditorUtility.SetDirty(SawitLv1);
-        // a rock cap splits the middle liquid onto the side streams, which meet again in a funnel over the mould
-        PuzzleSplit = Puzzle("Puzzle_03_Split", "Split Pipe",
-            "RRRRRRRRRRRRRR\nRWWWRFFFFRCCCR\nRWWWRFFFFRCCCR\nR###R####R###R\nR###R####R###R\nR###RR##RR###R\nR####R##R####R\nRRR##R##R##RRR\nR############R\nR####RRRR####R\nR############R\nR##RRR##RRR##R\nR############R\nRR##########RR\nRRR########RRR\nRRRRMMMMMMRRRR\nRRRRMMMMMMRRRR\nRRRRMMMMMMRRRR\nRRRRRRRRRRRRRR\nRRRRRRRRRRRRRR");
     }
 
     // Only the villagers' text (the assets keep their GUIDs). Safe to re-run on a hand-built scene.
@@ -294,13 +284,13 @@ public static class GameDataBuilder
         return item;
     }
 
-    private static FabricatorPuzzleSO Puzzle(string file, string puzzleName, string layout)
+    private static FabricatorPuzzleSO Puzzle(string file, string puzzleName, int parMoves, string layout)
     {
         FabricatorPuzzleSO puzzle = Asset<FabricatorPuzzleSO>("Puzzles", file);
         puzzle.puzzleName = puzzleName;
         puzzle.layout = layout;
-        puzzle.particlesPerLiquid = 24; // 6-cell pockets x 4 blobs per cell
-        puzzle.requiredFraction = .5f;
+        puzzle.parMoves = parMoves;
+        puzzle.retractTurns = 2;
         EditorUtility.SetDirty(puzzle);
         return puzzle;
     }
@@ -335,14 +325,6 @@ public static class GameDataBuilder
         npc.portraitBackground = background;
         EditorUtility.SetDirty(npc);
         return npc;
-    }
-
-    private static TileBase PuzzleTile(string file)
-    {
-        Tile tile = Asset<Tile>("Puzzles", file);
-        tile.colliderType = Tile.ColliderType.Grid;
-        EditorUtility.SetDirty(tile);
-        return tile;
     }
 
     // keeps the asset's GUID, so references to it survive the rename

@@ -12,48 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50f3a50fce47d814fa2203e7bb7250f3, type: 3}
   m_Name: Puzzle_03_Split
   m_EditorClassIdentifier: Assembly-CSharp::FabricatorPuzzleSO
-  puzzleName: Split Pipe
-  layout: 'RRRRRRRRRRRRRR
+  puzzleName: Sap Router
+  layout: '#########
 
-    RWWWRFFFFRCCCR
+    #S#....S#
 
-    RWWWRFFFFRCCCR
+    #.#...T.#
 
-    R###R####R###R
+    #.#..#..#
 
-    R###R####R###R
+    #^......#
 
-    R###RR##RR###R
+    ##I.#..B#
 
-    R####R##R####R
-
-    RRR##R##R##RRR
-
-    R############R
-
-    R####RRRR####R
-
-    R############R
-
-    R##RRR##RRR##R
-
-    R############R
-
-    RR##########RR
-
-    RRR########RRR
-
-    RRRRMMMMMMRRRR
-
-    RRRRMMMMMMRRRR
-
-    RRRRMMMMMMRRRR
-
-    RRRRRRRRRRRRRR
-
-    RRRRRRRRRRRRRR'
-  particlesPerLiquid: 24
-  requiredFraction: 0.5
+    #########'
+  retractTurns: 2
+  parMoves: 4
   hasHint: 0
   hintFromCell: {x: 0, y: 0}
   hintToCell: {x: 0, y: 0}

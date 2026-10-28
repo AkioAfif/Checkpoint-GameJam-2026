@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Tech Bug (Cyber-Infection Core): hexagonal nanite hull, neon cyan/magenta circuitry, glitch fringe -->
+  <defs>
+    <linearGradient id="hull" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3a4660"/>
+      <stop offset="0.5" stop-color="#222a3c"/>
+      <stop offset="1" stop-color="#121722"/>
+    </linearGradient>
+    <linearGradient id="plate" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4b5874"/>
+      <stop offset="1" stop-color="#1c2230"/>
+    </linearGradient>
+    <radialGradient id="core" cx="45%" cy="40%" r="60%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.35" stop-color="#ff8fe0"/>
+      <stop offset="0.75" stop-color="#ff3dbe"/>
+      <stop offset="1" stop-color="#7a0f63"/>
+    </radialGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="7"/></filter>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter>
+  </defs>
+  <!-- glitch aura: chromatic offset copies of the hull -->
+  <path d="M204.1,176.0 L121.0,224.0 L37.9,176.0 L37.9,80.0 L121.0,32.0 L204.1,80.0 Z" fill="#22e5f0" opacity="0.45" filter="url(#glow)"/>
+  <path d="M218.1,176.0 L135.0,224.0 L51.9,176.0 L51.9,80.0 L135.0,32.0 L218.1,80.0 Z" fill="#ff3dbe" opacity="0.45" filter="url(#glow)"/>
+
+  <!-- nanite legs (three per side) -->
+  <g stroke="#0a0e16" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M70,92 L40,70 L26,78"/><path d="M58,128 L26,128 L16,138"/><path d="M70,164 L40,186 L28,200"/>
+    <path d="M186,92 L216,70 L230,78"/><path d="M198,128 L230,128 L240,138"/><path d="M186,164 L216,186 L228,200"/>
+  </g>
+  <g stroke="#6f7f9e" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M70,92 L40,70 L26,78"/><path d="M58,128 L26,128 L16,138"/><path d="M70,164 L40,186 L28,200"/>
+    <path d="M186,92 L216,70 L230,78"/><path d="M198,128 L230,128 L240,138"/><path d="M186,164 L216,186 L228,200"/>
+  </g>
+  <g fill="#22e5f0"><circle cx="40" cy="70" r="4"/><circle cx="26" cy="128" r="4"/><circle cx="40" cy="186" r="4"/></g>
+  <g fill="#ff3dbe"><circle cx="216" cy="70" r="4"/><circle cx="230" cy="128" r="4"/><circle cx="216" cy="186" r="4"/></g>
+
+  <!-- antennae -->
+  <g stroke="#0a0e16" stroke-width="9" stroke-linecap="round" fill="none"><path d="M108,46 L94,22"/><path d="M148,46 L162,22"/></g>
+  <g stroke="#8fa0c0" stroke-width="4" stroke-linecap="round" fill="none"><path d="M108,46 L94,22"/><path d="M148,46 L162,22"/></g>
+  <circle cx="94" cy="22" r="6" fill="#22e5f0"/><circle cx="162" cy="22" r="6" fill="#ff3dbe"/>
+
+  <!-- hull -->
+  <path d="M204.2,172.0 L128.0,216.0 L51.8,172.0 L51.8,84.0 L128.0,40.0 L204.2,84.0 Z" fill="url(#hull)" stroke="#0a0e16" stroke-width="7" stroke-linejoin="round"/>
+  <!-- plating panels -->
+  <path d="M185.2,161.0 L128.0,194.0 L70.8,161.0 L70.8,95.0 L128.0,62.0 L185.2,95.0 Z" fill="url(#plate)" stroke="#0a0e16" stroke-width="4" stroke-linejoin="round"/>
+  <g stroke="#0a0e16" stroke-width="4">
+    <line x1="128" y1="40" x2="128" y2="62"/><line x1="128" y1="194" x2="128" y2="216"/>
+    <line x1="52" y1="84" x2="71" y2="95"/><line x1="204" y1="84" x2="185" y2="95"/>
+    <line x1="52" y1="172" x2="71" y2="161"/><line x1="204" y1="172" x2="185" y2="161"/>
+  </g>
+  <path d="M68,92 L128,58 L188,92" fill="none" stroke="#9fb0d4" stroke-width="3" opacity="0.5" stroke-linejoin="round"/>
+  <!-- rivets -->
+  <g fill="#8fa0c0"><circle cx="128" cy="50" r="3"/><circle cx="62" cy="90" r="3"/><circle cx="194" cy="90" r="3"/>
+    <circle cx="62" cy="166" r="3"/><circle cx="194" cy="166" r="3"/><circle cx="128" cy="206" r="3"/></g>
+
+  <!-- circuit traces -->
+  <g fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M100,128 H82 L74,118" stroke="#22e5f0"/>
+    <path d="M112,104 L104,90 H90" stroke="#22e5f0"/>
+    <path d="M112,152 L104,166 H92" stroke="#22e5f0"/>
+    <path d="M156,128 H174 L182,138" stroke="#ff3dbe"/>
+    <path d="M144,104 L152,90 H166" stroke="#ff3dbe"/>
+    <path d="M144,152 L152,166 H164" stroke="#ff3dbe"/>
+  </g>
+  <g fill="#22e5f0"><circle cx="74" cy="118" r="5"/><circle cx="90" cy="90" r="5"/><circle cx="92" cy="166" r="5"/></g>
+  <g fill="#ff3dbe"><circle cx="182" cy="138" r="5"/><circle cx="166" cy="90" r="5"/><circle cx="164" cy="166" r="5"/></g>
+
+  <!-- corruption core -->
+  <circle cx="128" cy="128" r="32" fill="#ff3dbe" opacity="0.8" filter="url(#glow)"/>
+  <path d="M154.0,143.0 L128.0,158.0 L102.0,143.0 L102.0,113.0 L128.0,98.0 L154.0,113.0 Z" fill="#0a0e16"/>
+  <circle cx="128" cy="128" r="22" fill="url(#core)"/>
+  <circle cx="128" cy="128" r="22" fill="none" stroke="#22e5f0" stroke-width="3" stroke-dasharray="8 6"/>
+  <circle cx="121" cy="121" r="6" fill="#ffffff" opacity="0.9"/>
+
+  <!-- glitch scanline slices -->
+  <g opacity="0.7">
+    <rect x="58" y="108" width="34" height="5" fill="#22e5f0"/>
+    <rect x="170" y="150" width="30" height="4" fill="#ff3dbe"/>
+    <rect x="96" y="196" width="22" height="4" fill="#22e5f0"/>
+    <rect x="150" y="58" width="26" height="4" fill="#ff3dbe"/>
+  </g>
+</svg>

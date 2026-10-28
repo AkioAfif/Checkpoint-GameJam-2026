@@ -3,7 +3,6 @@ using Unity.Cinemachine;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.Tilemaps;
 using static GrayboxBuild;
 
 public static partial class Level01SceneBuilder
@@ -277,85 +276,25 @@ public static partial class Level01SceneBuilder
         return texture;
     }
 
-    // the Fabricator diorama: a 2D-physics slice inside a big glass tube, filmed by its own camera
+    // the Fabricator puzzle: the grid board, filmed flat-on in 2D by its own camera (FabricatorGridPuzzleBuilder sets it up)
     private static void BuildPuzzleBooth()
     {
         int layer = LayerMask.NameToLayer("Puzzle");
         GameObject booth = Root("FabricatorPuzzleBooth");
         booth.transform.position = PuzzleBoothPosition;
 
-        Grid grid = Root("Grid", booth.transform).AddComponent<Grid>();
-        grid.cellSize = new Vector3(.5f, .5f, 0f);
-        GameObject solids = Root("Solids", grid.transform);
-        Tilemap tilemap = solids.AddComponent<Tilemap>();
-        Rigidbody2D body = solids.AddComponent<Rigidbody2D>();
-        body.bodyType = RigidbodyType2D.Static;
-        TilemapCollider2D tileCollider = solids.AddComponent<TilemapCollider2D>();
-        tileCollider.compositeOperation = Collider2D.CompositeOperation.Merge;
-        CompositeCollider2D composite = solids.AddComponent<CompositeCollider2D>();
-        composite.geometryType = CompositeCollider2D.GeometryType.Polygons;
-        Transform particles = Root("Particles", booth.transform).transform;
-
-        Transform diorama = Root("Diorama", booth.transform).transform;
-        Part(diorama, "BackPanel", GrayboxMeshFactory.RoundedBox(new Vector3(7.8f, 11.2f, .4f), .2f), GrayboxPalette.Lit("PuzzleBack", new Color(.30f, .34f, .44f)), new Vector3(0f, -5.4f, .85f));
-        Part(diorama, "Tube", GrayboxMeshFactory.Cylinder(4.7f, 12.4f, .3f, 40), GrayboxPalette.Transparent("GlassThin", new Color(.85f, .95f, 1f, .07f), .95f), new Vector3(0f, -6.2f, 0f));
-        Part(diorama, "Base", GrayboxMeshFactory.Cylinder(5.1f, 1.3f, .3f, 40), GrayboxPalette.Metal, new Vector3(0f, -7.4f, 0f));
-        Part(diorama, "Cap", GrayboxMeshFactory.Cylinder(5.1f, 1.1f, .3f, 40), GrayboxPalette.Metal, new Vector3(0f, 6f, 0f));
-        Part(diorama, "RingLow", GrayboxMeshFactory.Torus(4.8f, .2f, 40, 8), GrayboxPalette.Accent, new Vector3(0f, -6.1f, 0f));
-        Part(diorama, "RingHigh", GrayboxMeshFactory.Torus(4.8f, .2f, 40, 8), GrayboxPalette.Accent, new Vector3(0f, 5.8f, 0f));
-
-        GameObject lightGo = Root("PuzzleLight", booth.transform);
-        Light light = lightGo.AddComponent<Light>();
-        light.type = LightType.Directional;
-        light.intensity = 1.2f;
-        light.color = new Color(1f, .96f, .9f);
-        light.shadows = LightShadows.Soft;
-        light.cullingMask = LayerMask.GetMask("Puzzle");
-        lightGo.transform.rotation = Quaternion.Euler(32f, 18f, 0f);
-
-        Transform pivot = Root("CameraPivot", booth.transform).transform;
-        // looks slightly right of the tube so it sits left of the HUD panel
-        pivot.localPosition = new Vector3(2.4f, .5f, 0f);
-        GameObject cameraGo = Root("PuzzleCamera", pivot);
-        cameraGo.transform.localPosition = new Vector3(0f, 0f, -17.5f);
+        GameObject cameraGo = Root("PuzzleCamera", booth.transform);
         Camera camera = cameraGo.AddComponent<Camera>();
-        camera.fieldOfView = 42f;
-        camera.clearFlags = CameraClearFlags.SolidColor;
-        camera.backgroundColor = new Color(.2f, .23f, .3f);
         camera.cullingMask = LayerMask.GetMask("Puzzle");
         camera.depth = 5f;
         cameraGo.AddComponent<UniversalAdditionalCameraData>().renderPostProcessing = true;
         FabricatorPuzzleCamera puzzleCamera = cameraGo.AddComponent<FabricatorPuzzleCamera>();
         SetField(puzzleCamera, "fabricator", fabricator);
         SetField(puzzleCamera, "worldCamera", mainCamera);
-        SetField(puzzleCamera, "pivot", pivot);
 
         SetLayerRecursively(booth, layer);
         miniGame = booth.AddComponent<FabricatorMiniGame>();
-        SetArray(miniGame, "liquidItemDataSOArray", new Object[] { GameDataBuilder.Water, GameDataBuilder.Flower, GameDataBuilder.Crop });
-        SetField(miniGame, "grid", grid);
-        SetField(miniGame, "tilemap", tilemap);
-        SetField(miniGame, "dirtTile", GameDataBuilder.DirtTile);
-        SetField(miniGame, "rockTile", GameDataBuilder.RockTile);
-        SetField(miniGame, "particleParent", particles);
-        SetField(miniGame, "particleMaterial", GameDataBuilder.LiquidPhysics);
-        SetField(miniGame, "puzzleCamera", camera);
-
-        FabricatorMiniGameVisual visual = booth.AddComponent<FabricatorMiniGameVisual>();
-        SetField(visual, "miniGame", miniGame);
-        SetField(visual, "puzzleCamera", camera);
-        SetField(visual, "voxelMesh", GrayboxMeshFactory.RoundedBox(new Vector3(.5f, .5f, 1f), .09f));
-        SetField(visual, "blobMesh", GrayboxMeshFactory.Blob(.5f, 1f, 12, 6));
-        SetField(visual, "mouldMesh", GrayboxMeshFactory.RoundedBox(Vector3.one, .12f));
-        SetField(visual, "dirtMaterial", GrayboxPalette.Lit("PuzzleDirt", new Color(.68f, .53f, .42f)));
-        SetField(visual, "rockMaterial", GrayboxPalette.Lit("PuzzleRock", new Color(.6f, .62f, .67f)));
-        SetField(visual, "mouldMaterial", GrayboxPalette.Transparent("Mould", new Color(1f, .86f, .45f, .35f), .6f));
-        SetArray(visual, "liquidMaterialArray", new Object[]
-        {
-            GrayboxPalette.Lit("LiquidWater", GameDataBuilder.WaterColor, .9f),
-            GrayboxPalette.Lit("LiquidNectar", GameDataBuilder.NectarColor, .9f),
-            GrayboxPalette.Lit("LiquidJuice", GameDataBuilder.JuiceColor, .9f),
-        });
+        FabricatorGridPuzzleBuilder.SetUpBooth(miniGame, camera);
         SetField(fabricator, "miniGame", miniGame);
     }
 
