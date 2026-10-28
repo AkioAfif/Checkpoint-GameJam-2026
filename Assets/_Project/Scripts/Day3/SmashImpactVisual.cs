@@ -1,12 +1,17 @@
 using Unity.Cinemachine;
 using UnityEngine;
 
-// Makes every blow on the ground feel heavy: the world jolts (a Cinemachine impulse every camera listens to), the lens punches
+// Makes every blow feel heavy: the world jolts (a Cinemachine impulse every camera listens to), the lens punches
 // in and eases back out, time freezes for a few frames on contact (hit-stop), and a burst of dirt flies up. The last,
-// double-fisted blow does all of it far harder.
+// double-fisted blow does all of it far harder. On the CozyFarm map the tree punches and the bridge's blows hit the same way.
 public class SmashImpactVisual : MonoBehaviour
 {
     [SerializeField] private LandSequence landSequence;
+    [Tooltip("Optional (the CozyFarm map).")]
+    [SerializeField] private TreeClearing treeClearing;
+    [Tooltip("Optional (the CozyFarm map), with the bank it's pounded from.")]
+    [SerializeField] private BridgeBuild bridgeBuild;
+    [SerializeField] private Transform bridgePoint;
     [SerializeField] private CinemachineImpulseSource impulseSource;
     [Tooltip("The smash cameras: their field of view punches in on every blow.")]
     [SerializeField] private CinemachineCamera[] punchCameraArray;
@@ -23,6 +28,8 @@ public class SmashImpactVisual : MonoBehaviour
     [SerializeField] private float hitStopDuration = .07f;
     [SerializeField] private float finalHitStopDuration = .18f;
     [SerializeField] private float finalDustScale = 2.2f;
+    [Tooltip("Height on the trunk where a punch lands.")]
+    [SerializeField] private float treeHitHeight = 1.1f;
 
     private float[] baseFovArray;
     private float zoom;
@@ -31,6 +38,8 @@ public class SmashImpactVisual : MonoBehaviour
     private void Start()
     {
         landSequence.OnSmash += LandSequence_OnSmash;
+        if (treeClearing != null) treeClearing.OnHit += TreeClearing_OnHit;
+        if (bridgeBuild != null) bridgeBuild.OnSmash += BridgeBuild_OnSmash;
         baseFovArray = new float[punchCameraArray.Length];
         for (int i = 0; i < punchCameraArray.Length; i++) baseFovArray[i] = punchCameraArray[i].Lens.FieldOfView;
     }
@@ -54,14 +63,19 @@ public class SmashImpactVisual : MonoBehaviour
         }
     }
 
-    private void LandSequence_OnSmash(object sender, LandSequence.OnSmashEventArgs e)
-    {
-        impulseSource.GenerateImpulseWithForce(e.isFinal ? finalShakeForce : shakeForce);
-        zoom = e.isFinal ? finalZoomPunch : zoomPunch;
+    private void LandSequence_OnSmash(object sender, LandSequence.OnSmashEventArgs e) => Impact(smashPoint.position + smashPoint.forward * .45f, e.isFinal);
 
-        Vector3 impact = smashPoint.position + smashPoint.forward * .45f;
+    private void TreeClearing_OnHit(object sender, TreeClearing.OnHitEventArgs e) => Impact(e.position + Vector3.up * treeHitHeight, e.isFinal);
+
+    private void BridgeBuild_OnSmash(object sender, BridgeBuild.OnSmashEventArgs e) => Impact(bridgePoint.position + bridgePoint.forward * .45f, e.isFinal);
+
+    private void Impact(Vector3 impact, bool isFinal)
+    {
+        impulseSource.GenerateImpulseWithForce(isFinal ? finalShakeForce : shakeForce);
+        zoom = isFinal ? finalZoomPunch : zoomPunch;
+
         Transform dust = Instantiate(dustPrefab, impact, Quaternion.identity);
-        if (e.isFinal)
+        if (isFinal)
         {
             dust.localScale = Vector3.one * finalDustScale;
             // a second, wider ring of dirt
@@ -70,6 +84,6 @@ public class SmashImpactVisual : MonoBehaviour
 
         if (GameManager.Instance.IsGamePaused()) return;
         Time.timeScale = .02f;
-        hitStopTimer = e.isFinal ? finalHitStopDuration : hitStopDuration;
+        hitStopTimer = isFinal ? finalHitStopDuration : hitStopDuration;
     }
 }

@@ -4,6 +4,7 @@ using UnityEngine;
 // Day 3's new land, played after the first sale. The MC wishes for more field over the empty grass, remembers the Distributor
 // (a grayscale flashback), eats a Lv.2 bunch while Rigel sprints over in shock, glitches, and pounds the four plots up out of
 // the ground. Rigel backs off into his house. Visuals, cameras and UI listen to OnStepChanged / OnSmash.
+// On the CozyFarm map the new field is forest: TreeClearing runs between the buff and the smash, and BridgeBuild after Rigel leaves.
 public class LandSequence : MonoBehaviour
 {
     public event EventHandler<OnStepChangedEventArgs> OnStepChanged;
@@ -12,7 +13,7 @@ public class LandSequence : MonoBehaviour
     public class OnSmashEventArgs : EventArgs { public float progressNormalized; public bool isFinal; }
     public event EventHandler OnFinished;
 
-    public enum Step { None, Inspect, Realise, Flashback, FlashbackSolo, Return, WaitEat, RigelAlarm, Eat, BlinkIn, Glitch, BlinkOut, BuffTalk, WaitSmash, Smash, FinalSmash, Retreat, Done }
+    public enum Step { None, Inspect, Realise, Flashback, FlashbackSolo, Return, WaitEat, RigelAlarm, Eat, BlinkIn, Glitch, BlinkOut, BuffTalk, Clearing, WaitSmash, Smash, FinalSmash, Retreat, Bridge, Done }
     public enum Shot { None, EmptyLand, FlashbackTwo, FlashbackDistributor, Rigel, SmashFront, SmashClose }
 
     // Rigel's cutscene moves, in order
@@ -39,6 +40,10 @@ public class LandSequence : MonoBehaviour
     [SerializeField] private Transform rigelHousePoint;
     [Tooltip("Where Rigel has followed to, watching the MC pound the ground.")]
     [SerializeField] private Transform rigelWatchPoint;
+    [Tooltip("Optional (the CozyFarm map): punch the trees off the new field before the smash.")]
+    [SerializeField] private TreeClearing treeClearing;
+    [Tooltip("Optional (the CozyFarm map): pound a second bridge out of the river after the smash.")]
+    [SerializeField] private BridgeBuild bridgeBuild;
     [SerializeField] private float smashRadius = 2.2f;
     [SerializeField] private int pressesPerSmash = 4;
     [SerializeField] private int smashCount = 5;
@@ -50,6 +55,7 @@ public class LandSequence : MonoBehaviour
     [SerializeField] private float rigelStepBackDistance = 1.2f;
     [SerializeField] private float rigelStepBackDuration = 1.5f;
     [SerializeField] private float rigelSprintSpeed = 9f;
+    [SerializeField] private float handOffDelay = .4f;
 
     private Step step;
     private Shot shot;
@@ -69,6 +75,8 @@ public class LandSequence : MonoBehaviour
         rigelActor.OnMoveFinished += RigelActor_OnMoveFinished;
         landQTE.OnStateChanged += LandQTE_OnStateChanged;
         landQTE.OnFilled += LandQTE_OnFilled;
+        if (treeClearing != null) treeClearing.OnFinished += TreeClearing_OnFinished;
+        if (bridgeBuild != null) bridgeBuild.OnFinished += BridgeBuild_OnFinished;
     }
 
     private void Update()
@@ -119,14 +127,27 @@ public class LandSequence : MonoBehaviour
                 landQTE.StartHold(eatHoldDuration);
                 break;
             case Step.BuffTalk:
-                TaskManager.Instance.SetObjectives(day3SO.smashObjectiveArray);
-                SetStep(Step.WaitSmash, Shot.None);
                 MoveRigel(RigelMove.StepBack);
+                if (treeClearing == null)
+                {
+                    StartWaitSmash();
+                    break;
+                }
+                // a beat later: started inside this callback, its first talk would hear this same "dialogue ended"
+                Hold();
+                SetStep(Step.Clearing, Shot.None);
+                timer = handOffDelay;
                 break;
             case Step.Retreat:
                 MoveRigel(RigelMove.RunHome);
-                SetStep(Step.Done, Shot.None);
-                OnFinished?.Invoke(this, EventArgs.Empty);
+                if (bridgeBuild == null)
+                {
+                    Finish();
+                    break;
+                }
+                Hold();
+                SetStep(Step.Bridge, Shot.None);
+                timer = handOffDelay;
                 break;
         }
     }
@@ -219,6 +240,8 @@ public class LandSequence : MonoBehaviour
 
     private void LandQTE_OnFilled(object sender, LandQTE.OnFilledEventArgs e)
     {
+        // the same meter drives the tree punches and the bridge
+        if (step != Step.Smash) return;
         if (!e.isLast)
         {
             Smash(false);
@@ -229,6 +252,11 @@ public class LandSequence : MonoBehaviour
         SetStep(Step.FinalSmash, Shot.SmashClose);
         timer = .7f;
     }
+
+    // the trees are down: on to the smash
+    private void TreeClearing_OnFinished(object sender, EventArgs e) => StartWaitSmash();
+
+    private void BridgeBuild_OnFinished(object sender, EventArgs e) => Finish();
 
     // ---------- public ----------
 
@@ -277,6 +305,12 @@ public class LandSequence : MonoBehaviour
                 SetStep(Step.BlinkOut, Shot.None);
                 timer = blinkDuration;
                 break;
+            case Step.Clearing:
+                treeClearing.Play();
+                break;
+            case Step.Bridge:
+                bridgeBuild.Play();
+                break;
             case Step.BlinkOut:
                 SetStep(Step.BuffTalk, Shot.None);
                 DialogueManager.Instance.StartDialogue(rigelNpc, day3SO.buffDialogueSO);
@@ -297,6 +331,18 @@ public class LandSequence : MonoBehaviour
                 MoveRigel(RigelMove.StepBackAgain);
                 break;
         }
+    }
+
+    private void StartWaitSmash()
+    {
+        TaskManager.Instance.SetObjectives(day3SO.smashObjectiveArray);
+        SetStep(Step.WaitSmash, Shot.None);
+    }
+
+    private void Finish()
+    {
+        SetStep(Step.Done, Shot.None);
+        OnFinished?.Invoke(this, EventArgs.Empty);
     }
 
     private void StartSmash()

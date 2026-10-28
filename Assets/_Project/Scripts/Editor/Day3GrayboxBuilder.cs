@@ -79,36 +79,15 @@ public static class Day3GrayboxBuilder
         Transform flashbackDistributorPoint = Day2GrayboxBuilder.Point(points, "FlashbackDistributorPoint", distributorPosition, -90f);
         Transform flashbackPlayerPoint = Day2GrayboxBuilder.Point(points, "FlashbackPlayerPoint", distributorPosition + new Vector3(-1.9f, 0f, 0f), 90f);
 
-        Day3Director day3 = director.gameObject.AddComponent<Day3Director>();
-        SetField(day3, "day3SO", Day3DataBuilder.Day3);
-        SetField(day3, "screenFade", Object.FindAnyObjectByType<ScreenFadeUI>(FindObjectsInactive.Include));
-        SetField(day3, "savingsBookUI", Object.FindAnyObjectByType<SavingsBookUI>(FindObjectsInactive.Include));
-        SetField(day3, "fabricator", fabricator);
-        SetRecipe(day3);
-        SetField(day3, "lv2CropDataSO", Day2DataBuilder.SawitLv2);
-        SetField(day3, "oldFieldCropDataSO", GameDataBuilder.SawitLv1);
-        SetArray(day3, "fieldPlotArray", fieldPlots);
-        SetArray(day3, "landPlotArray", landPlots);
-        SetField(day3, "landPlotsRoot", plotsRoot);
-        SetField(day3, "ratnaNpc", FindNpc("Npc_Ratna"));
-        SetField(day3, "ijahNpc", FindNpc("Npc_Ijah"));
         Npc rigel = FindNpc("Npc_Rigel");
-        SetField(day3, "rigelNpc", rigel);
-        SetField(day3, "houseDoor", Object.FindAnyObjectByType<HouseDoor>(FindObjectsInactive.Include));
-        SetField(day3, "morningPoint", GameObject.Find("Day2_Graybox/Points/MorningPoint").transform);
-        SetField(day3, "eveningPoint", eveningPoint);
+        Day3Director day3 = AddDirector(director, Day3DataBuilder.Day3, fabricator, fieldPlots, landPlots, plotsRoot, rigel,
+            GameObject.Find("Day2_Graybox/Points/MorningPoint").transform, eveningPoint, GameObject.Find("Directional Light").GetComponent<Light>(),
+            GameObject.Find("Day2_Graybox").transform.Find("DoorLamp").gameObject);
 
         // from the field, over the new strip into the dark pines
-        CinemachineCamera forestCamera = Root("CM_Day3Forest", director).AddComponent<CinemachineCamera>();
-        forestCamera.transform.position = new Vector3(20.5f, 5f, 5.5f);
-        forestCamera.transform.LookAt(new Vector3(23.5f, 1.8f, 18f));
-        LensSettings lens = LensSettings.Default;
-        lens.FieldOfView = 45f;
-        lens.FarClipPlane = 200f;
-        forestCamera.Lens = lens;
-        forestCamera.enabled = false;
+        CinemachineCamera forestCamera = FixedCamera(director, "CM_Day3Forest", new Vector3(20.5f, 5f, 5.5f), new Vector3(23.5f, 1.8f, 18f), 45f);
 
-        LandSequence landSequence = BuildLandSequence(director, plotsRoot, rigel, landCentre, smashPoint, rigelHousePoint, rigelWatchPoint,
+        LandSequence landSequence = BuildLandSequence(director, Day3DataBuilder.Day3, plotsRoot, rigel, landCentre, smashPoint, rigelHousePoint, rigelWatchPoint,
             flashbackPlayerPoint, flashbackDistributorPoint, out Npc distributor);
         SetField(day3, "landSequence", landSequence);
         BuildLandVisuals(director, landSequence, plotsRoot, ghostPlots, crater, smashPoint, distributor);
@@ -126,6 +105,52 @@ public static class Day3GrayboxBuilder
         CinemachineCamera two = ChaseCamera(director, "CM_Day3FlashbackTwo", pair.transform, new Vector3(0f, 1.8f, -5.6f), 34f);
         two.GetComponent<CinemachineRotationComposer>().TargetOffset = new Vector3(0f, 1f, 0f);
         SetField(cameraVisual, "flashbackTwoCamera", two);
+        AddSharedCameras(director, cameraVisual, rigel, distributorPosition, SmashCameraPosition, SmashPosition + new Vector3(0f, .55f, .4f),
+            SmashCloseCameraPosition, SmashPosition + Vector3.up * .45f);
+
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+        Day2GrayboxBuilder.AddToBuildProfile(SCENE_PATH);
+        WireBedroom(Day3DataBuilder.Day3);
+        AssetDatabase.SaveAssets();
+        EditorSceneManager.OpenScene(SCENE_PATH);
+        Debug.Log($"Day 3 built into {SCENE_PATH}. Press Play in it to test Day 3 on its own.");
+    }
+
+    // Day 3's director and its night look (shared with the CozyFarm map's builder)
+    public static Day3Director AddDirector(Transform director, Day3SO day3SO, FabricatorController fabricator, FarmPlot[] fieldPlots, FarmPlot[] landPlots,
+        GameObject plotsRoot, Npc rigel, Transform morningPoint, Transform eveningPoint, Light sun, GameObject doorLamp)
+    {
+        Day3Director day3 = director.gameObject.AddComponent<Day3Director>();
+        SetField(day3, "day3SO", day3SO);
+        SetField(day3, "screenFade", Object.FindAnyObjectByType<ScreenFadeUI>(FindObjectsInactive.Include));
+        SetField(day3, "savingsBookUI", Object.FindAnyObjectByType<SavingsBookUI>(FindObjectsInactive.Include));
+        SetField(day3, "fabricator", fabricator);
+        SetRecipe(day3);
+        SetField(day3, "lv2CropDataSO", Day2DataBuilder.SawitLv2);
+        SetField(day3, "oldFieldCropDataSO", GameDataBuilder.SawitLv1);
+        SetArray(day3, "fieldPlotArray", fieldPlots);
+        SetArray(day3, "landPlotArray", landPlots);
+        SetField(day3, "landPlotsRoot", plotsRoot);
+        SetField(day3, "ratnaNpc", FindNpc("Npc_Ratna"));
+        SetField(day3, "ijahNpc", FindNpc("Npc_Ijah"));
+        SetField(day3, "rigelNpc", rigel);
+        SetField(day3, "houseDoor", Object.FindAnyObjectByType<HouseDoor>(FindObjectsInactive.Include));
+        SetField(day3, "morningPoint", morningPoint);
+        SetField(day3, "eveningPoint", eveningPoint);
+
+        NightVisual night = director.gameObject.AddComponent<NightVisual>();
+        SetField(night, "day3Director", day3);
+        SetField(night, "sun", sun);
+        SetField(night, "worldCamera", Camera.main);
+        SetField(night, "doorLamp", doorLamp);
+        return day3;
+    }
+
+    // the Distributor's solo flashback shot, Rigel's whip and the two smash shots; then every camera feels the blows
+    public static void AddSharedCameras(Transform director, Day3CameraVisual cameraVisual, Npc rigel, Vector3 distributorPosition,
+        Vector3 smashCameraPosition, Vector3 smashLookAt, Vector3 smashCloseCameraPosition, Vector3 smashCloseLookAt)
+    {
         // him head-on, from behind where the MC stands (FlashbackVisual hides the MC for this shot)
         SetField(cameraVisual, "flashbackDistributorCamera", FixedCamera(director, "CM_Day3FlashbackDistributor",
             distributorPosition + new Vector3(-4.2f, 1.8f, 0f), distributorPosition + Vector3.up * 1.6f, 30f));
@@ -133,28 +158,18 @@ public static class Day3GrayboxBuilder
         rigelCamera.GetComponent<CinemachineRotationComposer>().TargetOffset = new Vector3(0f, .8f, 0f);
         SetField(cameraVisual, "rigelCamera", rigelCamera);
         // low, between the MC and the new plots, looking back at them
-        CinemachineCamera smashFront = FixedCamera(director, "CM_Day3SmashFront", SmashCameraPosition, SmashPosition + new Vector3(0f, .55f, .4f), 58f);
-        CinemachineCamera smashClose = FixedCamera(director, "CM_Day3SmashClose", SmashCloseCameraPosition, SmashPosition + Vector3.up * .45f, 58f);
+        CinemachineCamera smashFront = FixedCamera(director, "CM_Day3SmashFront", smashCameraPosition, smashLookAt, 58f);
+        CinemachineCamera smashClose = FixedCamera(director, "CM_Day3SmashClose", smashCloseCameraPosition, smashCloseLookAt, 58f);
         SetField(cameraVisual, "smashFrontCamera", smashFront);
         SetField(cameraVisual, "smashCloseCamera", smashClose);
         SetArray(director.GetComponent<SmashImpactVisual>(), "punchCameraArray", new Object[] { smashFront, smashClose });
-        // every camera feels the blows
+        AddImpulseListeners();
+    }
+
+    public static void AddImpulseListeners()
+    {
         foreach (CinemachineCamera cam in Object.FindObjectsByType<CinemachineCamera>(FindObjectsInactive.Include))
             if (cam.GetComponent<CinemachineImpulseListener>() == null) cam.gameObject.AddComponent<CinemachineImpulseListener>();
-
-        NightVisual night = director.gameObject.AddComponent<NightVisual>();
-        SetField(night, "day3Director", day3);
-        SetField(night, "sun", GameObject.Find("Directional Light").GetComponent<Light>());
-        SetField(night, "worldCamera", Camera.main);
-        SetField(night, "doorLamp", GameObject.Find("Day2_Graybox").transform.Find("DoorLamp").gameObject);
-
-        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
-        EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
-        Day2GrayboxBuilder.AddToBuildProfile(SCENE_PATH);
-        WireBedroom();
-        AssetDatabase.SaveAssets();
-        EditorSceneManager.OpenScene(SCENE_PATH);
-        Debug.Log($"Day 3 built into {SCENE_PATH}. Press Play in it to test Day 3 on its own.");
     }
 
     // ---------- world ----------
@@ -188,7 +203,7 @@ public static class Day3GrayboxBuilder
     }
 
     // a flat decal laid on the grass, hidden until the final blow
-    private static Renderer BuildCrater(Transform world)
+    public static Renderer BuildCrater(Transform world)
     {
         Material material = GrayboxPalette.TransparentMapped("Crater", new Color(.22f, .16f, .12f, 1f), GrayboxTextures.Crater.texture, false);
         GameObject crater = GameObject.CreatePrimitive(PrimitiveType.Quad);
@@ -205,7 +220,7 @@ public static class Day3GrayboxBuilder
 
     // ---------- the new land ----------
 
-    private static LandSequence BuildLandSequence(Transform director, GameObject plotsRoot, Npc rigel, Transform landCentre, Transform smashPoint,
+    public static LandSequence BuildLandSequence(Transform director, Day3SO day3SO, GameObject plotsRoot, Npc rigel, Transform landCentre, Transform smashPoint,
         Transform rigelHousePoint, Transform rigelWatchPoint, Transform flashbackPlayerPoint, Transform flashbackDistributorPoint, out Npc distributor)
     {
         Player player = Object.FindAnyObjectByType<Player>(FindObjectsInactive.Include);
@@ -228,7 +243,7 @@ public static class Day3GrayboxBuilder
 
         LandQTE landQTE = director.gameObject.AddComponent<LandQTE>();
         LandSequence landSequence = director.gameObject.AddComponent<LandSequence>();
-        SetField(landSequence, "day3SO", Day3DataBuilder.Day3);
+        SetField(landSequence, "day3SO", day3SO);
         SetField(landSequence, "screenFade", Object.FindAnyObjectByType<ScreenFadeUI>(FindObjectsInactive.Include));
         SetField(landSequence, "landQTE", landQTE);
         SetField(landSequence, "bunchItemDataSO", Day3DataBuilder.SawitBunchLv2);
@@ -255,12 +270,16 @@ public static class Day3GrayboxBuilder
         SetField(pose, "animator", visual.GetComponentInChildren<Animator>(true));
     }
 
-    private static void BuildLandVisuals(Transform director, LandSequence landSequence, GameObject plotsRoot, GameObject ghostPlots, Renderer crater,
+    public static void BuildLandVisuals(Transform director, LandSequence landSequence, GameObject plotsRoot, GameObject ghostPlots, Renderer crater,
         Transform smashPoint, Npc distributor)
     {
-        GhostPlotVisual ghost = director.gameObject.AddComponent<GhostPlotVisual>();
-        SetField(ghost, "landSequence", landSequence);
-        SetField(ghost, "ghostPlotsGameObject", ghostPlots);
+        // no blinking hologram where the imagined farm is a see-through copy instead (ImaginationVisual, CozyFarm)
+        if (ghostPlots != null)
+        {
+            GhostPlotVisual ghost = director.gameObject.AddComponent<GhostPlotVisual>();
+            SetField(ghost, "landSequence", landSequence);
+            SetField(ghost, "ghostPlotsGameObject", ghostPlots);
+        }
 
         LandRiseVisual rise = director.gameObject.AddComponent<LandRiseVisual>();
         SetField(rise, "landSequence", landSequence);
@@ -384,7 +403,7 @@ public static class Day3GrayboxBuilder
         fade.transform.SetAsLastSibling();
     }
 
-    private static CinemachineCamera FixedCamera(Transform parent, string name, Vector3 position, Vector3 lookAt, float fov)
+    public static CinemachineCamera FixedCamera(Transform parent, string name, Vector3 position, Vector3 lookAt, float fov)
     {
         CinemachineCamera cam = Root(name, parent).AddComponent<CinemachineCamera>();
         cam.transform.position = position;
@@ -398,7 +417,7 @@ public static class Day3GrayboxBuilder
     }
 
     // rides alongside the target at a fixed world offset and keeps it centred
-    private static CinemachineCamera ChaseCamera(Transform parent, string name, Transform target, Vector3 offset, float fov)
+    public static CinemachineCamera ChaseCamera(Transform parent, string name, Transform target, Vector3 offset, float fov)
     {
         CinemachineCamera cam = FixedCamera(parent, name, target.position + offset, target.position, fov);
         cam.Follow = target;
@@ -421,7 +440,7 @@ public static class Day3GrayboxBuilder
     }
 
     // every press: 2 resin + water + flower make 4 Lv.2 seeds (one press fills the strip) and hand the bottle back
-    private static void SetRecipe(Day3Director day3)
+    public static void SetRecipe(Day3Director day3)
     {
         SerializedObject so = new SerializedObject(day3);
         SerializedProperty recipes = so.FindProperty("recipeArray");
@@ -445,14 +464,14 @@ public static class Day3GrayboxBuilder
     }
 
     // the bedroom's director needs Day 3's morning text and the time skip
-    private static void WireBedroom()
+    public static void WireBedroom(Day3SO day3SO)
     {
         EditorSceneManager.OpenScene(HouseInteriorBuilder.SCENE_PATH);
         BedroomDirector bedroom = GameObject.Find(BEDROOM_DIRECTOR_PATH).GetComponent<BedroomDirector>();
-        SetField(bedroom, "day3SO", Day3DataBuilder.Day3);
+        SetField(bedroom, "day3SO", day3SO);
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
     }
 
-    private static Npc FindNpc(string name) => Object.FindObjectsByType<Npc>(FindObjectsInactive.Include).First(n => n.name == name);
+    public static Npc FindNpc(string name) => Object.FindObjectsByType<Npc>(FindObjectsInactive.Include).First(n => n.name == name);
 }

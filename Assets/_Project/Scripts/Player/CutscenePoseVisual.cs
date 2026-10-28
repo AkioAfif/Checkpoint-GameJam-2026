@@ -1,7 +1,8 @@
 using UnityEngine;
 
-// Bends the Chibi rig into the cutscene poses it has no clip for (eating, pounding the ground, adjusting glasses, drowning), after the
-// Animator so the pose wins over idle/walk. A punch slams the raised arms down and lets them swing back up.
+// Bends the Chibi rig into the cutscene poses it has no clip for (eating, pounding the ground, punching a tree, adjusting glasses,
+// drowning), after the Animator so the pose wins over idle/walk. A punch slams the raised arms down (or drives a fist forward) and
+// lets them swing back.
 public class CutscenePoseVisual : MonoBehaviour
 {
     [SerializeField] private CutsceneActor cutsceneActor;
@@ -90,6 +91,13 @@ public class CutscenePoseVisual : MonoBehaviour
                 headEuler = new Vector3(Mathf.Lerp(-10f, 22f, punch), 0f, 0f);
                 armLEuler = new Vector3(Mathf.Lerp(-178f, -30f, punch), 0f, -4f);
                 armREuler = new Vector3(Mathf.Lerp(-178f, -30f, punch), 0f, 4f);
+                break;
+            case CutscenePose.Jab:
+                // standing guard, fists up; one fist drives straight out per punch (left, right, left...) and the body follows it
+                lean = 6f + punch * 10f;
+                headEuler = new Vector3(6f, 0f, 0f);
+                armLEuler = Vector3.Lerp(new Vector3(-70f, 0f, -24f), new Vector3(-96f, 0f, 4f), isLeftPunch ? punch : 0f);
+                armREuler = Vector3.Lerp(new Vector3(-70f, 0f, 24f), new Vector3(-96f, 0f, -4f), isLeftPunch ? 0f : punch);
                 break;
             case CutscenePose.AdjustGlasses:
                 // one finger pushing the glasses up the nose

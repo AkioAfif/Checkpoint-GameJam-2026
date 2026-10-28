@@ -93,6 +93,21 @@ Coordinates are in Level01 world space. The MC's field is centred at (23, 5.5), 
 - **Forest lane**: x 19–22 stays walkable, so the resin stumps are still reachable.
 - **Night shot** (`CM_Day3Forest`): from (20.5, 5, 5.5) looking north over the planted strip into the dark pines.
 
+## 5b. The CozyFarm version (FixScene_Day3, the one the game loads)
+
+The beats above stay, with the new land moved to the forest grass across the river from the garden, by the pond:
+
+| # | Change on the CozyFarm map |
+|---|---|
+| 3a | The wish is made from the ICAN crate, looking across the river. The imagined farm is a see-through copy of real plots with ripe palms, and the trees standing there fade out of the picture. "But those trees are in the way, and I don't have the strength to clear them." |
+| 3b | The flashback stands the MC and the Distributor in front of the Fabricator, filmed with Day 1's meeting angle. |
+| 3d+ | After the buff: "This strength... I bet I could knock those trees down." Objective "Punch down the 3 trees across the river". At each tree, [E], then mash (4 presses × 3 blows) and it topples. The first gets "One tree... with my bare hands?!". After the third, the pine and bushes fall too: "That's the last of them. Now there's room for a real field." |
+| 3e | The smash (objective "Pound the cleared ground into a field") raises 4 plots in a square on the cleared ground. |
+| 3f (new) | After Rigel leaves: the camera on the river by the garden, a see-through bridge, "Walking all the way round to that old bridge every day is exhausting..." / "What if there was a bridge right here, next to my farm?". Objective "Go to the riverbank by the new field", then mash (4 × 4) and the bridge rises out of the water. "Ha! Now the new field is only a few steps from home." The bridge stays walkable. |
+| 5 | The evening math and the forest hook have CozyFarm wording (a new field and a bridge; "There's still a whole forest out there..."). |
+
+The ponds fill an empty bottle like the river, and the player can't walk onto them (every day, not only Day 3).
+
 ## 6. What Day 3 leaves for Day 4
 
 - The MC has decided, privately, that the trees are next.
