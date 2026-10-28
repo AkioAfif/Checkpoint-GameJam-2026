@@ -34,7 +34,8 @@ public class LandQTEUI : MonoBehaviour
     private void Update()
     {
         LandQTE.State state = landQTE.GetState();
-        bool canEat = landSequence.GetStep() == LandSequence.Step.WaitEat && GameManager.Instance.IsGamePlaying() && !PlayerInteraction.Instance.HasSelected();
+        // the yard day (no LandSequence) only uses the ring
+        bool canEat = landSequence != null && landSequence.GetStep() == LandSequence.Step.WaitEat && GameManager.Instance.IsGamePlaying() && !PlayerInteraction.Instance.HasSelected();
         bool isVisible = state != LandQTE.State.Idle || canEat;
         if (isVisible != canvasGroup.alpha > 0f) canvasGroup.SetVisible(isVisible);
         if (!isVisible) return;

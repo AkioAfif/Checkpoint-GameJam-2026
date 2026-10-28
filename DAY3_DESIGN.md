@@ -1,115 +1,114 @@
-# Day 3: Room to Grow
+# Day 3: Dirt Under Your Nails
 
-Story outline mapping: Day 1 = Prologue + Chapter 0, Day 2 = Chapter 1, **Day 3 = Chapter 2 plus a hook into Chapter 3**. Day 4 picks up Chapter 3 (the first deforestation).
+Story outline mapping: Day 1 = Prologue + Chapter 0, Day 2 = Chapter 1, **Day 3 = Chapter 2, done by hand**, Day 4 = the sawit power and the first trees cut (`DAY4_DESIGN.md`, the former Day 3).
 
-## 1. Scope and pacing
+Day 3 is the morning right after Day 2, *before* the "Two weeks later..." skip (that caption now opens Day 4). The MC widens his farm **on his own land, by hand**. He hasn't eaten a sawit yet, so there is no power. It's the last honest day.
 
-Day 3 plays all of Chapter 2. The MC expands their land (with a strength that comes from eating their own Lv.2 sawit), revenue goes up, and the villagers are happy. The day closes on the problem: the deadline is too close for the field to cover it. The last beat is the MC looking at the forest, which sets up Chapter 3 without building any tree cutting yet.
+Status: built 2026-10-28 as `FixScene_Day3` (see section 8 for what changed from the outline while building it).
 
-Kept small for the jam:
-- One new scene (`Level01_Day3`), copied from Day 2's village, using the same assets.
-- One scripted sequence (`LandSequence`) raises the new strip: a grayscale flashback, a hold-to-eat QTE, a world glitch and a mash-to-smash QTE. The new plots are ordinary `FarmPlot`s.
-- New content: one item (Lv.2 bunch), one ripe palm model, one strip of land, and the dialogues below. Character poses (eat, pound, glasses) are procedural (`CutscenePoseVisual`), not clips.
+## 1. Theme: honest work is slow
 
-Left for later: Sawit Lv.3 / further mutation (Chapter 4), the lender NPC, deforestation (Day 4), and villager criticism (Chapter 3).
+The MC earns four new plots with sweat, borrowed tools and the neighbours' help, and it costs him the whole day. That's what makes Day 4 land:
+- Day 3 shows how slow honest work is, so Day 4's shortcut (one punch fells a tree) feels tempting *and* wrong.
+- **Rigel is the contrast.** Today he helps pull a stump out and says "That's how land is supposed to be made." On Day 4 he watches the MC punch a forest down and backs away in horror.
+- **Nek Ijah's "Good things grow slowly"** echoes on Day 4, when nothing grows slowly any more.
 
-## 2. Beat sheet
+## 2. The new land
 
-| # | Where | Beat | Player does | Objective |
-|---|---|---|---|---|
-| 0 | Bedroom | A "Two weeks later..." caption, then the savings book shows two weeks of payments and 16 days left | Read the book | Check your savings book |
-| 1 | Village | Morning: all 9 field plots are heavy with ripe Lv.2 palms | Harvest | Harvest 4 Lv.2 bunches (more is fine) |
-| 2 | ICAN crate | Sell | Sell | Sell the sawit at the ICAN crate |
-| 3a | Empty grass | Cutscene: the camera turns to the empty grass north of the field; 4 hologram plots blink every 0.5 s while the MC wishes for more land | Watch | (cutscene) |
-| 3b | Flashback | MC realises → 1 s black → grayscale. Two-shot of the MC and the Distributor by the Fabricator, then his close-up: he pushes up his glasses (glint) and says the harvest gives a power when eaten → 1 s black → colour. MC: "Let me try eating one." | Watch | (cutscene) |
-| 3c | Anywhere | "[E] Eat Sawit" (needs a Lv.2 bunch, eats one). Hard cut to Rigel: startled hop, sprints over, shouts (shaking caps). Hold [E] 1 s to finish eating | Eat, hold | Eat a Lv.2 sawit bunch |
-| 3d | | Blink ×2, full-screen world glitch 0.7 s, blink ×1. MC feels different; Rigel: "...." / "This guy man..." and backs off 3 steps | Watch | (cutscene) |
-| 3e | Empty grass | Walk to the grass: the MC crouches and pounds it. Mash [E]: 4 presses per blow, 5 blows, the plots rise a stage per blow. The 5th is a two-fisted overhead slam, filmed from the front, leaving a crater for 3 s. Rigel backs off, waits 1 s, backs off, "I'll pretend nothing is happening..." and runs home (gone for the day) | Walk, mash | Go to the empty grass by the forest |
-| 4 | Fabricator, new strip | One press makes 4 Lv.2 seeds; plant the new strip. Ratna and Ijah have optional congratulation talks (Rigel's is unreachable once he has run home) | Press, plant | Press Sawit Lv.2 seeds · Plant 4 seeds in the new field |
-| 5 | Field edge, dusk | "That evening..." The savings book shows a big day but bad math. The camera turns to the forest past the strip | Read, watch | (cutscene) |
-| 6 | Home | Walk home | Enter the house | Go home |
+The strip of the MC's yard on the **left of the garden in the game view**: east on the map, between the garden and the riverside fence, below the Fabricator (the gameplay camera looks south). The 4 new plots take the strip's **northern part**. Day 4's second bridge still lands on its southern part, just south of them, with a path between.
 
-## 3. Dialogue script
+The strip is neglected on every day before this one (the props are part of FixScene, so Days 1–2 show them). It's packed with:
+- **tall weeds** (4 clumps) → need a sickle;
+- **rocks half-buried in hard clay** (3) → need a hoe;
+- **an old tree stump** with deep roots (1) → needs a rope *and* a second pair of hands.
 
-**Day3_Morning** (MC, after the savings book)
-- MC: "Two weeks of harvests... and it barely dents the number."
-- MC: "Sixteen days. I need more land."
+Once it's clear, the MC tills 4 plots there by hand.
 
-**Day3_LandWish** (MC, over the empty grass)
-- MC: "If only I could add more land there..."
-- MC: "But I don't have the strength or the time to build a new field." (HeavySigh)
+## 3. The NPC errands
 
-**Day3_Flashback** (the Distributor, grayscale)
-- Distributor: "Besides selling it, you could just eat the harvest yourself." (Nod)
-- Distributor: "You'll get a certain power that can get you out of any trouble."
+After the wish, three errands open at once, and the player does them in any order. Each one leans on a character and teaches you something about them.
 
-**Day3_TryEat**: MC: "Let me try eating one." / **Day3_NoBunch**: MC: "I sold them all... The field should still have some."
+| Tool | Who | What they want | What it shows |
+|---|---|---|---|
+| **Sickle (Arit)** | **Nek Ijah** | 3 flowers for her jamu. She tells you the sickle was her late husband's, who cleared a strip like that once, "slowly, every evening, for a whole season." | Her theme line: "Good things grow slowly." It's the voice Day 4 betrays. |
+| **Hoe (Cangkul)** | **Pak Darto** → **Dimas** | Darto (lazy, built the bridge) happily lends his hoe... which is gone. "That boy took it again." Dimas is digging for "treasure" by the river. He swaps the hoe for **one sawit seed**: "I'll grow my own super sawit!" | Darto: comedy. Dimas: the village kids idolise the MC's sawit, which pays off Ratna's "My boy wants to be a farmer now". |
+| **Rope (Tali)** | **Pak Darto** | When you bring the hoe back, he adds the rope from building the bridge: "A stump's like a stubborn goat. You don't lift it, you drag it." | Darto has hidden competence: he built the bridge. |
+| **Help with the stump** | **Rigel** | Nothing. He sees you fail alone and walks over himself. | The emotional beat of the day. |
 
-**Day3_RigelShout**: Rigel: "WHAT ARE YOU TRYING TO DO" (Surprised, shaking letters)
+## 4. Beat sheet
 
-**Day3_Buff**: MC: "I feel... really like a different person right now." (Cheer) / Rigel: "...." / Rigel: "This guy man..." (Shake)
+| # | Time | Where | Beat | Player does | Objective |
+|---|---|---|---|---|---|
+| 0 | Dawn | Bedroom | Savings book: yesterday's sale helped, but the debt barely moved; 29 days left | Read | Check your savings book |
+| 1 | Morning | Garden | The palms planted yesterday are ripe (the 2 Lv.2s look darker and heavier). Harvest them. Rigel at his fence: "Those things grow overnight. Still don't like it." | Harvest | Harvest the ripe sawit |
+| 2 | Morning | ICAN crate | Sell. The MC does the math out loud: "Nine plots... even if every one pays every day, I'm short." | Sell | Sell the sawit at the ICAN crate |
+| 3 | Morning | The strip | Cutscene: from the crate, the camera turns to the overgrown strip beside the garden. A see-through farm fades in over it, and the weeds, rocks and stump fade out (the `ImaginationVisual` look). "Dad always said that strip was too stubborn to farm. Let's see about that." | Watch | (cutscene) |
+| 4 | Morning | Strip | The MC tries pulling weeds by hand: a short mash that only fills halfway, then "Ow. I need actual tools." | Try, fail | Clear the strip by the garden |
+| 5 | Late morning | Village | **The three errands** (section 3), in any order. The objective lists all three; each ticks off as its tool arrives. | Talk, gather flowers, find Dimas, trade a seed | Borrow a sickle · Borrow a hoe · Get a rope |
+| 6 | Noon | Ratna's house | **Lunch break (pacing beat).** On the way back, Bu Ratna calls the MC in: "You've been running round the village all morning. Sit. Eat." A short talk: how her husband passed, how the village gets by, how ICAN's prices "seem too good". She gives **compost** for the new soil. The screen fades and the light shifts to afternoon. | Talk | (story) |
+| 7 | Afternoon | Strip | **The work**, by hand and visibly slow:<br>- weeds: hold [E] at each of 4 clumps (sickle);<br>- rocks: mash at each of 3 (hoe; 3 blows each, and the meter drains fast, so it's tiring);<br>- the MC wipes his brow between them. | Hold, mash | Cut the weeds (0/4) · Dig out the rocks (0/3) |
+| 8 | Late afternoon | Stump | **The stump.** Tie the rope and pull: a mash that caps at 70% however fast you go. The MC falls on his back. Rigel has been watching, walks over, grabs the rope behind him: "On three. And stop pulling like a city boy." The second pull is the two of them (now able to fill), the stump tears free and both land in the dirt, laughing. | Mash, fail, mash | Pull out the stump |
+| 9 | Late afternoon | Stump | **Rigel's talk.** "Ten years I've farmed next to you. That's the first time I've seen you sweat." / "That's how land is supposed to be made. With your back, not a machine." The MC goes quiet; the Fabricator is in the background of the shot. Rigel heads home. | Talk | (story) |
+| 10 | Sunset | Strip | Till the 4 plots (hold [E] at each; each one appears as he tills), mix in Ratna's compost, then plant. Use whatever seeds he has, or press new ones at the Fabricator. | Till, plant | Till 4 new plots · Plant the new plots |
+| 11 | Evening | Porch | "That evening..." The savings book: today he *earned* little, because the whole day went into four plots. | Read | (cutscene) |
+| 12 | Evening | Porch | **The quiet hook.** The MC looks at his blistered hands: "Four plots. One whole day, half the village, and Rigel's back." / "Twenty-nine days. I can't do this every day." Close on the one Lv.2 bunch he kept, on the table: it **pulses red** once (Day 2's `MutationPulseVisual`). He doesn't notice and turns off the lamp. | Watch | Go home |
 
-**Day3_RigelPretend**: Rigel: "I'll pretend nothing is happening..." (HeavySigh)
+**Day 4 opens** with "Two weeks later...": two weeks of the new routine, and the book shows it still isn't enough. Then the wish at the forest, the flashback, eating the sawit, the trees and the bridge (`DAY4_DESIGN.md`).
 
-**Ratna_Day3**: "The whole village is talking about your sawit! My boy wants to be a farmer now." (WideSmile) / MC: "Thank you, Bu Ratna!"
+## 5. Pacing
 
-**Ijah_Day3**: "Ah, the young one who saved the farm. Come eat with us sometime." (Nod) / MC: "I will, Nek Ijah. Once the debt is paid."
+- **The day visibly passes:** dawn book → morning harvest → noon lunch → afternoon work → sunset planting → night. The light changes at each fade; the lunch fade is the midpoint breather.
+- **Real friction:**
+  - a failed attempt (weeds by hand);
+  - three errands in any order;
+  - one of them (the hoe) has a twist, so it's a two-step chain;
+  - a second failure (the stump alone) that only another person can solve.
+- **The ending lands on a feeling, not a plot jump:** tired, proud, worried. Then the red pulse plants the question Day 4 answers. The skip gets its weight from today's slowness: we *felt* one day of honest work, so "two weeks later" reads as two more weeks of it.
 
-**Rigel_Day3**
-- Rigel: "Fine. You won the bet."
-- Rigel: "...this week." (TiltHead)
-- MC: "Next week too."
+## 6. Dialogue script (drafts; final text lives in the .asset files)
 
-**Day3_EveningMath** (MC, after the evening savings book)
-- MC: "A good day. And the new strip cost me nothing but one sawit."
-- MC: "Two weeks of harvests barely moved the debt. Sixteen more days won't do it either."
-- MC: "The field is still too small." (HeavySigh)
+- **Day3_Morning** (MC, after the book): "It helped... but forty-six million doesn't care about helped." / "Twenty-nine days."
+- **Day3_Math** (MC, after selling): "Nine plots. Even if every one pays every day... I'm short." / "I need more land. And I've got a whole strip of it going to waste, right next to the garden."
+- **Day3_Wish** (MC): "Dad always said that strip was too stubborn to farm." / "Let's see about that."
+- **Day3_BareHands** (MC): "Ow! Okay... I need actual tools."
+- **Ijah_Sickle:**
+  - Ijah: "My husband cleared a strip like that once. Slowly, every evening, for a whole season."
+  - Ijah: "Bring me three flowers for my jamu, and his sickle is yours."
+  - after the flowers, Ijah: "Good things grow slowly, dear. Remember that."
+- **Darto_Hoe:**
+  - Darto: "My hoe? Of course, take— ...where is it?" / "That boy. He took it again. Dimas! DIMAS!"
+  - he doesn't move, Darto: "...He's by the river. Probably."
+- **Dimas_Treasure:**
+  - Dimas: "There's TREASURE under here, I just know it!"
+  - on the trade, Dimas: "A real sawit seed? Deal! I'm gonna grow the biggest one in the village!"
+- **Darto_Rope** (Darto): "And take this. A stump's like a stubborn goat. You don't lift it, you drag it."
+- **Ratna_Lunch:**
+  - Ratna: "You've been running round all morning. Sit. Eat."
+  - Ratna: "Since my husband passed, it's just me and Dimas. We get by."
+  - Ratna: "ICAN pays well, doesn't it? Almost too well." / "Here, compost from my garden. New soil is hungry soil."
+- **Day3_StumpAlone** (MC): "Come... ON!" (falls)
+- **Rigel_Help:**
+  - Rigel: "On three. And stop pulling like a city boy."
+  - after, Rigel: "Ten years I've farmed next to you. First time I've seen you sweat."
+  - Rigel: "That's how land is supposed to be made. With your back, not a machine."
+- **Day3_Evening** (MC): "Four plots. One whole day, half the village... and Rigel's back." / "Twenty-nine days. I can't do this every day." (the bunch pulses red; he doesn't see it)
 
-(No exact numbers in the lines, because the player may harvest more than the 4 the checklist asks for. The savings book shows the real figures.)
+## 7. Open points
 
-**Day3_ForestHook** (MC, camera on the trees)
-- MC: "All that land... just sitting there."
-- MC: "With this strength... the trees wouldn't take long."
+- **"Dad's strip"** is a light touch of backstory. Drop it if the MC's family story is decided differently.
+- The money for the day (sale prices, today's small earnings, 29 days left) goes in the Day 3 SO once it's built; the lines above avoid exact numbers.
 
-## 4. Money (all values live in `Day3SO`)
+## 8. As built (FixScene_Day3)
 
-| | Value |
-|---|---|
-| Debt after Day 2 | ~46–47M (48.5M minus Day 2's sales) |
-| Paid during the two-week skip | 9,000,000 |
-| Days until due | 30 → 16 |
-| Lv.2 bunch | 1,000,000 each, all 9 sold = 9,000,000 |
-| New strip | free (smashed out of the ground) |
-| Evening | ~28M left with 16 days to go; the last two weeks only paid 9M |
+Code in `Scripts/Yard/` (`YardDayDirector`, `YardErrands`, `YardObstacle(+Visual)`, `RopeVisual`, `BunchPulseVisual`, `YardCameraVisual`, `YardDaySO`); the scene comes from **Tools > FixScene > Build Day 3 Scene**. Details in `.claude/rules/project-settings.md`.
 
-## 5. Greybox layout (Level01_Day3)
-
-Coordinates are in Level01 world space. The MC's field is centred at (23, 5.5), 8.6 m square, so it spans x 18.7–27.3 and z 1.2–9.8. Day 2's forest edge runs x 16.5–28.5, z 14.5–26.
-
-- **New strip**: plain grass at x 18.5–27.5, z 10.8–13.8, between the field and the trees. No fence, no sign; Darto is not in the Day 3 scene.
-- **Plots**: 4 `FarmPlot`s in a row along z 12.3 (x 19.6–26.4, 2.25 m apart), hidden and sunk 0.18 m until the smash (`LandRiseVisual` raises them a stage per blow). `GhostPlots` are hologram copies for the blinking wish. The old field only accepts Lv.1 seeds on Day 3, so the new seeds go here.
-- **Smash point** (23, 10.5) facing north; Rigel watches from 3 m west of it and runs home to (25, -13.8).
-- **Flashback**: the Distributor copy (`Npc_DistributorFlashback`) stands 1.6 m east and 1.6 m south of the Fabricator facing west, the MC 1.9 m west of him.
-- **Forest lane**: x 19–22 stays walkable, so the resin stumps are still reachable.
-- **Night shot** (`CM_Day3Forest`): from (20.5, 5, 5.5) looking north over the planted strip into the dark pines.
-
-## 5b. The CozyFarm version (FixScene_Day3, the one the game loads)
-
-The beats above stay, with the new land moved to the forest grass across the river from the garden, by the pond:
-
-| # | Change on the CozyFarm map |
-|---|---|
-| 3a | The wish is made from the ICAN crate, looking across the river. The imagined farm is a see-through copy of real plots with ripe palms, and the trees standing there fade out of the picture. "But those trees are in the way, and I don't have the strength to clear them." |
-| 3b | The flashback stands the MC and the Distributor in front of the Fabricator, filmed with Day 1's meeting angle. |
-| 3d+ | After the buff: "This strength... I bet I could knock those trees down." Objective "Punch down the 3 trees across the river". At each tree, [E], then mash (4 presses × 3 blows) and it topples. The first gets "One tree... with my bare hands?!". After the third, the pine and bushes fall too: "That's the last of them. Now there's room for a real field." |
-| 3e | The smash (objective "Pound the cleared ground into a field") raises 4 plots in a square on the cleared ground. |
-| 3f (new) | After Rigel leaves: the camera on the river by the garden, a see-through bridge, "Walking all the way round to that old bridge every day is exhausting..." / "What if there was a bridge right here, next to my farm?". Objective "Go to the riverbank by the new field", then mash (4 × 4) and the bridge rises out of the water. "Ha! Now the new field is only a few steps from home." The bridge stays walkable. |
-| 5 | The evening math and the forest hook have CozyFarm wording (a new field and a bridge; "There's still a whole forest out there..."). |
-
-The ponds fill an empty bottle like the river, and the player can't walk onto them (every day, not only Day 3).
-
-## 6. What Day 3 leaves for Day 4
-
-- The MC has decided, privately, that the trees are next.
-- The MC now has an unnatural strength from eating the Lv.2 sawit (story only, no gameplay buff yet), and the forest hook points it at the trees.
-- Rigel saw it all and chose to look away, ready for his suspicion in Chapter 4.
+Changed from the outline while building it:
+- **The new plots** are a fourth column for the garden, east of its fence (x -8.4, four rows from z -30 to -36.3), not a 2×2 block. The strip is only ~4 m wide, and Day 4's bridge still lands just south-east of them with a path between.
+- **Seeds:** Dimas wants a sawit seed, and the new plots need four. Today the Fabricator presses 3 flowers into 5 Lv.1 seeds (one for Dimas, four for the plots), so flowers are the errand currency (Ijah wants 3 more).
+- **The dark bunches:** ICAN only buys the usual bunches today, so the MC keeps his 2 Lv.2 bunches. One sits on a crate by the front door for the evening's red pulse, and Day 4 is when he eats one.
+- **The bare-handed tug** comes straight after the wish (a mash that stalls short of full), on the nearest weed.
+- **Work objectives:** the weeds and rocks share one "Cut the weeds and dig out the rocks (0/7)" objective, because story objectives can't count in parallel.
+- **The pulse:** he turns to the door when the bunch pulses, so he really doesn't see it.
+- **Dimas** digs by the river north of the old bridge for the whole day, instead of strolling round his house.
+- **Days count down:** the savings book shows 29 days on Day 3 (`WorldState.StartDay`).
+- **Leftovers:** the hand-dug plots carry into Day 4; the clutter is in FixScene, so Days 1–2 show the strip overgrown.

@@ -21,6 +21,8 @@ public static class WorldState
     private static long debt;
     private static int daysUntilDue;
     private static long earnedToday;
+    // the last morning StartDay counted
+    private static int currentDay;
 
     public static void CompleteDay1(IEnumerable<Vector3> plantedPositions)
     {
@@ -41,6 +43,18 @@ public static class WorldState
         savings = startingSavings;
         debt = startingDebt;
         daysUntilDue = startingDaysUntilDue;
+    }
+
+    // a new morning (Day 2 on): one day less until the debt is due, and a fresh "earned today" (applied once per day)
+    public static void StartDay(int day)
+    {
+        if (day <= currentDay) return;
+        if (currentDay > 0)
+        {
+            daysUntilDue = System.Math.Max(0, daysUntilDue - (day - currentDay));
+            earnedToday = 0L;
+        }
+        currentDay = day;
     }
 
     // what ICAN pays goes straight to the lender
@@ -94,5 +108,6 @@ public static class WorldState
         debt = 0L;
         daysUntilDue = 0;
         earnedToday = 0L;
+        currentDay = 0;
     }
 }

@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab553993f63ba8344b4f038e0c6909a1, type: 3}
+  m_Name: Day3_Yard
+  m_EditorClassIdentifier: Assembly-CSharp::YardDaySO
+  morningDialogueSO: {fileID: 11400000, guid: 09443c7e26ddc0047b7f7b1da2ab13ab, type: 2}
+  rigelMorningDialogueSO: {fileID: 11400000, guid: c81dc892786e32f47b6e8be9f1e3ecbd, type: 2}
+  mathDialogueSO: {fileID: 11400000, guid: 37639bd04ff453049bd5e8d4c16a672d, type: 2}
+  wishDialogueSO: {fileID: 11400000, guid: 2b37c901abac4b64aaee65f196403e30, type: 2}
+  bareHandsDialogueSO: {fileID: 11400000, guid: cd902c6595e042547a4972f5006ae446, type: 2}
+  ijahAskDialogueSO: {fileID: 11400000, guid: f05539b2a2378914fb0a2d7eddf17d01, type: 2}
+  ijahGiveDialogueSO: {fileID: 11400000, guid: 0260434a56a9cef4581ef130e979158e, type: 2}
+  ijahAfterDialogueSO: {fileID: 11400000, guid: aaac5f16a95cf3344a3a8b3f8b3fe6bc, type: 2}
+  ijahFlowerCount: 3
+  dartoHoeMissingDialogueSO: {fileID: 11400000, guid: 98b12dad5e4cc3644b45eb31f3c25cfd, type: 2}
+  dartoWhereDialogueSO: {fileID: 11400000, guid: b7b0e22814611034bb66e0d19cadac6a, type: 2}
+  dartoRopeDialogueSO: {fileID: 11400000, guid: b56c9c3c804b0fa4c91cb8d53dcc121f, type: 2}
+  dimasAskDialogueSO: {fileID: 11400000, guid: d9c1143b0c9a70c41b2ab53be22455bd, type: 2}
+  dimasTradeDialogueSO: {fileID: 11400000, guid: 7d5fc73c119d4e941b7d2aaafa14207e, type: 2}
+  dimasAfterDialogueSO: {fileID: 11400000, guid: 7304f0aee6d0be743b37ea05d5deceda, type: 2}
+  ratnaLunchDialogueSO: {fileID: 11400000, guid: cb509862e2269134ebb9bc17664ef9f6, type: 2}
+  stumpAloneDialogueSO: {fileID: 11400000, guid: 2f708516229a83f489158b247c751d77, type: 2}
+  rigelHelpDialogueSO: {fileID: 11400000, guid: a8d3d637ec680f74da36931601df4917, type: 2}
+  rigelTalkDialogueSO: {fileID: 11400000, guid: c47e21fb1862b45419af19c7bd4b9d4a, type: 2}
+  eveningDialogueSO: {fileID: 11400000, guid: 7c267e545c0add14cb73436e235e0a88, type: 2}
+  harvestObjectiveArray:
+  - {fileID: 11400000, guid: e90f5c4e0c18f894ebb947448b457c97, type: 2}
+  - {fileID: 11400000, guid: 0a2e86ee76ac6644795bd1bfb79400d4, type: 2}
+  clearObjectiveArray:
+  - {fileID: 11400000, guid: 1324d1383a0d16b4d800b77559802378, type: 2}
+  errandObjectiveArray:
+  - {fileID: 11400000, guid: 5335f43e8d5a4f74d94707d4ced9d185, type: 2}
+  - {fileID: 11400000, guid: 728c2cb43ba3a0a4e85676d5f0c56352, type: 2}
+  - {fileID: 11400000, guid: e54c18731f45fea45b6478cd928bc0bc, type: 2}
+  lunchObjectiveArray:
+  - {fileID: 11400000, guid: ade37d4529b659e46bf54ef4fcd5960e, type: 2}
+  workObjectiveArray:
+  - {fileID: 11400000, guid: 65718d1c6efa514489e9fc278b4ad89e, type: 2}
+  stumpObjectiveArray:
+  - {fileID: 11400000, guid: ce3de5a6487ab5d4d9a0b2e3320c2820, type: 2}
+  plantObjectiveArray:
+  - {fileID: 11400000, guid: 99b172fe61aa35748ac4c156aa8349c1, type: 2}
+  - {fileID: 11400000, guid: 1cfc9bb52e2fd014e9e9a9f4e97f508c, type: 2}
+  nightObjectiveArray:
+  - {fileID: 11400000, guid: ba862cf2acfbb5942b0e13cb3f160d2f, type: 2}
+  testStartingSavings: 1000
+  testStartingDebt: 46500000
+  testDaysUntilDue: 29
+  afternoonCaption: That afternoon...
+  nightCaption: That evening...

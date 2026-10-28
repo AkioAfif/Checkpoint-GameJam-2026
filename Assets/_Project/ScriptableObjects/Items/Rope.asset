@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a532d23ec25add43b52cecb0ff0daae, type: 3}
+  m_Name: Rope
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
+  itemName: Rope
+  description: The rope Pak Darto built the bridge with. Thick enough for a stubborn stump.
+  icon: {fileID: 2768442279794393852, guid: 8a50da11882a98148928a51e4ae98d35, type: 3}
+  prefab: {fileID: 6830039184750329615, guid: 4b0d1311db120f04eb0734e7c55ee51f, type: 3}
+  liquidColor: {r: 0.75, g: 0.62, b: 0.42, a: 1}
+  sellPrice: 0

@@ -99,6 +99,14 @@ public class CutscenePoseVisual : MonoBehaviour
                 armLEuler = Vector3.Lerp(new Vector3(-70f, 0f, -24f), new Vector3(-96f, 0f, 4f), isLeftPunch ? punch : 0f);
                 armREuler = Vector3.Lerp(new Vector3(-70f, 0f, 24f), new Vector3(-96f, 0f, -4f), isLeftPunch ? 0f : punch);
                 break;
+            case CutscenePose.Pull:
+                // leaning back on a rope held out in front, heaving with every press
+                drop = .06f + punch * .05f;
+                lean = -16f - punch * 8f;
+                headEuler = new Vector3(-8f, 0f, 0f);
+                armLEuler = new Vector3(-80f + punch * 12f, 0f, -8f);
+                armREuler = new Vector3(-80f + punch * 12f, 0f, 8f);
+                break;
             case CutscenePose.AdjustGlasses:
                 // one finger pushing the glasses up the nose
                 headEuler = new Vector3(6f, 0f, 0f);

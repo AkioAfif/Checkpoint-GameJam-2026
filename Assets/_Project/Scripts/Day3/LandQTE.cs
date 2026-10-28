@@ -24,6 +24,8 @@ public class LandQTE : MonoBehaviour
     private int pressesPerFill;
     private int fillCount;
     private int fillIndex;
+    // below 1 the meter can never fill: an effort that's doomed (pulling a stump alone)
+    private float maxProgress = 1f;
     // a hold only counts once the key that closed the last dialogue line has been let go
     private bool isReleased;
     private readonly OnProgressChangedEventArgs progressChangedEventArgs = new OnProgressChangedEventArgs();
@@ -58,7 +60,7 @@ public class LandQTE : MonoBehaviour
     private void GameInput_OnInteractAction(object sender, EventArgs e)
     {
         if (state != State.Mash || GameManager.Instance.IsGamePaused()) return;
-        SetProgress(progress + 1f / pressesPerFill);
+        SetProgress(Mathf.Min(progress + 1f / pressesPerFill, maxProgress));
         if (progress < 1f) return;
 
         bool isLast = fillIndex == fillCount - 1;
@@ -76,16 +78,25 @@ public class LandQTE : MonoBehaviour
         SetState(State.Hold);
     }
 
-    public void StartMash(int pressesPerFill, int fillCount)
+    public void StartMash(int pressesPerFill, int fillCount, float maxProgress = 1f)
     {
         this.pressesPerFill = pressesPerFill;
         this.fillCount = fillCount;
+        this.maxProgress = maxProgress;
         fillIndex = 0;
         SetProgress(0f);
         SetState(State.Mash);
     }
 
+    // gives up on the current challenge without finishing it
+    public void Stop()
+    {
+        SetProgress(0f);
+        SetState(State.Idle);
+    }
+
     public State GetState() => state;
+    public float GetProgress() => progress;
 
     private void SetState(State state)
     {

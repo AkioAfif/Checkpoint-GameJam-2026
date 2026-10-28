@@ -3,10 +3,12 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using static GrayboxBuild;
 
-// Map changes to FixScene (the CozyFarm map) that every day's scene inherits, since Day 2 and Day 3 are rebuilt from it.
-// Both menus are re-runnable and skip what is already there; save FixScene, then rebuild Day 2 and Day 3.
+// Map changes to FixScene (the CozyFarm map) that every day's scene inherits, since Days 2, 3 and 4 are rebuilt from it.
+// The menus are re-runnable and replace what they made before; save FixScene, then rebuild Days 2, 3 and 4 in order.
 // - Set Up Ponds: the four forest ponds fill an empty bottle like the river, and the player can't walk onto them.
-// - Plant Day 3 Clearing Trees: three more forest trees on the grass across the river from the garden, the field Day 3 clears.
+// - Plant Day 3 Clearing Trees: three more forest trees on the grass across the river from the garden, the field Day 4 clears
+//   (named before the yard day became Day 3).
+// - Add Yard Strip Clutter: weeds, rocks and an old stump on the strip beside the garden, which the yard day (Day 3) clears.
 public static class FixSceneMapBuilder
 {
     private const string PONDS_ROOT = "PondWaterSpots";
@@ -25,6 +27,16 @@ public static class FixSceneMapBuilder
         ("Forest_Tree_1_028", new Vector3(16.6f, 0f, -32.6f), 160f),
         ("Forest_Tree_3_039", new Vector3(18.3f, 0f, -28.2f), 200f),
     };
+
+    // the yard strip (east of the garden, x -9.8 to -4.3; the new plots will make a column at x -8.4): the camera looks south
+    public const string GAMEPLAY_PATH = "Day1_Gameplay";
+    public const string YARD_CLUTTER_ROOT = "YardStripClutter";
+    private static readonly Vector3[] YardWeedPositionArray =
+    {
+        new Vector3(-8.6f, 0f, -30f), new Vector3(-6.6f, 0f, -31.6f), new Vector3(-8.4f, 0f, -35.4f), new Vector3(-6.4f, 0f, -36.6f),
+    };
+    private static readonly Vector3[] YardRockPositionArray = { new Vector3(-6.9f, 0f, -29.9f), new Vector3(-8.5f, 0f, -32.4f), new Vector3(-7f, 0f, -35f) };
+    private static readonly Vector3 YardStumpPosition = new Vector3(-8.2f, 0f, -34f);
 
     [MenuItem("Tools/FixScene/Set Up Ponds")]
     public static void SetUpPonds()
@@ -138,6 +150,59 @@ public static class FixSceneMapBuilder
         mesh.RecalculateBounds();
         EditorUtility.SetDirty(mesh);
         return mesh;
+    }
+
+    // The strip between the garden and the riverside fence, below the Fabricator, is neglected until the yard day clears it:
+    // weed clumps, half-buried rocks and an old stump (FixSceneDay3Builder turns each into a job; Day 4 removes the root).
+    [MenuItem("Tools/FixScene/Add Yard Strip Clutter")]
+    public static void AddYardStripClutter()
+    {
+        if (!IsFixSceneOpen()) return;
+        Transform gameplay = GameObject.Find(GAMEPLAY_PATH).transform;
+        Transform existing = gameplay.Find(YARD_CLUTTER_ROOT);
+        if (existing != null) Object.DestroyImmediate(existing.gameObject);
+        Transform root = Root(YARD_CLUTTER_ROOT, gameplay).transform;
+
+        for (int i = 0; i < YardWeedPositionArray.Length; i++)
+            Clutter(root, $"Weed_{i + 1}", $"{PREFABS}/Environment/WorldBorder/Reeds_{(i % 2 == 0 ? "A" : "B")}.prefab", YardWeedPositionArray[i], 1.5f, i * 70f);
+        for (int i = 0; i < YardRockPositionArray.Length; i++)
+            Clutter(root, $"Rock_{i + 1}", $"{PREFABS}/Environment/WorldBorder/Rock_{(char)('A' + i % 3)}.prefab", YardRockPositionArray[i], .95f, i * 110f);
+
+        // an old stump: a short tapered trunk with a few roots splayed out
+        GameObject stump = Root("Stump", root);
+        stump.transform.position = FixSceneDay2Builder.Ground(YardStumpPosition) + Vector3.down * .05f;
+        Material bark = GrayboxPalette.Lit("StumpBark", new Color(.42f, .32f, .24f));
+        Part(stump.transform, "Trunk", GrayboxMeshFactory.Taper(.42f, .34f, .55f, .04f, 14), bark, Vector3.zero);
+        Part(stump.transform, "Top", GrayboxMeshFactory.Cylinder(.33f, .03f, .01f, 14), GrayboxPalette.Lit("StumpRings", new Color(.74f, .6f, .42f)), new Vector3(0f, .54f, 0f));
+        for (int i = 0; i < 4; i++)
+        {
+            float angle = i * 90f + 25f;
+            PartCentered(stump.transform, "Root", GrayboxMeshFactory.Blob(.12f, .5f, 8, 4), bark,
+                Quaternion.Euler(0f, angle, 0f) * new Vector3(0f, .06f, .45f), new Vector3(80f, angle, 0f));
+        }
+        Save();
+        Debug.Log("The yard strip's clutter is in FixScene. Rebuild Days 2, 3 and 4 to carry it over.");
+    }
+
+    // a model-only copy of a prefab, scaled so its largest side is 'size' metres, standing on the ground
+    private static void Clutter(Transform parent, string name, string prefabPath, Vector3 position, float size, float yaw)
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        if (prefab == null)
+        {
+            Debug.LogError($"{prefabPath} is missing: run Tools > World Border > Generate Border Assets");
+            return;
+        }
+        GameObject copy = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
+        PrefabUtility.UnpackPrefabInstance(copy, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+        copy.name = name;
+        foreach (Collider collider in copy.GetComponentsInChildren<Collider>()) Object.DestroyImmediate(collider);
+        copy.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
+        Bounds bounds = new Bounds(copy.transform.position, Vector3.zero);
+        foreach (Renderer part in copy.GetComponentsInChildren<Renderer>()) bounds.Encapsulate(part.bounds);
+        float largest = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
+        if (largest > .01f) copy.transform.localScale *= size / largest;
+        copy.transform.position = FixSceneDay2Builder.Ground(position);
     }
 
     private static bool IsFixSceneOpen()
