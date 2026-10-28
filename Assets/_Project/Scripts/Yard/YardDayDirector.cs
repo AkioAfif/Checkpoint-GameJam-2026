@@ -360,6 +360,8 @@ public class YardDayDirector : MonoBehaviour
             Player.Instance.Teleport(eveningPoint.position);
             Player.Instance.FaceTowards(eveningPoint.position + eveningPoint.forward);
             foreach (FarmPlot farmPlot in newPlotArray) farmPlot.Grow();
+            // returned off screen during "That evening..."
+            errands.ReturnTools();
             SetState(State.Night);
         }
     }

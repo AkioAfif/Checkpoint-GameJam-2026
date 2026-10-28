@@ -1,17 +1,20 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
-// The tube machine in front of the house: pick how many batches → zoom in → solve the puzzle once → seeds pop out.
+// The tube machine in front of the house: pick a recipe and how many batches → zoom in → solve the puzzle once → seeds pop out.
 // Resources are only used on success, one recipe's worth per batch. The recipe panel always opens; Make needs the materials.
+// The panel offers today's recipe first, then every other seed's recipe made on an earlier press (WorldState).
 // A guided recipe (the tutorial's first press) skips the panel: one batch, straight into the puzzle, only with the materials.
 public class FabricatorController : MonoBehaviour, IInteractable
 {
     public static event EventHandler<OnAnySeedFabricatedEventArgs> OnAnySeedFabricated;
-    public class OnAnySeedFabricatedEventArgs : EventArgs { public int seedCount; }
+    public class OnAnySeedFabricatedEventArgs : EventArgs { public int seedCount; public ItemDataSO seedItemDataSO; }
 
     public event EventHandler<OnStateChangedEventArgs> OnStateChanged;
     public class OnStateChangedEventArgs : EventArgs { public State state; }
-    public event EventHandler OnBatchCountChanged;
+    // the chosen recipe or batch count changed
+    public event EventHandler OnChoiceChanged;
 
     public enum State { Idle, Choosing, Entering, Puzzle, Solved, Exiting }
 
@@ -49,10 +52,14 @@ public class FabricatorController : MonoBehaviour, IInteractable
     private int madeSeedCount;
     private bool isPlaced = true;
     private int batchCount = 1;
+    // today's recipe, then the unlocked recipes for other seeds
+    private readonly List<Recipe> choiceList = new List<Recipe>();
+    private int choiceIndex;
     // the Interact press that opened the recipe panel must not also confirm it
     private int choosingStartFrame;
-    // A/D change the batch count once per press, not every frame they are held
+    // A/D change the recipe and W/S the batch count once per press, not every frame they are held
     private int heldBatchStep;
+    private int heldRecipeStep;
 
     private void Start()
     {
@@ -66,8 +73,11 @@ public class FabricatorController : MonoBehaviour, IInteractable
     {
         if (state == State.Choosing)
         {
-            float horizontal = GameInput.Instance.GetMovementVectorNormalized().x;
-            int step = horizontal > .5f ? 1 : horizontal < -.5f ? -1 : 0;
+            Vector2 movement = GameInput.Instance.GetMovementVectorNormalized();
+            int recipeStep = movement.x > .5f ? 1 : movement.x < -.5f ? -1 : 0;
+            if (recipeStep != 0 && recipeStep != heldRecipeStep) ChangeRecipe(recipeStep);
+            heldRecipeStep = recipeStep;
+            int step = movement.y > .5f ? 1 : movement.y < -.5f ? -1 : 0;
             if (step != 0 && step != heldBatchStep) ChangeBatchCount(step);
             heldBatchStep = step;
             return;
@@ -78,7 +88,7 @@ public class FabricatorController : MonoBehaviour, IInteractable
         switch (state)
         {
             case State.Entering:
-                miniGame.Begin(GetRecipe().puzzleSO);
+                miniGame.Begin(GetChosenRecipe().puzzleSO);
                 SetState(State.Puzzle, 0f);
                 break;
             case State.Solved:
@@ -87,7 +97,7 @@ public class FabricatorController : MonoBehaviour, IInteractable
             case State.Exiting:
                 SetState(State.Idle, 0f);
                 GameManager.Instance.SetState(GameManager.State.Playing);
-                if (isSuccess) OnAnySeedFabricated?.Invoke(this, new OnAnySeedFabricatedEventArgs { seedCount = madeSeedCount });
+                if (isSuccess) OnAnySeedFabricated?.Invoke(this, new OnAnySeedFabricatedEventArgs { seedCount = madeSeedCount, seedItemDataSO = GetOutputItemDataSO() });
                 break;
         }
     }
@@ -127,7 +137,9 @@ public class FabricatorController : MonoBehaviour, IInteractable
         isSuccess = false;
         batchCount = 1;
         heldBatchStep = 0;
+        heldRecipeStep = 0;
         choosingStartFrame = Time.frameCount;
+        FillChoiceList();
         GameManager.Instance.SetState(GameManager.State.Fabricating);
         if (GetRecipe().isGuided)
         {
@@ -135,7 +147,16 @@ public class FabricatorController : MonoBehaviour, IInteractable
             return;
         }
         SetState(State.Choosing, 0f);
-        OnBatchCountChanged?.Invoke(this, EventArgs.Empty);
+        OnChoiceChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    // wraps around; the batch count shrinks if the bag can't cover it for the new recipe
+    public void ChangeRecipe(int delta)
+    {
+        if (choiceList.Count < 2) return;
+        choiceIndex = (choiceIndex + delta + choiceList.Count) % choiceList.Count;
+        batchCount = Mathf.Clamp(batchCount, 1, GetMaxBatchCount());
+        OnChoiceChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public void ChangeBatchCount(int delta)
@@ -143,7 +164,7 @@ public class FabricatorController : MonoBehaviour, IInteractable
         int newCount = Mathf.Clamp(batchCount + delta, 1, GetMaxBatchCount());
         if (newCount == batchCount) return;
         batchCount = newCount;
-        OnBatchCountChanged?.Invoke(this, EventArgs.Empty);
+        OnChoiceChanged?.Invoke(this, EventArgs.Empty);
     }
 
     // Make: refused while the bag can't cover the chosen batches (Leave would otherwise pay out with inputs missing)
@@ -162,7 +183,7 @@ public class FabricatorController : MonoBehaviour, IInteractable
     // the bag covers every input for the chosen number of batches
     public bool CanAffordBatches()
     {
-        foreach (ItemAmount input in GetRecipe().inputArray)
+        foreach (ItemAmount input in GetChosenRecipe().inputArray)
             if (Inventory.Instance.GetCount(input.itemDataSO) < input.amount * batchCount) return false;
         return true;
     }
@@ -172,18 +193,20 @@ public class FabricatorController : MonoBehaviour, IInteractable
     public int GetMaxBatchCount()
     {
         int affordable = maxBatchCount;
-        foreach (ItemAmount input in GetRecipe().inputArray)
+        foreach (ItemAmount input in GetChosenRecipe().inputArray)
             if (input.amount > 0) affordable = Mathf.Min(affordable, Inventory.Instance.GetCount(input.itemDataSO) / input.amount);
         return Mathf.Max(1, affordable);
     }
-    public ItemAmount[] GetInputArray() => GetRecipe().inputArray;
-    public ItemAmount GetOutput() => GetRecipe().output;
+    public ItemAmount[] GetInputArray() => GetChosenRecipe().inputArray;
+    public ItemAmount GetOutput() => GetChosenRecipe().output;
+    public int GetChoiceCount() => choiceList.Count;
+    public int GetChoiceIndex() => choiceIndex;
 
     public string GetPromptVerb() => promptVerb;
     public string GetBlockedReason() => GetRecipe().blockedReason;
     public Transform GetPromptAnchor() => promptAnchor;
-    // the seed type the next press makes (its prefab pops out of the tube)
-    public ItemDataSO GetOutputItemDataSO() => GetRecipe().output.itemDataSO;
+    // the seed type the chosen recipe makes (its prefab pops out of the tube)
+    public ItemDataSO GetOutputItemDataSO() => GetChosenRecipe().output.itemDataSO;
     // false while the Distributor still carries it
     public void SetPlaced(bool isPlaced) => this.isPlaced = isPlaced;
 
@@ -194,20 +217,36 @@ public class FabricatorController : MonoBehaviour, IInteractable
         completedRuns = 0;
     }
 
+    // today's recipe for the next press
     private Recipe GetRecipe() => recipeArray[Mathf.Min(completedRuns, recipeArray.Length - 1)];
+    // a guided press never fills the list, so it runs today's recipe
+    private Recipe GetChosenRecipe() => choiceIndex < choiceList.Count ? choiceList[choiceIndex] : GetRecipe();
+
+    private void FillChoiceList()
+    {
+        choiceList.Clear();
+        choiceIndex = 0;
+        Recipe todayRecipe = GetRecipe();
+        choiceList.Add(todayRecipe);
+        if (todayRecipe.isGuided) return;
+        foreach (Recipe unlocked in WorldState.GetUnlockedRecipeList())
+            if (unlocked.output.itemDataSO != todayRecipe.output.itemDataSO) choiceList.Add(unlocked);
+    }
 
     private void Leave(bool isSuccess)
     {
         this.isSuccess = isSuccess;
         if (isSuccess)
         {
-            Recipe recipe = GetRecipe();
+            Recipe recipe = GetChosenRecipe();
             for (int i = 0; i < batchCount; i++) Inventory.Instance.RemoveItems(recipe.inputArray);
             if (recipe.returned.amount > 0) Inventory.Instance.AddItem(recipe.returned.itemDataSO, recipe.returned.amount * batchCount);
             // the combo is one reward per run, however many batches it made
             madeSeedCount = recipe.output.amount * batchCount + (miniGame.IsCombo() ? comboBonus : 0);
             Inventory.Instance.AddItem(recipe.output.itemDataSO, madeSeedCount);
-            completedRuns++;
+            if (!recipe.isGuided) WorldState.UnlockRecipe(recipe);
+            // only today's recipe moves the day's press order on (Day 1's puzzles get harder)
+            if (recipe == GetRecipe()) completedRuns++;
         }
         miniGame.End();
         SetState(State.Exiting, exitDuration);

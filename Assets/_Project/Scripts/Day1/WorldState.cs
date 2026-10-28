@@ -29,6 +29,8 @@ public static class WorldState
     private static readonly HashSet<ItemDataSO> discoveredItemSet = new HashSet<ItemDataSO>();
     // dialogue rewards already handed out, so no scene gives one twice
     private static readonly HashSet<DialogueSO> givenRewardSet = new HashSet<DialogueSO>();
+    // Fabricator recipes made at least once (the latest per seed type), choosable in the recipe panel on later presses
+    private static readonly List<FabricatorController.Recipe> unlockedRecipeList = new List<FabricatorController.Recipe>();
 
     public static void CompleteDay1(IEnumerable<Vector3> plantedPositions)
     {
@@ -109,6 +111,13 @@ public static class WorldState
     // true if the reward wasn't given yet (it is recorded as given now)
     public static bool TryGiveReward(DialogueSO dialogueSO) => givenRewardSet.Add(dialogueSO);
 
+    // a recipe making the same seed replaces the older one
+    public static void UnlockRecipe(FabricatorController.Recipe recipe)
+    {
+        unlockedRecipeList.RemoveAll(unlocked => unlocked.output.itemDataSO == recipe.output.itemDataSO);
+        unlockedRecipeList.Add(recipe);
+    }
+
     public static bool IsDay1Complete() => isDay1Complete;
     public static bool IsDay2Complete() => isDay2Complete;
     public static bool IsDay3Complete() => isDay3Complete;
@@ -129,6 +138,7 @@ public static class WorldState
     public static int GetCurrentDay() => Mathf.Max(currentDay, 1);
     public static List<ItemAmount> GetInventoryList() => inventoryList;
     public static bool HasRewardBeenGiven(DialogueSO dialogueSO) => givenRewardSet.Contains(dialogueSO);
+    public static List<FabricatorController.Recipe> GetUnlockedRecipeList() => unlockedRecipeList;
 
     // a fresh playthrough (the end screen's replay button)
     public static void Clear() => ResetStaticData();
@@ -152,5 +162,6 @@ public static class WorldState
         inventoryList.Clear();
         discoveredItemSet.Clear();
         givenRewardSet.Clear();
+        unlockedRecipeList.Clear();
     }
 }

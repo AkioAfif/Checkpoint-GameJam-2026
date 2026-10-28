@@ -44,7 +44,7 @@ public class TaskManager : MonoBehaviour
     }
 
     // "make N seeds" counts seeds, not presses: a run of several batches (or a combo) counts every seed it made
-    private void FabricatorController_OnAnySeedFabricated(object sender, FabricatorController.OnAnySeedFabricatedEventArgs e) => AddProgress(TaskObjectiveSO.Type.FabricateSeed, null, e.seedCount);
+    private void FabricatorController_OnAnySeedFabricated(object sender, FabricatorController.OnAnySeedFabricatedEventArgs e) => AddProgress(TaskObjectiveSO.Type.FabricateSeed, e.seedItemDataSO, e.seedCount);
     private void FarmPlot_OnAnyPlanted(object sender, EventArgs e) => AddProgress(TaskObjectiveSO.Type.PlantCrop, null, 1);
 
     public void CompleteEnterHouse() => AddProgress(TaskObjectiveSO.Type.EnterHouse, null, 1);
@@ -85,6 +85,8 @@ public class TaskManager : MonoBehaviour
             TaskObjectiveSO objectiveSO = objectiveSOArray[i];
             if (objectiveSO.type != type || IsComplete(i)) continue;
             if (type == TaskObjectiveSO.Type.CollectItem && objectiveSO.itemDataSO != itemDataSO) continue;
+            // a press of an older recipe doesn't count toward "press Lv.2 seeds"
+            if (type == TaskObjectiveSO.Type.FabricateSeed && objectiveSO.itemDataSO != null && objectiveSO.itemDataSO != itemDataSO) continue;
             progressArray[i] = Mathf.Min(progressArray[i] + amount, objectiveSO.requiredCount);
             OnObjectiveProgress?.Invoke(this, new OnObjectiveProgressEventArgs { index = i, isComplete = IsComplete(i) });
         }

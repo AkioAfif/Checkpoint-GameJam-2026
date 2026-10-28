@@ -111,7 +111,6 @@ public static class UiBuilder
         layout.childForceExpandWidth = false;
 
         RectTransform slot = Panel(strip, "SlotTemplate", new Vector2(.5f, .5f), new Vector2(.5f, .5f), new Vector2(.5f, .5f), Vector2.zero, new Vector2(104f, 104f), Cream);
-        CanvasGroup slotGroup = slot.gameObject.AddComponent<CanvasGroup>();
         Image icon = Img(slot, "Icon", null, Color.white, new Vector2(.5f, .5f), new Vector2(.5f, .5f), new Vector2(.5f, .5f), new Vector2(0f, 4f), new Vector2(84f, 84f));
         icon.preserveAspect = true;
         RectTransform badge = Panel(slot, "Badge", new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(.5f, .5f), new Vector2(-14f, 14f), new Vector2(46f, 36f), Accent);
@@ -120,7 +119,6 @@ public static class UiBuilder
         InventorySingleUI single = slot.gameObject.AddComponent<InventorySingleUI>();
         SetField(single, "iconImage", icon);
         SetField(single, "countText", count);
-        SetField(single, "canvasGroup", slotGroup);
         SetField(single, "pop", slot.gameObject.AddComponent<UIPop>());
 
         InventoryUI inventoryUI = strip.gameObject.AddComponent<InventoryUI>();

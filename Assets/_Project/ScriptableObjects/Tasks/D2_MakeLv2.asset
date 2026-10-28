@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TaskObjectiveSO
   type: 1
   description: Press Sawit Lv.2 seeds in the Fabricator
-  itemDataSO: {fileID: 0}
+  itemDataSO: {fileID: 11400000, guid: b4a43250077a3c347b72836d91f1aaee, type: 2}
   requiredCount: 1

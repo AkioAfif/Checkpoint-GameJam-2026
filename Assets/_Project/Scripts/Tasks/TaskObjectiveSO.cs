@@ -7,7 +7,7 @@ public class TaskObjectiveSO : ScriptableObject
 
     public Type type;
     public string description;
-    // only for CollectItem
+    // CollectItem: the item to collect. FabricateSeed: only seeds of this type count (empty = any seed)
     public ItemDataSO itemDataSO;
     [Min(1)] public int requiredCount = 1;
 }
