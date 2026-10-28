@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   lineArray:
   - speaker: 0
-    text: Four plots. One whole day, half the village... and Rigel's back.
+    text: Three plots. One whole day, half the village... and Rigel's back.
     playerEmote: 10
     npcEmote: 0
     isShaking: 0

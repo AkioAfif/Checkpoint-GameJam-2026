@@ -15,4 +15,4 @@ MonoBehaviour:
   type: 2
   description: Plant the new plots
   itemDataSO: {fileID: 0}
-  requiredCount: 4
+  requiredCount: 3

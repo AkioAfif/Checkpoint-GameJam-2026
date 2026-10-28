@@ -8,21 +8,21 @@ Status: built 2026-10-28 as `FixScene_Day3` (see section 8 for what changed from
 
 ## 1. Theme: honest work is slow
 
-The MC earns four new plots with sweat, borrowed tools and the neighbours' help, and it costs him the whole day. That's what makes Day 4 land:
+The MC earns three new plots with sweat, borrowed tools and the neighbours' help, and it costs him the whole day. That's what makes Day 4 land:
 - Day 3 shows how slow honest work is, so Day 4's shortcut (one punch fells a tree) feels tempting *and* wrong.
 - **Rigel is the contrast.** Today he helps pull a stump out and says "That's how land is supposed to be made." On Day 4 he watches the MC punch a forest down and backs away in horror.
 - **Nek Ijah's "Good things grow slowly"** echoes on Day 4, when nothing grows slowly any more.
 
 ## 2. The new land
 
-The strip of the MC's yard on the **left of the garden in the game view**: east on the map, between the garden and the riverside fence, below the Fabricator (the gameplay camera looks south). The 4 new plots take the strip's **northern part**. Day 4's second bridge still lands on its southern part, just south of them, with a path between.
+The strip of the MC's yard on the **left of the garden in the game view**: east on the map, between the garden and the riverside fence, below the Fabricator (the gameplay camera looks south). The 3 new plots take the strip as a fourth column of the garden. Day 4's second bridge still lands just south of them.
 
 The strip is neglected on every day before this one (the props are part of FixScene, so Days 1–2 show them). It's packed with:
 - **tall weeds** (4 clumps) → need a sickle;
 - **rocks half-buried in hard clay** (3) → need a hoe;
 - **an old tree stump** with deep roots (1) → needs a rope *and* a second pair of hands.
 
-Once it's clear, the MC tills 4 plots there by hand.
+Once it's clear, the MC tills 3 plots there by hand, and the garden becomes the 3×4 one.
 
 ## 3. The NPC errands
 
@@ -42,16 +42,16 @@ After the wish, three errands open at once, and the player does them in any orde
 | 0 | Dawn | Bedroom | Savings book: yesterday's sale helped, but the debt barely moved; 29 days left | Read | Check your savings book |
 | 1 | Morning | Garden | The palms planted yesterday are ripe (the 2 Lv.2s look darker and heavier). Harvest them. Rigel at his fence: "Those things grow overnight. Still don't like it." | Harvest | Harvest the ripe sawit |
 | 2 | Morning | ICAN crate | Sell. The MC does the math out loud: "Nine plots... even if every one pays every day, I'm short." | Sell | Sell the sawit at the ICAN crate |
-| 3 | Morning | The strip | Cutscene: from the crate, the camera turns to the overgrown strip beside the garden. A see-through farm fades in over it, and the weeds, rocks and stump fade out (the `ImaginationVisual` look). "Dad always said that strip was too stubborn to farm. Let's see about that." | Watch | (cutscene) |
+| 3 | Morning | The strip | Cutscene: from the crate, the camera turns to the overgrown strip beside the garden. A see-through, twinkling picture of the bigger garden fades in over it, and the weeds, rocks and stump fade out (the `ImaginationVisual` look). "Dad always said that strip was too stubborn to farm. Let's see about that." | Watch | (cutscene) |
 | 4 | Morning | Strip | The MC tries pulling weeds by hand: a short mash that only fills halfway, then "Ow. I need actual tools." | Try, fail | Clear the strip by the garden |
 | 5 | Late morning | Village | **The three errands** (section 3), in any order. The objective lists all three; each ticks off as its tool arrives. | Talk, gather flowers, find Dimas, trade a seed | Borrow a sickle · Borrow a hoe · Get a rope |
 | 6 | Noon | Ratna's house | **Lunch break (pacing beat).** On the way back, Bu Ratna calls the MC in: "You've been running round the village all morning. Sit. Eat." A short talk: how her husband passed, how the village gets by, how ICAN's prices "seem too good". She gives **compost** for the new soil. The screen fades and the light shifts to afternoon. | Talk | (story) |
 | 7 | Afternoon | Strip | **The work**, by hand and visibly slow:<br>- weeds: hold [E] at each of 4 clumps (sickle);<br>- rocks: mash at each of 3 (hoe; 3 blows each, and the meter drains fast, so it's tiring);<br>- the MC wipes his brow between them. | Hold, mash | Cut the weeds (0/4) · Dig out the rocks (0/3) |
 | 8 | Late afternoon | Stump | **The stump.** Tie the rope and pull: a mash that caps at 70% however fast you go. The MC falls on his back. Rigel has been watching, walks over, grabs the rope behind him: "On three. And stop pulling like a city boy." The second pull is the two of them (now able to fill), the stump tears free and both land in the dirt, laughing. | Mash, fail, mash | Pull out the stump |
 | 9 | Late afternoon | Stump | **Rigel's talk.** "Ten years I've farmed next to you. That's the first time I've seen you sweat." / "That's how land is supposed to be made. With your back, not a machine." The MC goes quiet; the Fabricator is in the background of the shot. Rigel heads home. | Talk | (story) |
-| 10 | Sunset | Strip | Till the 4 plots (hold [E] at each; each one appears as he tills), mix in Ratna's compost, then plant. Use whatever seeds he has, or press new ones at the Fabricator. | Till, plant | Till 4 new plots · Plant the new plots |
-| 11 | Evening | Porch | "That evening..." The savings book: today he *earned* little, because the whole day went into four plots. | Read | (cutscene) |
-| 12 | Evening | Porch | **The quiet hook.** The MC looks at his blistered hands: "Four plots. One whole day, half the village, and Rigel's back." / "Twenty-nine days. I can't do this every day." Close on the one Lv.2 bunch he kept, on the table: it **pulses red** once (Day 2's `MutationPulseVisual`). He doesn't notice and turns off the lamp. | Watch | Go home |
+| 10 | Sunset | Strip | Till the 3 plots (hold [E] at each; each bed appears as he tills, and the third turns the garden into the 3×4 one), mix in Ratna's compost, then plant. Use whatever seeds he has, or press new ones at the Fabricator. | Till, plant | Till 3 new plots · Plant the new plots |
+| 11 | Evening | Porch | "That evening..." The savings book: today he *earned* little, because the whole day went into three plots. | Read | (cutscene) |
+| 12 | Evening | Porch | **The quiet hook.** The MC looks at his blistered hands: "Three plots. One whole day, half the village, and Rigel's back." / "Twenty-nine days. I can't do this every day." Close on the one Lv.2 bunch he kept, on the table: it **pulses red** once (Day 2's `MutationPulseVisual`). He doesn't notice and turns off the lamp. | Watch | Go home |
 
 **Day 4 opens** with "Two weeks later...": two weeks of the new routine, and the book shows it still isn't enough. Then the wish at the forest, the flashback, eating the sawit, the trees and the bridge (`DAY4_DESIGN.md`).
 
@@ -91,7 +91,7 @@ After the wish, three errands open at once, and the player does them in any orde
   - Rigel: "On three. And stop pulling like a city boy."
   - after, Rigel: "Ten years I've farmed next to you. First time I've seen you sweat."
   - Rigel: "That's how land is supposed to be made. With your back, not a machine."
-- **Day3_Evening** (MC): "Four plots. One whole day, half the village... and Rigel's back." / "Twenty-nine days. I can't do this every day." (the bunch pulses red; he doesn't see it)
+- **Day3_Evening** (MC): "Three plots. One whole day, half the village... and Rigel's back." / "Twenty-nine days. I can't do this every day." (the bunch pulses red; he doesn't see it)
 
 ## 7. Open points
 
@@ -103,8 +103,10 @@ After the wish, three errands open at once, and the player does them in any orde
 Code in `Scripts/Yard/` (`YardDayDirector`, `YardErrands`, `YardObstacle(+Visual)`, `RopeVisual`, `BunchPulseVisual`, `YardCameraVisual`, `YardDaySO`); the scene comes from **Tools > FixScene > Build Day 3 Scene**. Details in `.claude/rules/project-settings.md`.
 
 Changed from the outline while building it:
-- **The new plots** are a fourth column for the garden, east of its fence (x -8.4, four rows from z -30 to -36.3), not a 2×2 block. The strip is only ~4 m wide, and Day 4's bridge still lands just south-east of them with a path between.
-- **Seeds:** Dimas wants a sawit seed, and the new plots need four. Today the Fabricator presses 3 flowers into 5 Lv.1 seeds (one for Dimas, four for the plots), so flowers are the errand currency (Ijah wants 3 more).
+- **The new plots** are **three**, a fourth column for the garden on its own rows (x -8.51), not four in a 2×2 block. The strip is only ~4 m wide, and Day 4's bridge still lands just south-east of them.
+- **The garden becomes `garden_3x4`** (Ilkham's model): each tilled patch shows its bed, cut from that model, and the third swaps the old 3×3 garden for the whole 3×4 one (one fence round 12 beds). Day 4 starts with it.
+- **The wish twinkles:** the imagined column (beds, palms, the new fence) pulses between faint and nearly solid, so it reads as a picture in his head.
+- **Seeds:** Dimas wants a sawit seed, and the new plots need three. Today the Fabricator presses 3 flowers into 4 Lv.1 seeds (one for Dimas, three for the plots), so flowers are the errand currency (Ijah wants 3 more).
 - **The dark bunches:** ICAN only buys the usual bunches today, so the MC keeps his 2 Lv.2 bunches. One sits on a crate by the front door for the evening's red pulse, and Day 4 is when he eats one.
 - **The bare-handed tug** comes straight after the wish (a mash that stalls short of full), on the nearest weed.
 - **Work objectives:** the weeds and rocks share one "Cut the weeds and dig out the rocks (0/7)" objective, because story objectives can't count in parallel.

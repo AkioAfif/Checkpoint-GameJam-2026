@@ -3,7 +3,7 @@ using UnityEngine;
 
 // What the MC pictures on the CozyFarm map: while he looks at land he wants to farm, a see-through copy of a farm fades in on
 // it and what stands there (trees, weeds, a stump) fades out; while he thinks about a bridge (Day 4), a see-through bridge
-// fades in over the river. More solid than the occlusion fade, so it reads as a picture, not as scenery getting out of the way.
+// fades in over the river. The picture twinkles between faint and nearly solid, so it reads as imagined, not as scenery.
 // Day 4 drives it from LandSequence and BridgeBuild, the yard day (Day 3) from YardDayDirector; the others stay empty.
 public class ImaginationVisual : MonoBehaviour
 {
@@ -16,7 +16,11 @@ public class ImaginationVisual : MonoBehaviour
     [SerializeField] private GameObject ghostBridgeRoot;
     [Tooltip("What stands on the new land: gone from the picture while the farm is imagined.")]
     [SerializeField] private Transform[] imaginedAwayTreeArray;
-    [SerializeField] private float ghostAlpha = .6f;
+    [Tooltip("The imagined farm or bridge twinkles between these opacities.")]
+    [SerializeField] private float ghostMinAlpha = .2f;
+    [SerializeField] private float ghostMaxAlpha = .85f;
+    [Tooltip("Seconds from faint to solid and back.")]
+    [SerializeField] private float twinklePeriod = 1.1f;
     [SerializeField] private float fadeSpeed = 1.5f;
 
     private class Ghost
@@ -25,7 +29,8 @@ public class ImaginationVisual : MonoBehaviour
         public List<SeeThroughRenderer> seeThroughList;
         // renderers that can't turn see-through are simply hidden or shown
         public List<Renderer> plainList;
-        public float alpha;
+        // how far it has faded in (0 gone, 1 there); the twinkle rides on top
+        public float presence;
     }
 
     private Ghost farmGhost;
@@ -36,7 +41,7 @@ public class ImaginationVisual : MonoBehaviour
     {
         farmGhost = CreateGhost(ghostFarmRoot);
         bridgeGhost = CreateGhost(ghostBridgeRoot);
-        treeGhost = new Ghost { seeThroughList = new List<SeeThroughRenderer>(), plainList = new List<Renderer>(), alpha = 1f };
+        treeGhost = new Ghost { seeThroughList = new List<SeeThroughRenderer>(), plainList = new List<Renderer>(), presence = 1f };
         foreach (Transform tree in imaginedAwayTreeArray) AddRenderers(treeGhost, tree.gameObject);
         ghostFarmRoot.SetActive(false);
         if (ghostBridgeRoot != null) ghostBridgeRoot.SetActive(false);
@@ -47,10 +52,11 @@ public class ImaginationVisual : MonoBehaviour
         bool isFarmImagined = yardDayDirector != null ? yardDayDirector.IsWishShot() : IsLandImagined();
         bool isBridgeImagined = bridgeBuild != null && (bridgeBuild.GetStep() == BridgeBuild.Step.Think || bridgeBuild.GetStep() == BridgeBuild.Step.Idea);
 
-        UpdateGhost(farmGhost, isFarmImagined ? ghostAlpha : 0f);
-        UpdateGhost(bridgeGhost, isBridgeImagined ? ghostAlpha : 0f);
+        float twinkle = Mathf.Lerp(ghostMinAlpha, ghostMaxAlpha, .5f + .5f * Mathf.Sin(Time.time * 2f * Mathf.PI / twinklePeriod));
+        UpdateGhost(farmGhost, isFarmImagined ? 1f : 0f, twinkle);
+        UpdateGhost(bridgeGhost, isBridgeImagined ? 1f : 0f, twinkle);
         // the trees go while the farm is pictured; a felled one is already switched off by its fall
-        UpdateGhost(treeGhost, isFarmImagined ? 0f : 1f);
+        UpdateGhost(treeGhost, isFarmImagined ? 0f : 1f, 1f);
     }
 
     private void OnDestroy()
@@ -68,13 +74,17 @@ public class ImaginationVisual : MonoBehaviour
         return landStep == LandSequence.Step.Inspect || landStep == LandSequence.Step.Realise;
     }
 
-    private void UpdateGhost(Ghost ghost, float targetAlpha)
+    // 'opacity' is what it shows once fully faded in: the twinkle for a ghost, 1 for what fades away
+    private void UpdateGhost(Ghost ghost, float targetPresence, float opacity)
     {
-        if (Mathf.Approximately(ghost.alpha, targetAlpha)) return;
-        ghost.alpha = Mathf.MoveTowards(ghost.alpha, targetAlpha, fadeSpeed * Time.deltaTime);
-        if (ghost.root != null) ghost.root.SetActive(ghost.alpha > 0f);
-        foreach (SeeThroughRenderer seeThrough in ghost.seeThroughList) seeThrough.SetAlpha(ghost.alpha);
-        foreach (Renderer plain in ghost.plainList) plain.enabled = ghost.alpha > .5f;
+        bool isSettled = Mathf.Approximately(ghost.presence, targetPresence);
+        // a ghost on screen keeps twinkling; anything else only changes while it fades
+        if (isSettled && (ghost.presence == 0f || Mathf.Approximately(opacity, 1f))) return;
+        ghost.presence = Mathf.MoveTowards(ghost.presence, targetPresence, fadeSpeed * Time.deltaTime);
+        float alpha = ghost.presence * opacity;
+        if (ghost.root != null) ghost.root.SetActive(ghost.presence > 0f);
+        foreach (SeeThroughRenderer seeThrough in ghost.seeThroughList) seeThrough.SetAlpha(alpha);
+        foreach (Renderer plain in ghost.plainList) plain.enabled = alpha > .5f;
     }
 
     // a ghost is never solid: its renderers swap to their transparent copies right away, and any that can't stay hidden

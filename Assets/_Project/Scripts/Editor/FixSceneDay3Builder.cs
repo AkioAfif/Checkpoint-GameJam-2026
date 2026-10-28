@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Cinemachine;
 using UnityEditor;
@@ -10,7 +11,8 @@ using static GrayboxBuild;
 // Scene). It copies FixScene_Day2 (so build Day 2 first), keeps its crate, Rigel and resin stumps (Day2_Graybox), swaps Day 2's
 // director for the yard day's (Day3Yard), and turns the strip beside the garden into the day's work:
 // - the clutter FixSceneMapBuilder put there (weeds, rocks, the stump) becomes jobs that need the borrowed tools;
-// - four hidden plots in a column east of the garden appear as the MC tills their patches;
+// - three hidden plots in a fourth column east of the garden appear as the MC tills their patches, each with its bed cut from
+//   the 3x4 garden model; the last one swaps the old 3x3 garden for the whole 3x4 model (GardenExpansionVisual);
 // - Dimas digs by the river with Darto's hoe; a Lv.2 bunch sits on a crate by the front door for the evening's pulse.
 // Re-runnable: FixScene_Day3 is regenerated each time. FixScene_Day4 copies it (StripYardDay), so rebuild Day 4 after it.
 public static class FixSceneDay3Builder
@@ -21,10 +23,19 @@ public static class FixSceneDay3Builder
     private const string GRAYBOX_ROOT = "Day3Yard_Graybox";
     private const string DIRECTOR_ROOT = "Day3Yard";
     private const string NEW_PLOTS_ROOT = "NewPlots";
+    private const string EXPANDED_GARDEN = "Garden_3x4";
+    private const string BED_PIECE = "Bed";
+    private const string OLD_GARDEN_PATH = "CozyFarm/Player_Garden";
+    private const string GARDEN_3X4_MODEL = "Assets/Ilkham/models/garden/garden_3x4.glb";
+    private const string PIECES_FOLDER = "Assets/_Project/Art/Models/Yard";
 
-    // a fourth column for the garden (its columns stand at x -15.4, -13.1, -10.8), outside its east fence
-    private const float PLOT_COLUMN_X = -8.4f;
-    private static readonly float[] PlotRowZArray = { -30f, -32.1f, -34.2f, -36.3f };
+    // the 3x4 garden is the 3x3 one with a fourth column of beds on its east side, so it sits half a column east of the old one
+    private const float GARDEN_COLUMN_SPACING = 2.3f;
+    // how far a bed reaches from its plot's centre
+    private const float BED_HALF_SIZE = .85f;
+    // the model's materials: 1 furrows and 2 ridges make the beds, 3 and 4 the wooden fences
+    private static readonly int[] BedSubMeshArray = { 1, 2 };
+    private static readonly int[] FenceSubMeshArray = { 3, 4 };
     private static readonly Vector3 BareHandsPosition = new Vector3(-7.5f, 0f, -30.1f);
     // east of the stump, facing it; Rigel takes the rope behind the MC
     private static readonly Vector3 StumpPullPosition = new Vector3(-6.6f, 0f, -34f);
@@ -87,7 +98,7 @@ public static class FixSceneDay3Builder
 
         Transform dust = VfxBuilder.SmashDust().transform;
         Transform jobs = Root("Jobs", director).transform;
-        FarmPlot[] newPlots = BuildNewPlots(graybox);
+        FarmPlot[] newPlots = BuildNewPlots(graybox, gardenPlots);
         YardObstacle[] tills = newPlots.Select((plot, i) => Job(jobs, $"Till_{i + 1}", null, YardDayDataBuilder.Hoe, "till", "Need a hoe",
             YardObstacleVisual.Style.DustOnly, dust, plot.transform.position, plot.gameObject)).ToArray();
         Transform clutter = gameplay.Find(FixSceneMapBuilder.YARD_CLUTTER_ROOT);
@@ -160,10 +171,10 @@ public static class FixSceneDay3Builder
         BuildRope(director, yard, landQTE, stumpModel);
         BuildCameras(director, yard, stumpModel.position, bunch.position);
 
-        // the wish: a see-through farm on the strip, and the clutter gone from the picture
+        // the wish: the garden's new column, see-through on the strip, and the clutter gone from the picture
         ImaginationVisual imagination = director.gameObject.AddComponent<ImaginationVisual>();
         SetField(imagination, "yardDayDirector", yard);
-        SetField(imagination, "ghostFarmRoot", BuildGhostFarm(director, newPlots));
+        SetField(imagination, "ghostFarmRoot", BuildGarden(director, graybox, newPlots, tills));
         SetArray(imagination, "imaginedAwayTreeArray", clutter.Cast<Transform>().ToArray());
 
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
@@ -175,56 +186,138 @@ public static class FixSceneDay3Builder
         Debug.Log($"Day 3 (the yard day) built into {SCENE_PATH}. Press Play in it to test it on its own; rebuild Day 4 after it.");
     }
 
-    // Day 4 copies this scene: the yard day's story leaves, the clutter is gone (cleared two weeks ago) and its plots stay
+    // Day 4 copies this scene: the yard day's story leaves, the clutter is gone (cleared two weeks ago), its plots stay and the
+    // garden is the 3x4 one
     public static void StripYardDay(Transform gameplay)
     {
         Object.DestroyImmediate(gameplay.Find(DIRECTOR_ROOT).gameObject);
         Transform clutter = gameplay.Find(FixSceneMapBuilder.YARD_CLUTTER_ROOT);
         if (clutter != null) Object.DestroyImmediate(clutter.gameObject);
-        foreach (Transform plot in gameplay.Find($"{GRAYBOX_ROOT}/{NEW_PLOTS_ROOT}")) plot.gameObject.SetActive(true);
+        Transform graybox = gameplay.Find(GRAYBOX_ROOT);
+        foreach (Transform plot in graybox.Find(NEW_PLOTS_ROOT))
+        {
+            plot.gameObject.SetActive(true);
+            Transform bed = plot.Find(BED_PIECE);
+            if (bed != null) Object.DestroyImmediate(bed.gameObject);
+        }
+        graybox.Find(EXPANDED_GARDEN).gameObject.SetActive(true);
+        GameObject.Find(OLD_GARDEN_PATH).SetActive(false);
         // its ring under the HUD; the next day builds its own
         foreach (LandQTEUI ui in Object.FindObjectsByType<LandQTEUI>(FindObjectsInactive.Include)) Object.DestroyImmediate(ui.gameObject);
     }
 
     // ---------- the strip ----------
 
-    // bare soil, hidden until its patch is tilled
-    private static FarmPlot[] BuildNewPlots(Transform graybox)
+    // a fourth column for the garden, one per row of it, hidden until its patch is tilled; the bed under it comes from the model
+    private static FarmPlot[] BuildNewPlots(Transform graybox, FarmPlot[] gardenPlots)
     {
         Transform root = Root(NEW_PLOTS_ROOT, graybox).transform;
         GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{PREFABS}/Interactables/FarmPlot.prefab");
-        FarmPlot[] plots = new FarmPlot[PlotRowZArray.Length];
+        float columnX = gardenPlots.Max(p => p.transform.position.x) + GARDEN_COLUMN_SPACING;
+        float[] rowZArray = gardenPlots.GroupBy(p => Mathf.RoundToInt(p.transform.position.z * 10f))
+            .Select(row => row.Average(p => p.transform.position.z)).OrderByDescending(z => z).ToArray();
+        FarmPlot[] plots = new FarmPlot[rowZArray.Length];
         for (int i = 0; i < plots.Length; i++)
         {
-            plots[i] = Spawn(prefab, root, Ground(new Vector3(PLOT_COLUMN_X, 0f, PlotRowZArray[i])), 0f).GetComponent<FarmPlot>();
+            plots[i] = Spawn(prefab, root, Ground(new Vector3(columnX, 0f, rowZArray[i])), 0f).GetComponent<FarmPlot>();
             plots[i].name = $"FarmPlot_Yard_{i + 1}";
             SerializedObject so = new SerializedObject(plots[i]);
             so.FindProperty("startState").enumValueIndex = (int)FarmPlot.State.Empty;
             so.ApplyModifiedPropertiesWithoutUndo();
+            // like the garden's own plots: the model's bed is the soil
+            plots[i].transform.Find("Visual/Soil").gameObject.SetActive(false);
             plots[i].gameObject.SetActive(false);
         }
         return plots;
     }
 
-    // what the MC pictures: the four plots with ripe palms on them, models only (ImaginationVisual makes them see-through)
-    private static GameObject BuildGhostFarm(Transform director, FarmPlot[] newPlots)
+    // The 3x4 garden over the old 3x3 one, hidden until the last patch is tilled; each new plot gets its bed, cut out of the
+    // model, as a child (so tilling the patch shows it). Returns what the MC pictures at the wish: the new column only (its
+    // beds and the outer fence) with a ripe palm on each bed, models only (ImaginationVisual makes them see-through).
+    private static GameObject BuildGarden(Transform director, Transform graybox, FarmPlot[] newPlots, YardObstacle[] tills)
     {
-        GameObject root = Root("GhostFarm", director);
-        GameObject plot = AssetDatabase.LoadAssetAtPath<GameObject>($"{PREFABS}/Interactables/FarmPlot.prefab");
-        foreach (FarmPlot newPlot in newPlots)
+        GameObject oldGarden = GameObject.Find(OLD_GARDEN_PATH);
+        Transform old = oldGarden.transform;
+        GameObject expanded = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(GARDEN_3X4_MODEL), graybox);
+        expanded.name = EXPANDED_GARDEN;
+        expanded.transform.SetPositionAndRotation(old.position + old.rotation * Vector3.left * (GARDEN_COLUMN_SPACING / 2f), old.rotation);
+        expanded.SetActive(false);
+        MeshFilter model = expanded.GetComponentInChildren<MeshFilter>(true);
+        Material[] materialArray = model.GetComponent<MeshRenderer>().sharedMaterials;
+
+        GameObject ghost = Root("GhostFarm", director);
+        GameObject[] bedArray = new GameObject[newPlots.Length];
+        for (int i = 0; i < newPlots.Length; i++)
         {
-            Vector3 position = newPlot.transform.position;
-            GameObject ghostPlot = FixSceneDay4Builder.ModelCopy(plot, root.transform, position);
-            // FarmPlotVisual decides what grows on a real plot; the picture shows a ripe palm on every one
-            foreach (string part in new[] { "Visual/Crop", "Visual/SaplingParent" })
-            {
-                Transform child = ghostPlot.transform.Find(part);
-                if (child != null) Object.DestroyImmediate(child.gameObject);
-            }
-            FixSceneDay4Builder.ModelCopy(GameDataBuilder.SawitLv1.ripePrefab.gameObject, root.transform, position + Vector3.up * .1f);
+            Vector3 plot = newPlots[i].transform.position;
+            Mesh bed = CutMesh(model, $"Garden3x4_Bed_{i + 1}", BedSubMeshArray,
+                (a, b, c) => IsNear((a + b + c) / 3f, plot, BED_HALF_SIZE));
+            bedArray[i] = MeshPiece(BED_PIECE, bed, materialArray, model.transform, newPlots[i].transform);
+            MeshPiece($"Bed_{i + 1}", bed, materialArray, model.transform, ghost.transform);
+            FixSceneDay4Builder.ModelCopy(GameDataBuilder.SawitLv1.ripePrefab.gameObject, ghost.transform, plot + Vector3.up * .1f);
         }
-        root.SetActive(false);
-        return root;
+        // the 3x4's own copy of the old fence stays out of the picture: only rails and posts reaching past the old garden are new
+        Bounds oldBounds = oldGarden.GetComponentInChildren<Renderer>().bounds;
+        oldBounds.Expand(new Vector3(.06f, 10f, .06f));
+        Mesh fence = CutMesh(model, "Garden3x4_OuterFence", FenceSubMeshArray,
+            (a, b, c) => !oldBounds.Contains(a) || !oldBounds.Contains(b) || !oldBounds.Contains(c));
+        MeshPiece("OuterFence", fence, materialArray, model.transform, ghost.transform);
+        ghost.SetActive(false);
+
+        GardenExpansionVisual expansion = director.gameObject.AddComponent<GardenExpansionVisual>();
+        SetArray(expansion, "tillArray", tills);
+        SetField(expansion, "oldGarden", oldGarden);
+        SetField(expansion, "expandedGarden", expanded);
+        SetArray(expansion, "bedPieceArray", bedArray);
+        return ghost;
+    }
+
+    private static bool IsNear(Vector3 point, Vector3 centre, float halfSize) =>
+        Mathf.Abs(point.x - centre.x) < halfSize && Mathf.Abs(point.z - centre.z) < halfSize;
+
+    // a copy of the model's mesh keeping only the triangles of the listed materials that pass the test (corners in world space)
+    private static Mesh CutMesh(MeshFilter source, string name, int[] subMeshArray, System.Func<Vector3, Vector3, Vector3, bool> isKept)
+    {
+        Mesh mesh = Object.Instantiate(source.sharedMesh);
+        mesh.name = name;
+        Vector3[] vertexArray = mesh.vertices;
+        for (int sub = 0; sub < mesh.subMeshCount; sub++)
+        {
+            int[] triangleArray = mesh.GetTriangles(sub);
+            List<int> keptList = new List<int>();
+            if (subMeshArray.Contains(sub))
+            {
+                for (int i = 0; i < triangleArray.Length; i += 3)
+                {
+                    Vector3 a = source.transform.TransformPoint(vertexArray[triangleArray[i]]);
+                    Vector3 b = source.transform.TransformPoint(vertexArray[triangleArray[i + 1]]);
+                    Vector3 c = source.transform.TransformPoint(vertexArray[triangleArray[i + 2]]);
+                    if (!isKept(a, b, c)) continue;
+                    keptList.Add(triangleArray[i]);
+                    keptList.Add(triangleArray[i + 1]);
+                    keptList.Add(triangleArray[i + 2]);
+                }
+            }
+            mesh.SetTriangles(keptList, sub);
+        }
+        mesh.RecalculateBounds();
+        string path = $"{PIECES_FOLDER}/{name}.asset";
+        if (!AssetDatabase.IsValidFolder(PIECES_FOLDER)) AssetDatabase.CreateFolder("Assets/_Project/Art/Models", "Yard");
+        AssetDatabase.DeleteAsset(path);
+        AssetDatabase.CreateAsset(mesh, path);
+        return mesh;
+    }
+
+    // a model-only piece that lines up with the model it was cut from
+    private static GameObject MeshPiece(string name, Mesh mesh, Material[] materialArray, Transform model, Transform parent)
+    {
+        GameObject piece = new GameObject(name);
+        piece.transform.SetPositionAndRotation(model.position, model.rotation);
+        piece.transform.localScale = model.lossyScale;
+        piece.transform.SetParent(parent, true);
+        piece.AddComponent<MeshFilter>().sharedMesh = mesh;
+        piece.AddComponent<MeshRenderer>().sharedMaterials = materialArray;
+        return piece;
     }
 
     private static YardObstacle[] ClutterJobs(Transform jobs, Transform clutter, string prefix, ItemDataSO tool, string verb, string blocked,
@@ -330,7 +423,7 @@ public static class FixSceneDay3Builder
         YardDayDataBuilder.LoadAll();
     }
 
-    // every press: 3 flowers make 5 Lv.1 seeds (one for Dimas, four for the new plots)
+    // every press: 3 flowers make 4 Lv.1 seeds (one for Dimas, three for the new plots)
     private static void SetRecipe(YardDayDirector yard)
     {
         SerializedObject so = new SerializedObject(yard);
@@ -342,7 +435,7 @@ public static class FixSceneDay3Builder
         inputArray.GetArrayElementAtIndex(0).FindPropertyRelative("itemDataSO").objectReferenceValue = GameDataBuilder.Flower;
         inputArray.GetArrayElementAtIndex(0).FindPropertyRelative("amount").intValue = 3;
         recipe.FindPropertyRelative("output.itemDataSO").objectReferenceValue = GameDataBuilder.Load<ItemDataSO>("Items", "SawitSeed");
-        recipe.FindPropertyRelative("output.amount").intValue = 5;
+        recipe.FindPropertyRelative("output.amount").intValue = 4;
         recipe.FindPropertyRelative("returned.itemDataSO").objectReferenceValue = null;
         recipe.FindPropertyRelative("returned.amount").intValue = 0;
         recipe.FindPropertyRelative("puzzleSO").objectReferenceValue = GameDataBuilder.Load<FabricatorPuzzleSO>("Puzzles", "Puzzle_00_Intro");

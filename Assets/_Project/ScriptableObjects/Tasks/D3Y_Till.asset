@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: D3Y_Till
   m_EditorClassIdentifier: Assembly-CSharp::TaskObjectiveSO
   type: 4
-  description: Till 4 new plots
+  description: Till 3 new plots
   itemDataSO: {fileID: 0}
-  requiredCount: 4
+  requiredCount: 3

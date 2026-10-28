@@ -96,7 +96,7 @@ public static class YardDayDataBuilder
             N("That's how land is supposed to be made. With your back, not a machine."),
             P("...", Emote.HeavySigh));
         Yard.eveningDialogueSO = Dialogue("Yard_Evening",
-            P("Four plots. One whole day, half the village... and Rigel's back.", Emote.HeavySigh),
+            P("Three plots. One whole day, half the village... and Rigel's back.", Emote.HeavySigh),
             P("Twenty-nine days. I can't do this every day."));
 
         TaskObjectiveSO harvest = GameDataBuilder.Task("D3Y_Harvest", TaskObjectiveSO.Type.CollectItem, "Harvest the ripe sawit", lv1Bunch, 4);
@@ -108,8 +108,8 @@ public static class YardDayDataBuilder
         TaskObjectiveSO lunch = GameDataBuilder.Task("D3Y_Lunch", TaskObjectiveSO.Type.Story, "Bu Ratna is calling you over", null, 1);
         TaskObjectiveSO work = GameDataBuilder.Task("D3Y_Work", TaskObjectiveSO.Type.Story, "Cut the weeds and dig out the rocks", null, 7);
         TaskObjectiveSO stump = GameDataBuilder.Task("D3Y_Stump", TaskObjectiveSO.Type.Story, "Pull out the old stump", null, 1);
-        TaskObjectiveSO till = GameDataBuilder.Task("D3Y_Till", TaskObjectiveSO.Type.Story, "Till 4 new plots", null, 4);
-        TaskObjectiveSO plant = GameDataBuilder.Task("D3Y_Plant", TaskObjectiveSO.Type.PlantCrop, "Plant the new plots", null, 4);
+        TaskObjectiveSO till = GameDataBuilder.Task("D3Y_Till", TaskObjectiveSO.Type.Story, "Till 3 new plots", null, 3);
+        TaskObjectiveSO plant = GameDataBuilder.Task("D3Y_Plant", TaskObjectiveSO.Type.PlantCrop, "Plant the new plots", null, 3);
         TaskObjectiveSO home = GameDataBuilder.Task("D3Y_GoHome", TaskObjectiveSO.Type.EnterHouse, "Go home", null, 1);
         Yard.harvestObjectiveArray = new[] { harvest, sell };
         Yard.clearObjectiveArray = new[] { clear };
