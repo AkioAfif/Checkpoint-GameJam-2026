@@ -3,7 +3,8 @@ using UnityEngine.Rendering;
 
 // The flashback is black and white (a full-weight grayscale Volume), and the Distributor's glasses flash once after he
 // pushes them up: an anime glint that pops big and shrinks away. The MC is hidden for his solo shot, filmed from where
-// the MC stands.
+// the MC stands. The set goes back to the day the Fabricator arrived: what came later is hidden, what stood there then is
+// shown, and both are put back as they were when it ends.
 public class FlashbackVisual : MonoBehaviour
 {
     [SerializeField] private LandSequence landSequence;
@@ -16,13 +17,22 @@ public class FlashbackVisual : MonoBehaviour
     [SerializeField] private float glintDelay = .9f;
     [SerializeField] private float glintDuration = .18f;
     [SerializeField] private float glintScale = .5f;
+    [Tooltip("Optional: what wasn't there yet that day (later gardens, crops, the crate, people who weren't there).")]
+    [SerializeField] private GameObject[] presentOnlyArray = new GameObject[0];
+    [Tooltip("Optional: what stood there then instead (the old garden).")]
+    [SerializeField] private GameObject[] pastOnlyArray = new GameObject[0];
 
     private float soloTimer = -1f;
     private Renderer[] playerRendererArray;
+    private bool isPastShown;
+    private bool[] presentWasActiveArray;
+    private bool[] pastWasActiveArray;
 
     private void Awake()
     {
         playerRendererArray = playerVisual.GetComponentsInChildren<Renderer>();
+        presentWasActiveArray = new bool[presentOnlyArray.Length];
+        pastWasActiveArray = new bool[pastOnlyArray.Length];
     }
 
     private void Start()
@@ -54,5 +64,21 @@ public class FlashbackVisual : MonoBehaviour
         if (soloTimer < 0f) glint.gameObject.SetActive(false);
         // renderers only: the Visual's scripts and Animator keep running
         foreach (Renderer playerRenderer in playerRendererArray) playerRenderer.enabled = soloTimer < 0f;
+        if (isFlashback != isPastShown) ShowPast(isFlashback);
+    }
+
+    private void ShowPast(bool isPast)
+    {
+        isPastShown = isPast;
+        for (int i = 0; i < presentOnlyArray.Length; i++)
+        {
+            if (isPast) presentWasActiveArray[i] = presentOnlyArray[i].activeSelf;
+            presentOnlyArray[i].SetActive(!isPast && presentWasActiveArray[i]);
+        }
+        for (int i = 0; i < pastOnlyArray.Length; i++)
+        {
+            if (isPast) pastWasActiveArray[i] = pastOnlyArray[i].activeSelf;
+            pastOnlyArray[i].SetActive(isPast || pastWasActiveArray[i]);
+        }
     }
 }
