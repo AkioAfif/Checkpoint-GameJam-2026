@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e0ce3e543780b04dba488492949ce28, type: 3}
+  m_Name: Yard_DimasTrade
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
+  lineArray:
+  - speaker: 1
+    text: A real sawit seed? Deal!
+    playerEmote: 0
+    npcEmote: 6
+    isShaking: 0
+    isNpcGlaring: 0
+  - speaker: 1
+    text: I'm gonna grow the biggest one in the village!
+    playerEmote: 0
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+  reward:
+    itemDataSO: {fileID: 11400000, guid: b082be698906a8d4b9ce6822b98fffde, type: 2}
+    amount: 1

@@ -6166,7 +6166,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BedroomDirector
   day1SO: {fileID: 11400000, guid: f1df287a559b8f94b898ee1361d2022b, type: 2}
   day2SO: {fileID: 11400000, guid: 4b1391ae856a8df42a3accd56dd29c77, type: 2}
-  day3SO: {fileID: 0}
+  yardDaySO: {fileID: 11400000, guid: fd5cfe20f392bfd459ed49eca05e801c, type: 2}
+  day3SO: {fileID: 11400000, guid: 0bbfe530d4ff64d41881a3cede1ac49e, type: 2}
   bedsideLetter: {fileID: 2037318580}
   savingsBook: {fileID: 1887145974}
   savingsBookUI: {fileID: 1814996806}
@@ -6176,6 +6177,7 @@ MonoBehaviour:
   wakeUpDuration: 2.4
   isTestingDay2: 0
   isTestingDay3: 0
+  isTestingDay4: 0
 --- !u!4 &1225975154
 Transform:
   m_ObjectHideFlags: 0

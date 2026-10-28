@@ -262,7 +262,7 @@ public static class Day3GrayboxBuilder
         return landSequence;
     }
 
-    private static void AddPoseVisual(CutsceneActor actor, GameObject visual)
+    public static void AddPoseVisual(CutsceneActor actor, GameObject visual)
     {
         CutscenePoseVisual pose = visual.GetComponent<CutscenePoseVisual>();
         if (pose == null) pose = visual.AddComponent<CutscenePoseVisual>();
@@ -363,21 +363,25 @@ public static class Day3GrayboxBuilder
         return glint.transform;
     }
 
-    // eyelids and the eat / smash ring, under the screen fade so the fade still covers everything
-    private static void BuildUi(LandSequence landSequence, LandQTE landQTE)
+    // eyelids and the eat / smash ring, under the screen fade so the fade still covers everything (no land sequence, as on the
+    // yard day: the ring only)
+    public static LandQTEUI BuildUi(LandSequence landSequence, LandQTE landQTE)
     {
         ScreenFadeUI fade = Object.FindAnyObjectByType<ScreenFadeUI>(FindObjectsInactive.Include);
         Transform canvas = fade.transform.parent;
 
-        RectTransform blink = Rect(canvas, "EyeBlinkUI", Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero);
-        Image top = Img(blink, "TopLid", null, Color.black, new Vector2(0f, .5f), Vector2.one, new Vector2(.5f, 1f), Vector2.zero, Vector2.zero);
-        Image bottom = Img(blink, "BottomLid", null, Color.black, Vector2.zero, new Vector2(1f, .5f), new Vector2(.5f, 0f), Vector2.zero, Vector2.zero);
-        top.raycastTarget = false;
-        bottom.raycastTarget = false;
-        EyeBlinkUI eyeBlink = blink.gameObject.AddComponent<EyeBlinkUI>();
-        SetField(eyeBlink, "landSequence", landSequence);
-        SetField(eyeBlink, "topLid", top.rectTransform);
-        SetField(eyeBlink, "bottomLid", bottom.rectTransform);
+        if (landSequence != null)
+        {
+            RectTransform blink = Rect(canvas, "EyeBlinkUI", Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero);
+            Image top = Img(blink, "TopLid", null, Color.black, new Vector2(0f, .5f), Vector2.one, new Vector2(.5f, 1f), Vector2.zero, Vector2.zero);
+            Image bottom = Img(blink, "BottomLid", null, Color.black, Vector2.zero, new Vector2(1f, .5f), new Vector2(.5f, 0f), Vector2.zero, Vector2.zero);
+            top.raycastTarget = false;
+            bottom.raycastTarget = false;
+            EyeBlinkUI eyeBlink = blink.gameObject.AddComponent<EyeBlinkUI>();
+            SetField(eyeBlink, "landSequence", landSequence);
+            SetField(eyeBlink, "topLid", top.rectTransform);
+            SetField(eyeBlink, "bottomLid", bottom.rectTransform);
+        }
 
         RectTransform root = Rect(canvas, "LandQTEUI", Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero);
         root.gameObject.AddComponent<CanvasGroup>();
@@ -401,6 +405,7 @@ public static class Day3GrayboxBuilder
         SetField(ui, "labelText", label);
 
         fade.transform.SetAsLastSibling();
+        return ui;
     }
 
     public static CinemachineCamera FixedCamera(Transform parent, string name, Vector3 position, Vector3 lookAt, float fov)
@@ -466,9 +471,11 @@ public static class Day3GrayboxBuilder
     // the bedroom's director needs Day 3's morning text and the time skip
     public static void WireBedroom(Day3SO day3SO)
     {
+        // OpenScene unloads assets loaded before it: load the SO again by path once the bedroom is open
+        string path = AssetDatabase.GetAssetPath(day3SO);
         EditorSceneManager.OpenScene(HouseInteriorBuilder.SCENE_PATH);
         BedroomDirector bedroom = GameObject.Find(BEDROOM_DIRECTOR_PATH).GetComponent<BedroomDirector>();
-        SetField(bedroom, "day3SO", day3SO);
+        SetField(bedroom, "day3SO", AssetDatabase.LoadAssetAtPath<Day3SO>(path));
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
     }

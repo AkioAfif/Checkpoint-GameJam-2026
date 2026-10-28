@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e0ce3e543780b04dba488492949ce28, type: 3}
+  m_Name: Yard_DartoRope
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
+  lineArray:
+  - speaker: 1
+    text: You got it back! Good lad.
+    playerEmote: 0
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+  - speaker: 1
+    text: Clearing a stump too? Then take this rope. I built that bridge with it.
+    playerEmote: 0
+    npcEmote: 2
+    isShaking: 0
+    isNpcGlaring: 0
+  - speaker: 1
+    text: A stump's like a stubborn goat. You don't lift it, you drag it.
+    playerEmote: 0
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+  reward:
+    itemDataSO: {fileID: 11400000, guid: 6c8c6dac2dbded04d8a4fa33eefd980e, type: 2}
+    amount: 1
