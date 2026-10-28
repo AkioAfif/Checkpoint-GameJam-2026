@@ -2,6 +2,8 @@ using Unity.Cinemachine;
 using UnityEngine;
 
 // Day 3's cutscene cameras: the new-land sequence's shots, and in the evening the look over the new strip into the forest.
+// On the CozyFarm map also the tree punches (low beside the MC) and the second bridge: the river shot while the MC pictures it,
+// and the bank while he pounds it up.
 // Cinemachine blends to the enabled one and back to the follow camera; the whip to Rigel is a hard cut.
 public class Day3CameraVisual : MonoBehaviour
 {
@@ -16,6 +18,13 @@ public class Day3CameraVisual : MonoBehaviour
     [SerializeField] private CinemachineCamera smashFrontCamera;
     [Tooltip("The same spot zoomed in, for the last blow.")]
     [SerializeField] private CinemachineCamera smashCloseCamera;
+    [Tooltip("Optional (the CozyFarm map): low beside the MC while he punches a tree, so the gameplay camera never looks through its canopy.")]
+    [SerializeField] private TreeClearing treeClearing;
+    [SerializeField] private CinemachineCamera treePunchCamera;
+    [Tooltip("Optional (the CozyFarm map), with its two cameras.")]
+    [SerializeField] private BridgeBuild bridgeBuild;
+    [SerializeField] private CinemachineCamera bridgeIdeaCamera;
+    [SerializeField] private CinemachineCamera bridgeSmashCamera;
 
     private CinemachineBlendDefinition defaultBlend;
 
@@ -23,6 +32,8 @@ public class Day3CameraVisual : MonoBehaviour
     {
         defaultBlend = brain.DefaultBlend;
         landSequence.OnStepChanged += LandSequence_OnStepChanged;
+        if (bridgeBuild != null) bridgeBuild.OnStepChanged += BridgeBuild_OnStepChanged;
+        if (treeClearing != null) treeClearing.OnStepChanged += TreeClearing_OnStepChanged;
     }
 
     private void Update()
@@ -42,5 +53,18 @@ public class Day3CameraVisual : MonoBehaviour
         rigelCamera.enabled = e.shot == LandSequence.Shot.Rigel;
         smashFrontCamera.enabled = e.shot == LandSequence.Shot.SmashFront;
         smashCloseCamera.enabled = e.shot == LandSequence.Shot.SmashClose;
+    }
+
+    private void TreeClearing_OnStepChanged(object sender, TreeClearing.OnStepChangedEventArgs e)
+    {
+        brain.DefaultBlend = defaultBlend;
+        treePunchCamera.enabled = e.step == TreeClearing.Step.Punching;
+    }
+
+    private void BridgeBuild_OnStepChanged(object sender, BridgeBuild.OnStepChangedEventArgs e)
+    {
+        brain.DefaultBlend = defaultBlend;
+        bridgeIdeaCamera.enabled = e.step == BridgeBuild.Step.Think || e.step == BridgeBuild.Step.Idea;
+        bridgeSmashCamera.enabled = e.step == BridgeBuild.Step.Smash || e.step == BridgeBuild.Step.Settle || e.step == BridgeBuild.Step.DoneTalk;
     }
 }

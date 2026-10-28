@@ -89,5 +89,47 @@ public static class Day3DataBuilder
         AssetDatabase.SaveAssets();
     }
 
+    // Day 3 on the CozyFarm map: a copy of Day3 (refreshed each build) where the new field is the forest across the river from
+    // the garden, so the MC punches its trees down first, and pounds a second bridge up afterwards. Only loads the existing data.
+    public static Day3SO BuildCozyFarm()
+    {
+        DialogueSO.DialogueLine P(string text, Emote playerEmote = Emote.None) => new DialogueSO.DialogueLine { speaker = DialogueSO.Speaker.Player, text = text, playerEmote = playerEmote };
+
+        Day3 = GameDataBuilder.Load<Day3SO>("Day3", "Day3");
+        SawitBunchLv2 = GameDataBuilder.Load<ItemDataSO>("Items", "SawitBunchLv2");
+        Day3SO cozy = GameDataBuilder.Asset<Day3SO>("Day3", "Day3_CozyFarm");
+        EditorUtility.CopySerialized(Day3, cozy);
+        cozy.name = "Day3_CozyFarm";
+
+        cozy.landWishDialogueSO = Dialogue("Day3_LandWish_CozyFarm",
+            P("If only I could add more land there..."),
+            P("But those trees are in the way, and I don't have the strength to clear them.", Emote.HeavySigh));
+        cozy.treesIdeaDialogueSO = Dialogue("Day3_TreesIdea",
+            P("This strength... I bet I could knock those trees down.", Emote.WideSmile));
+        cozy.firstTreeDialogueSO = Dialogue("Day3_FirstTree",
+            P("One tree... with my bare hands?!", Emote.Surprised));
+        cozy.treesClearedDialogueSO = Dialogue("Day3_TreesCleared",
+            P("That's the last of them. Now there's room for a real field.", Emote.Cheer));
+        cozy.bridgeIdeaDialogueSO = Dialogue("Day3_BridgeIdea",
+            P("Walking all the way round to that old bridge every day is exhausting...", Emote.HeavySigh),
+            P("What if there was a bridge right here, next to my farm?"));
+        cozy.bridgeDoneDialogueSO = Dialogue("Day3_BridgeDone",
+            P("Ha! Now the new field is only a few steps from home.", Emote.Cheer));
+        cozy.eveningMathDialogueSO = Dialogue("Day3_EveningMath_CozyFarm",
+            P("A good day. A new field and a new bridge, and all it cost me was one sawit."),
+            P("Two weeks of harvests barely moved the debt. Sixteen more days won't do it either."),
+            P("The field is still too small.", Emote.HeavySigh));
+        cozy.forestHookDialogueSO = Dialogue("Day3_ForestHook_CozyFarm",
+            P("There's still a whole forest out there..."),
+            P("With this strength... it wouldn't take long."));
+
+        cozy.treeObjectiveArray = new[] { GameDataBuilder.Task("D3_PunchTrees", TaskObjectiveSO.Type.Story, "Punch down the 3 trees across the river", null, 3) };
+        cozy.smashObjectiveArray = new[] { GameDataBuilder.Task("D3_SmashClearing", TaskObjectiveSO.Type.Story, "Pound the cleared ground into a field", null, 1) };
+        cozy.bridgeObjectiveArray = new[] { GameDataBuilder.Task("D3_BuildBridge", TaskObjectiveSO.Type.Story, "Go to the riverbank by the new field", null, 1) };
+        EditorUtility.SetDirty(cozy);
+        AssetDatabase.SaveAssets();
+        return cozy;
+    }
+
     private static DialogueSO Dialogue(string file, params DialogueSO.DialogueLine[] lines) => GameDataBuilder.Dialogue(file, default, lines);
 }

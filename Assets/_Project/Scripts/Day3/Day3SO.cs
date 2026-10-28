@@ -29,6 +29,13 @@ public class Day3SO : ScriptableObject
     public DialogueSO buffDialogueSO;
     // Rigel, backing off toward his house
     public DialogueSO rigelPretendDialogueSO;
+    // the CozyFarm map's forest field: after the buff, after the first tree falls, once they all have
+    public DialogueSO treesIdeaDialogueSO;
+    public DialogueSO firstTreeDialogueSO;
+    public DialogueSO treesClearedDialogueSO;
+    // the CozyFarm map's second bridge: looking at the river, and once it stands
+    public DialogueSO bridgeIdeaDialogueSO;
+    public DialogueSO bridgeDoneDialogueSO;
     // optional talks while the player works
     public DialogueSO ratnaDialogueSO;
     public DialogueSO ijahDialogueSO;
@@ -41,7 +48,9 @@ public class Day3SO : ScriptableObject
     [Header("Checklists")]
     public TaskObjectiveSO[] harvestObjectiveArray;
     public TaskObjectiveSO[] eatObjectiveArray;
+    public TaskObjectiveSO[] treeObjectiveArray;
     public TaskObjectiveSO[] smashObjectiveArray;
+    public TaskObjectiveSO[] bridgeObjectiveArray;
     public TaskObjectiveSO[] plantObjectiveArray;
     public TaskObjectiveSO[] nightObjectiveArray;
 

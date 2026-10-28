@@ -148,7 +148,7 @@ public static class FixSceneDay2Builder
     }
 
     // the map's ground isn't flat at y 0: snap to the terrain or path under the point
-    private static Vector3 Ground(Vector3 position)
+    public static Vector3 Ground(Vector3 position)
     {
         float height = position.y;
         float best = float.MinValue;
