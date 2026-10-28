@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbe653a2e780ab0439615d45a72b01cb, type: 3}
+  m_Name: BorderStyle_GateClosed
+  m_EditorClassIdentifier: Assembly-CSharp::BorderStyleSO
+  placement: 1
+  pieceArray:
+  - prefab: {fileID: 5759209419279639482, guid: e2eb30a4d33259f45a3c2017390d9e29, type: 3}
+    weight: 1
+    scaleRange: {x: 1, y: 1}
+    radius: 0.3
+  spacing: 5.6
+  jitter: 0.4
+  emptyChance: 0
+  sinkDepth: 0
+  maxTilt: 0
+  alignToStrip: 1
+  yawJitter: 0
+  stretchToFit: 1
+  pieceLength: 5.6
+  endCapPrefab: {fileID: 0}
+  allowInWater: 0
