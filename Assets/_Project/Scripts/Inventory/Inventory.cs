@@ -12,28 +12,29 @@ public class Inventory : MonoBehaviour
     public event EventHandler<OnItemDiscoveredEventArgs> OnItemDiscovered;
     public class OnItemDiscoveredEventArgs : EventArgs { public ItemDataSO itemDataSO; }
 
+    [Tooltip("What a new playthrough starts with. A scene loaded later carries on the items from WorldState instead.")]
     [SerializeField] private ItemAmount[] startingItemArray;
 
     private readonly Dictionary<ItemDataSO, int> countDictionary = new Dictionary<ItemDataSO, int>();
     private readonly List<ItemDataSO> itemOrderList = new List<ItemDataSO>();
-    private readonly HashSet<ItemDataSO> discoveredSet = new HashSet<ItemDataSO>();
 
     private void Awake()
     {
         if (Instance != null) Debug.LogError("More than one Inventory", this);
         Instance = this;
-        // starting items are known already, so they never pop the discovery card
-        foreach (ItemAmount itemAmount in startingItemArray)
+        // the items live in WorldState so they cross scene loads; starting items count as known (no discovery card)
+        WorldState.StartInventory(startingItemArray);
+        foreach (ItemAmount itemAmount in WorldState.GetInventoryList())
         {
-            discoveredSet.Add(itemAmount.itemDataSO);
-            SetCount(itemAmount.itemDataSO, itemAmount.amount, itemAmount.amount);
+            countDictionary[itemAmount.itemDataSO] = itemAmount.amount;
+            itemOrderList.Add(itemAmount.itemDataSO);
         }
     }
 
     public void AddItem(ItemDataSO itemDataSO, int amount = 1)
     {
         SetCount(itemDataSO, GetCount(itemDataSO) + amount, amount);
-        if (discoveredSet.Add(itemDataSO)) OnItemDiscovered?.Invoke(this, new OnItemDiscoveredEventArgs { itemDataSO = itemDataSO });
+        if (WorldState.TryDiscoverItem(itemDataSO)) OnItemDiscovered?.Invoke(this, new OnItemDiscoveredEventArgs { itemDataSO = itemDataSO });
     }
 
     public bool TryRemoveItem(ItemDataSO itemDataSO, int amount = 1)
@@ -64,6 +65,7 @@ public class Inventory : MonoBehaviour
     {
         if (!countDictionary.ContainsKey(itemDataSO)) itemOrderList.Add(itemDataSO);
         countDictionary[itemDataSO] = count;
+        WorldState.SetItemCount(itemDataSO, count);
         OnItemChanged?.Invoke(this, new OnItemChangedEventArgs { itemDataSO = itemDataSO, count = count, delta = delta });
     }
 

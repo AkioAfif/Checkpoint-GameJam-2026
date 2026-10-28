@@ -23,7 +23,11 @@ public class Npc : MonoBehaviour, IInteractable
     public void SetOverrideDialogue(DialogueSO dialogueSO) => overrideDialogueSO = dialogueSO;
 
     // what the next talk will play
-    public DialogueSO GetNextDialogue() => overrideDialogueSO != null ? overrideDialogueSO : hasTalked && npcSO.repeatDialogueSO != null ? npcSO.repeatDialogueSO : npcSO.firstDialogueSO;
+    public DialogueSO GetNextDialogue() => overrideDialogueSO != null ? overrideDialogueSO : IsFirstTalkOver() && npcSO.repeatDialogueSO != null ? npcSO.repeatDialogueSO : npcSO.firstDialogueSO;
+
+    // a first talk that hands something over only plays while it still can (Ratna's bottles: Day 1, once)
+    private bool IsFirstTalkOver() =>
+        hasTalked || (npcSO.firstDialogueSO != null && npcSO.firstDialogueSO.reward.amount > 0 && !DialogueManager.Instance.HasPendingReward(npcSO.firstDialogueSO));
 
     public string GetPromptVerb() => promptVerb;
     public string GetBlockedReason() => string.Empty;

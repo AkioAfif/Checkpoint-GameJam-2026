@@ -111,6 +111,7 @@ public static class Day2GrayboxBuilder
         SetField(day2, "newCropDataSO", Day2DataBuilder.SawitLv2);
         SetArray(day2, "farmPlotArray", plots);
         SetField(day2, "rigelNpc", rigel);
+        SetField(day2, "sellCrate", Object.FindAnyObjectByType<SellCrate>(FindObjectsInactive.Include));
         SetField(day2, "houseDoor", Object.FindAnyObjectByType<HouseDoor>(FindObjectsInactive.Include));
         SetField(day2, "morningPoint", morningPoint);
         SetField(day2, "eveningPoint", eveningPoint);
@@ -225,14 +226,14 @@ public static class Day2GrayboxBuilder
         return prefab != null ? prefab : build();
     }
 
-    // press 1+: 2 resin + water + flower + plant make 2 Lv.2 seeds and hand the bottle back
+    // press 1+: 2 resin + water + flower make 2 Lv.2 seeds and hand the bottle back
     private static void SetLv2Recipe(Day2Director day2)
     {
         SerializedObject so = new SerializedObject(day2);
         SerializedProperty recipes = so.FindProperty("recipeArray");
         recipes.arraySize = 1;
         SerializedProperty recipe = recipes.GetArrayElementAtIndex(0);
-        (ItemDataSO item, int amount)[] inputs = { (Day2DataBuilder.Resin, 2), (GameDataBuilder.Water, 1), (GameDataBuilder.Flower, 1), (GameDataBuilder.Crop, 1) };
+        (ItemDataSO item, int amount)[] inputs = { (Day2DataBuilder.Resin, 2), (GameDataBuilder.Water, 1), (GameDataBuilder.Flower, 1) };
         SerializedProperty inputArray = recipe.FindPropertyRelative("inputArray");
         inputArray.arraySize = inputs.Length;
         for (int i = 0; i < inputs.Length; i++)
@@ -245,7 +246,7 @@ public static class Day2GrayboxBuilder
         recipe.FindPropertyRelative("returned.itemDataSO").objectReferenceValue = GameDataBuilder.EmptyBottle;
         recipe.FindPropertyRelative("returned.amount").intValue = 1;
         recipe.FindPropertyRelative("puzzleSO").objectReferenceValue = GameDataBuilder.PuzzleSplit;
-        recipe.FindPropertyRelative("blockedReason").stringValue = "Needs 2 resin, water, a flower and a plant";
+        recipe.FindPropertyRelative("blockedReason").stringValue = "Needs 2 resin, water and a flower";
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 

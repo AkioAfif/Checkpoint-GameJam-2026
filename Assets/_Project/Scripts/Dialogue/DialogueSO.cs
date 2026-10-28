@@ -21,6 +21,8 @@ public class DialogueSO : ScriptableObject
     }
 
     public DialogueLine[] lineArray;
-    // given once, when this dialogue ends (amount 0 = no reward)
+    // given once per playthrough, when this dialogue ends (amount 0 = no reward)
     public ItemAmount reward;
+    [Tooltip("Only given on this day (0 = any day).")]
+    public int rewardDay;
 }

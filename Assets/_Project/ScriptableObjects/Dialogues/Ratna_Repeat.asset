@@ -14,15 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   lineArray:
   - speaker: 1
-    text: Take these spare bottles. The river water is lovely and cool today.
+    text: Still using those bottles? The river water is lovely and cool today.
     playerEmote: 0
     npcEmote: 5
     isShaking: 0
+    isNpcGlaring: 0
   - speaker: 1
     text: The flowers by the houses grow back after a little while. Help yourself!
     playerEmote: 0
     npcEmote: 1
     isShaking: 0
+    isNpcGlaring: 0
   reward:
     itemDataSO: {fileID: 0}
     amount: 0
+  rewardDay: 0

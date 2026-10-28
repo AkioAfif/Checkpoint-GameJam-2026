@@ -31721,6 +31721,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 9062850425675362187, guid: 2c7f89e91f03a074cb40817e9f114ada, type: 3}
   m_PrefabInstance: {fileID: 1210597036}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1210597038 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3908241560977187913, guid: 2c7f89e91f03a074cb40817e9f114ada, type: 3}
+  m_PrefabInstance: {fileID: 1210597036}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fde0703cb7758274b8a18bdd1c2b85ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SellCrate
 --- !u!1001 &1212192933
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -49439,8 +49450,6 @@ MonoBehaviour:
       amount: 1
     - itemDataSO: {fileID: 11400000, guid: 7a7135d5f81dea44a935f409bef7774b, type: 2}
       amount: 1
-    - itemDataSO: {fileID: 11400000, guid: 873a0b3e533999045b2372384da4fa4f, type: 2}
-      amount: 1
     output:
       itemDataSO: {fileID: 11400000, guid: b4a43250077a3c347b72836d91f1aaee, type: 2}
       amount: 2
@@ -49448,7 +49457,7 @@ MonoBehaviour:
       itemDataSO: {fileID: 11400000, guid: d816e2484100c384fbc5007dd96ec3dc, type: 2}
       amount: 1
     puzzleSO: {fileID: 11400000, guid: 8eff97ac6202b914da760df93792c68b, type: 2}
-    blockedReason: Needs 2 resin, water, a flower and a plant
+    blockedReason: Needs 2 resin, water and a flower
     isGuided: 0
   ripeCropDataSO: {fileID: 11400000, guid: 2227e329ff4522f4894fdd332200157c, type: 2}
   newCropDataSO: {fileID: 11400000, guid: 3c57ee5515ed5ca4ebc1b9fffc323550, type: 2}
@@ -49464,8 +49473,7 @@ MonoBehaviour:
   - {fileID: 317434933}
   testRipeCount: 3
   rigelNpc: {fileID: 1652245964}
-  rigelArrivalPoint: {fileID: 0}
-  rigelWalkSpeed: 2.6
+  sellCrate: {fileID: 1210597038}
   houseDoor: {fileID: 1529295550}
   morningPoint: {fileID: 18704510}
   eveningPoint: {fileID: 1509989743}

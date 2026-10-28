@@ -12,8 +12,11 @@ public class SellCrate : MonoBehaviour, IInteractable
     [SerializeField] private string blockedReason = "Nothing ICAN buys";
     [SerializeField] private Transform promptAnchor;
 
+    private bool isLocked;
+    private string lockedReason;
+
     public bool IsSelectable() => true;
-    public bool CanInteract(Player player) => GetSaleValue() > 0L;
+    public bool CanInteract(Player player) => !isLocked && GetSaleValue() > 0L;
 
     public void Interact(Player player)
     {
@@ -24,7 +27,14 @@ public class SellCrate : MonoBehaviour, IInteractable
     }
 
     public string GetPromptVerb() => promptVerb;
-    public string GetBlockedReason() => blockedReason;
+    public string GetBlockedReason() => isLocked ? lockedReason : blockedReason;
+
+    // the day's story isn't at the selling yet
+    public void SetLocked(bool isLocked, string lockedReason)
+    {
+        this.isLocked = isLocked;
+        this.lockedReason = lockedReason;
+    }
     public Transform GetPromptAnchor() => promptAnchor;
 
     private long GetSaleValue()
