@@ -125,3 +125,7 @@ InitTestScene*.unity*
 /CLAUDE.local.md
 /.claude/CLAUDE.md
 /.claude/settings.local.json
+
+# Fabricator sprite generator (npm install @resvg/resvg-js)
+Tools/FabricatorSprites/node_modules/
+Tools/FabricatorSprites/package*.json

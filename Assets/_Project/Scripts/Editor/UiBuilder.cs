@@ -55,7 +55,7 @@ public static class UiBuilder
         BuildPrompt(canvas);
         BuildQte(canvas);
         // scenes without a Fabricator or a house door (HouseInterior) skip the panels that listen to them
-        if (refs.fabricator != null) BuildFabricatorHud(canvas, refs);
+        if (refs.fabricator != null) FabricatorGridPuzzleBuilder.BuildHud(canvas, refs.fabricator, refs.miniGame);
         BuildDialogue(canvas, refs);
         BuildDiscovery(canvas);
         BuildPause(canvas);
@@ -195,49 +195,6 @@ public static class UiBuilder
         SetField(qteUI, "bannerText", bannerText);
         SetField(qteUI, "bannerPop", banner.gameObject.AddComponent<UIPop>());
         SetField(qteUI, "bannerCanvasGroup", bannerGroup);
-    }
-
-    private static void BuildFabricatorHud(Transform canvas, Refs refs)
-    {
-        RectTransform root = Rect(canvas, "FabricatorUI", Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero);
-        root.gameObject.AddComponent<CanvasGroup>();
-        RectTransform panel = Panel(root, "Panel", new Vector2(1f, .5f), new Vector2(1f, .5f), new Vector2(1f, .5f), new Vector2(-40f, 0f), new Vector2(460f, 560f), Cream);
-        TextMeshProUGUI title = Text(panel, "Title", "Fabricator", 40, Ink, TextAlignmentOptions.Center, FontStyles.Bold);
-        Place(title.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -50f), new Vector2(400f, 60f));
-        TextMeshProUGUI hint = Text(panel, "Hint", "Hold the mouse and drag to dig.\nGuide every liquid into the glowing mould!", 24, Ink, TextAlignmentOptions.Center);
-        Place(hint.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -125f), new Vector2(420f, 80f));
-        Image[] fills = new Image[3];
-        TextMeshProUGUI[] labels = new TextMeshProUGUI[3];
-        for (int i = 0; i < 3; i++)
-        {
-            float y = -205f - i * 82f;
-            labels[i] = Text(panel, "Label", "Liquid", 24, Ink, TextAlignmentOptions.Left, FontStyles.Bold);
-            Place(labels[i].rectTransform, new Vector2(.5f, 1f), new Vector2(0f, y), new Vector2(380f, 30f));
-            Image back = Img(panel, "BarBack", GrayboxTextures.RoundedPanel, new Color(.85f, .8f, .74f), new Vector2(.5f, 1f), new Vector2(.5f, 1f), new Vector2(.5f, 1f), new Vector2(0f, y - 22f), new Vector2(380f, 30f));
-            back.type = Image.Type.Sliced;
-            back.pixelsPerUnitMultiplier = 2f;
-            fills[i] = Img(back.rectTransform, "Fill", GrayboxTextures.RoundedPanel, Color.white, Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero);
-            fills[i].type = Image.Type.Filled;
-            fills[i].fillMethod = Image.FillMethod.Horizontal;
-        }
-        TextMeshProUGUI controls = Text(panel, "Controls", "[Mouse] Dig    [R] Restart    [Esc] Leave", 22, Ink, TextAlignmentOptions.Center);
-        Place(controls.rectTransform, new Vector2(.5f, 0f), new Vector2(0f, 40f), new Vector2(430f, 40f));
-
-        RectTransform solved = Rect(root, "SolvedBanner", Centre, Centre, Centre, new Vector2(-150f, 330f), new Vector2(900f, 130f));
-        CanvasGroup solvedGroup = solved.gameObject.AddComponent<CanvasGroup>();
-        solvedGroup.alpha = 0f;
-        TextMeshProUGUI solvedText = Text(solved, "Text", "Seed ready!", 88, Accent, TextAlignmentOptions.Center, FontStyles.Bold);
-        Stretch(solvedText.rectTransform, Vector2.zero, Vector2.zero);
-        solvedText.outlineWidth = .22f;
-        solvedText.outlineColor = new Color32(70, 55, 50, 255);
-
-        FabricatorUI ui = root.gameObject.AddComponent<FabricatorUI>();
-        SetField(ui, "fabricator", refs.fabricator);
-        SetField(ui, "miniGame", refs.miniGame);
-        SetArray(ui, "barFillArray", fills);
-        SetArray(ui, "barLabelArray", labels);
-        SetField(ui, "solvedBanner", solvedGroup);
-        SetField(ui, "solvedPop", solved.gameObject.AddComponent<UIPop>());
     }
 
     private static void BuildDialogue(Transform canvas, Refs refs)

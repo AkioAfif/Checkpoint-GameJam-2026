@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Root Sentinel: bark-armoured lignin node with moss and thorny root stubs (mid-tones so a crimson tint still reads) -->
+  <defs>
+    <radialGradient id="bark" cx="42%" cy="38%" r="70%">
+      <stop offset="0" stop-color="#9a7350"/>
+      <stop offset="0.6" stop-color="#6b4a32"/>
+      <stop offset="1" stop-color="#3e2a1c"/>
+    </radialGradient>
+    <radialGradient id="heart" cx="45%" cy="40%" r="60%">
+      <stop offset="0" stop-color="#c9a272"/>
+      <stop offset="1" stop-color="#7a5636"/>
+    </radialGradient>
+    <linearGradient id="moss" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8fb05a"/>
+      <stop offset="1" stop-color="#4f6b3a"/>
+    </linearGradient>
+  </defs>
+  <!-- root stubs with thorns -->
+  <g stroke="#24170f" stroke-width="5" stroke-linejoin="round" fill="#5a3e2b">
+    <path d="M118,40 L128,12 L138,40 Z"/><path d="M216,118 L244,128 L216,138 Z"/>
+    <path d="M118,216 L128,244 L138,216 Z"/><path d="M40,118 L12,128 L40,138 Z"/>
+    <path d="M182,62 L206,50 L194,74 Z"/><path d="M194,182 L206,206 L182,194 Z"/>
+    <path d="M62,194 L50,206 L74,182 Z"/><path d="M74,62 L50,50 L62,74 Z"/>
+  </g>
+  <g fill="#e8d6b0"><path d="M125,22 L128,12 L131,22 Z"/><path d="M234,125 L244,128 L234,131 Z"/>
+    <path d="M125,234 L128,244 L131,234 Z"/><path d="M22,125 L12,128 L22,131 Z"/></g>
+
+  <!-- bark shell -->
+  <path d="M128,34 L180,46 L214,82 L222,128 L210,176 L176,210 L128,222 L80,210 L46,176 L34,128 L46,80 L80,46 Z"
+        fill="url(#bark)" stroke="#24170f" stroke-width="7" stroke-linejoin="round"/>
+  <!-- bark plate cracks -->
+  <g fill="none" stroke="#2e1e14" stroke-width="4" stroke-linecap="round" opacity="0.8">
+    <path d="M128,40 L120,72"/><path d="M206,92 L176,104"/><path d="M200,168 L172,156"/>
+    <path d="M128,216 L134,184"/><path d="M54,166 L84,154"/><path d="M52,96 L82,104"/>
+  </g>
+  <path d="M60,92 C72,64 96,50 124,46" fill="none" stroke="#b8936a" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+  <!-- moss patches -->
+  <g fill="url(#moss)" stroke="#33461f" stroke-width="2.5">
+    <path d="M58,104 C54,86 72,72 90,78 C100,68 120,70 118,84 C108,92 96,92 86,104 C76,112 62,114 58,104 Z"/>
+    <path d="M168,188 C180,180 198,184 198,170 C206,176 206,196 190,204 C178,210 164,200 168,188 Z"/>
+  </g>
+  <g fill="#c3db8a" opacity="0.7"><circle cx="74" cy="90" r="4"/><circle cx="98" cy="80" r="3"/><circle cx="188" cy="190" r="3"/></g>
+  <!-- leaf sprigs -->
+  <g fill="#2f4a2a" stroke="#1c2c18" stroke-width="2">
+    <path d="M176,62 C196,54 208,64 204,72 C192,76 182,72 176,62 Z"/>
+    <path d="M64,180 C50,196 56,210 64,208 C72,198 72,188 64,180 Z"/>
+  </g>
+  <!-- heartwood eye -->
+  <circle cx="128" cy="128" r="44" fill="url(#heart)" stroke="#24170f" stroke-width="5"/>
+  <g fill="none" stroke="#5a3e2b" stroke-width="3" opacity="0.7"><circle cx="128" cy="128" r="32"/><circle cx="128" cy="128" r="20"/></g>
+  <circle cx="128" cy="128" r="10" fill="#3e2a1c"/>
+  <circle cx="122" cy="120" r="5" fill="#f0dcb4" opacity="0.6"/>
+</svg>

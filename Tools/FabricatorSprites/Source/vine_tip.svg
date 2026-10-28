@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Bramble tip: the end of a root, a whip-like tendril. Sits at the tile centre and points RIGHT, away from the
+       stem it grows from: starts at the stem's full width in bark and tapers straight along the centreline into young
+       green growth, so many tips on one board read as calm, consistent ends -->
+  <defs>
+    <linearGradient id="whip" gradientUnits="userSpaceOnUse" x1="112" y1="0" x2="224" y2="0">
+      <stop offset="0" stop-color="#6b4a32"/>
+      <stop offset="0.35" stop-color="#6b4a32"/>
+      <stop offset="0.7" stop-color="#5f8a3e"/>
+      <stop offset="1" stop-color="#9ccc62"/>
+    </linearGradient>
+    <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.35"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b9e27e"/>
+      <stop offset="1" stop-color="#4f7a32"/>
+    </linearGradient>
+  </defs>
+  <!-- two small thorns, one per side -->
+  <g fill="#d9c49a" stroke="#24170f" stroke-width="2.5" stroke-linejoin="round">
+    <path d="M166,108 L174,96 L180,110 Z"/><path d="M184,144 L191,156 L196,141 Z"/>
+  </g>
+  <!-- small leaf near the base -->
+  <path d="M140,104 C140,90 150,82 162,82 C162,94 154,102 140,104 Z" fill="url(#leaf)" stroke="#2f4a2a" stroke-width="3" stroke-linejoin="round"/>
+  <!-- the whip: full stem width at the base, tapering straight to a point on the centreline -->
+  <path d="M118,103 C152,102 188,110 224,128 C188,146 152,154 118,153 C102,153 102,103 118,103 Z"
+        fill="url(#whip)" stroke="#24170f" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M118,103 C152,102 188,110 224,128 C188,146 152,154 118,153 C102,153 102,103 118,103 Z"
+        fill="url(#shade)"/>
+  <!-- bark rings near the base, fading out where the growth turns green -->
+  <g fill="none" stroke="#2e1e14" stroke-width="3" stroke-linecap="round">
+    <path d="M130,105 C125,120 125,136 130,151" opacity="0.6"/>
+    <path d="M152,103 C147,117 147,133 152,148" opacity="0.45"/>
+    <path d="M174,106 C170,116 170,126 174,136" opacity="0.25"/>
+  </g>
+  <!-- highlight running along the top to the tip -->
+  <path d="M114,111 C150,109 180,113 206,121" fill="none" stroke="#f2f8d8" stroke-width="4"
+        stroke-linecap="round" opacity="0.55"/>
+</svg>

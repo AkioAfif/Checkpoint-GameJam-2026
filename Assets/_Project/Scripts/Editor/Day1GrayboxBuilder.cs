@@ -76,7 +76,6 @@ public static class Day1GrayboxBuilder
 
         HouseDoor houseDoor = Object.FindAnyObjectByType<HouseDoor>(FindObjectsInactive.Include);
         PatchDialogueUi();
-        PatchMiniGameVisual();
         Transform hud = Object.FindAnyObjectByType<HudUI>(FindObjectsInactive.Include).transform.parent;
         ScreenFadeUI fade = Day1UiBuilder.BuildVillage(hud, Object.FindAnyObjectByType<FabricatorMiniGame>(FindObjectsInactive.Include));
 
@@ -217,13 +216,6 @@ public static class Day1GrayboxBuilder
         DialogueUI ui = Object.FindAnyObjectByType<DialogueUI>(FindObjectsInactive.Include);
         foreach (Transform t in ui.GetComponentsInChildren<Transform>(true))
             if (t.name == "NpcPortrait") SetField(ui, "npcPortraitFrame", t.gameObject);
-    }
-
-    // whatever reaches the mould turns to oil
-    private static void PatchMiniGameVisual()
-    {
-        FabricatorMiniGameVisual visual = Object.FindAnyObjectByType<FabricatorMiniGameVisual>(FindObjectsInactive.Include);
-        SetField(visual, "oilMaterial", GrayboxPalette.Lit("LiquidOil", new Color(.07f, .11f, .06f), .95f));
     }
 
     // characters get a CutsceneActor so the director can hop them around and ask for emotes

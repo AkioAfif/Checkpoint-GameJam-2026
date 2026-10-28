@@ -12,44 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50f3a50fce47d814fa2203e7bb7250f3, type: 3}
   m_Name: Puzzle_00_Intro
   m_EditorClassIdentifier: Assembly-CSharp::FabricatorPuzzleSO
-  puzzleName: Plant Juice
-  layout: 'RRRRRRRRRRRRRR
+  puzzleName: First Corruption
+  layout: '#######
 
-    R####CCCC####R
+    #..S..#
 
-    R####CCCC####R
+    #.....#
 
-    R############R
+    #.....#
 
-    R############R
+    #.....#
 
-    R############R
+    #..B..#
 
-    R############R
-
-    R############R
-
-    R############R
-
-    R############R
-
-    R############R
-
-    R############R
-
-    R############R
-
-    R##RMMMMMMR##R
-
-    R##RMMMMMMR##R
-
-    R##RMMMMMMR##R
-
-    R##RRRRRRRR##R
-
-    RRRRRRRRRRRRRR'
-  particlesPerLiquid: 24
-  requiredFraction: 0.5
+    #######'
+  retractTurns: 2
+  parMoves: 0
   hasHint: 1
-  hintFromCell: {x: 6, y: 3}
-  hintToCell: {x: 6, y: 12}
+  hintFromCell: {x: 3, y: 5}
+  hintToCell: {x: 3, y: 4}
