@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
   itemName: Sawit Bunch Lv.2
   description: A dark, heavy bunch from the resin palms. ICAN pays extra, and asks no questions.
-  icon: {fileID: 156767253666869175, guid: b5be6bb7d8e1e7445a37d94d7fe5ba28, type: 3}
-  prefab: {fileID: 5443761702682461408, guid: 56f37fda5755fb84b8987bd55292cc52, type: 3}
+  icon: {fileID: 8363827996976592804, guid: f22c8c23e5ae7424797bce8d43b6b346, type: 3}
+  prefab: {fileID: 8822711165672918348, guid: 73430306231386243a86f5dd071c6d90, type: 3}
   liquidColor: {r: 0.62, g: 0.12, b: 0.14, a: 1}
   sellPrice: 1000000

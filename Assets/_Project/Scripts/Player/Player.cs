@@ -57,6 +57,23 @@ public class Player : MonoBehaviour
         characterController.enabled = false; // otherwise the controller overwrites the move next frame
         transform.position = position;
         characterController.enabled = true;
+        // no fall speed carried over from where they were
+        verticalVelocity = 0f;
+        currentSpeed = 0f;
+    }
+
+    // "Unstuck me": back to the front of the house. False (and the player stays put) when this scene has no return point.
+    public bool TryReturnHome()
+    {
+        if (PlayerHomeReturnPoint.Instance == null)
+        {
+            Debug.LogWarning("Unstuck me: this scene has no PlayerHomeReturnPoint, the player stays put", this);
+            return false;
+        }
+        Transform returnPoint = PlayerHomeReturnPoint.Instance.transform;
+        Teleport(returnPoint.position);
+        FaceTowards(returnPoint.position + returnPoint.forward);
+        return true;
     }
 
     // W = away from the camera on the ground plane; a camera looking straight down uses its screen-up instead

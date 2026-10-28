@@ -62,7 +62,7 @@ public class Day1Director : MonoBehaviour
     [SerializeField] private float waveDuration = 1.8f;
     [SerializeField] private float walkSpeed = 2.2f;
     [SerializeField] private float hopDuration = .6f;
-    [Tooltip("Sari dives once the leaving truck is this close to her.")]
+    [Tooltip("Sari dives once the leaving truck is this close to her (never, if its way out doesn't pass her).")]
     [SerializeField] private float sariDodgeLeadDistance = 8f;
     [SerializeField] private float sariDodgeSide = 1.1f;
     [SerializeField] private float sariDodgeDuration = .35f;
@@ -129,8 +129,8 @@ public class Day1Director : MonoBehaviour
         if (state == State.Stroll && GameManager.Instance.IsGamePlaying() && HasStrolled())
             BeginArrival();
 
-        // the leaving truck is about to run Sari over
-        if (step == Step.Leaving && !hasSariDodged && truck.transform.position.x < sariNpc.transform.position.x + sariDodgeLeadDistance)
+        // the leaving truck is about to run Sari over (only where she stands on its way out)
+        if (step == Step.Leaving && !hasSariDodged && IsTruckNearSari())
             DodgeTruck();
 
         if (stepTimer >= 0f)
@@ -402,9 +402,8 @@ public class Day1Director : MonoBehaviour
         GameManager.Instance.SetState(GameManager.State.Cutscene);
         Player.Instance.FaceTowards(distributorNpc.transform.position);
         step = Step.Waving;
-        // Sari has come onto the bridge, right in the truck's way out
+        // Sari has come onto the bridge; she keeps the facing she was placed with
         sariNpc.gameObject.SetActive(true);
-        sariActor.FaceTowards(truck.transform.position);
         SetState(State.Departure);
         distributorActor.PlayEmote(Emote.Wave);
         stepTimer = waveDuration;
@@ -440,6 +439,13 @@ public class Day1Director : MonoBehaviour
         sariActor.MoveTo(sariNpc.transform.position + Vector3.back * sariDodgeSide, sariDodgeDuration, .5f);
         sariActor.FaceTowards(truck.transform.position);
         sariActor.PlayEmote(Emote.Dodge);
+    }
+
+    private bool IsTruckNearSari()
+    {
+        Vector3 toSari = sariNpc.transform.position - truck.transform.position;
+        toSari.y = 0f;
+        return toSari.sqrMagnitude < sariDodgeLeadDistance * sariDodgeLeadDistance;
     }
 
     private void WalkPlayerTo(Vector3 target)

@@ -17,3 +17,4 @@ MonoBehaviour:
   icon: {fileID: -618244441179235363, guid: 4aa02dba2f101454ea826f24f2956597, type: 3}
   prefab: {fileID: 1014136733725347773, guid: 21dc0f858edd69d49b6cf130193407f4, type: 3}
   liquidColor: {r: 1, g: 0.8, b: 0.35, a: 1}
+  sellPrice: 0

@@ -25,7 +25,7 @@ public static class GameDataBuilder
         Water = Item("Water", "River Water", "Cool, clear water scooped from the village river.", BottleModel("Item_Water", GrayboxPalette.Lit("LiquidWater", WaterColor, .9f)), WaterColor);
         Flower = Item("Flower", "Wildflower", "A soft pink bloom from a villager's garden. Smells a little like honey.", FlowerModel("Item_Flower", 1), NectarColor);
         Crop = Item("Crop", "Leafy Greens", "A plump, leafy vegetable from your own field.", CropModel("Item_Crop", .7f), JuiceColor);
-        SawitSeed = Item("SawitSeed", "Sawit Seed Lv.1", "A warm, glowing seed pressed by the Fabricator. Plant it in an empty plot.", SeedModel(), new Color(1f, .8f, .35f));
+        SawitSeed = Item("SawitSeed", "Sawit Seed Lv.1", "A warm, glowing seed pressed by the Fabricator. Plant it in an empty plot.", Day2PrefabBuilder.SeedLv1Model(), new Color(1f, .8f, .35f));
 
         SawitLv1 = Asset<CropDataSO>("Crops", "SawitLv1");
         SawitLv1.cropName = "Sawit Lv.1";
@@ -216,16 +216,6 @@ public static class GameDataBuilder
                 Quaternion.Euler(0f, a, 0f) * new Vector3(0f, .14f, .26f), new Vector3(-35f, a, 0f));
         }
         return SavePrefab(root, "Items", name);
-    }
-
-    private static GameObject SeedModel()
-    {
-        GameObject root = Root("Item_SawitSeed");
-        Part(root.transform, "Seed", GrayboxMeshFactory.Blob(.15f, .24f), GrayboxPalette.Accent, Vector3.zero);
-        Part(root.transform, "Sprout", GrayboxMeshFactory.Cylinder(.02f, .14f, .01f, 8), GrayboxPalette.CropLeaf, new Vector3(0f, .22f, 0f));
-        PartCentered(root.transform, "LeafL", GrayboxMeshFactory.Blob(.06f, .03f, 8, 4), GrayboxPalette.CropLeaf, new Vector3(-.05f, .36f, 0f), new Vector3(0f, 0f, 25f));
-        PartCentered(root.transform, "LeafR", GrayboxMeshFactory.Blob(.06f, .03f, 8, 4), GrayboxPalette.CropLeaf, new Vector3(.05f, .37f, 0f), new Vector3(0f, 0f, -25f));
-        return SavePrefab(root, "Items", "Item_SawitSeed");
     }
 
     // young oil palm: short trunk + drooping fronds
