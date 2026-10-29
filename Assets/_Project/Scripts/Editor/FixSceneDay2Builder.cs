@@ -134,7 +134,6 @@ public static class FixSceneDay2Builder
         GameDataBuilder.Flower = GameDataBuilder.Load<ItemDataSO>("Items", "Flower");
         GameDataBuilder.Crop = GameDataBuilder.Load<ItemDataSO>("Items", "Crop");
         GameDataBuilder.SawitLv1 = GameDataBuilder.Load<CropDataSO>("Crops", "SawitLv1");
-        GameDataBuilder.PuzzleSplit = GameDataBuilder.Load<FabricatorPuzzleSO>("Puzzles", "Puzzle_03_Split");
     }
 
     private static GameObject Prefab(string pathInPrefabs)

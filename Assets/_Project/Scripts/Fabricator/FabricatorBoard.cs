@@ -2,9 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // The Fabricator puzzle's rules (ported from Sawit-Fabricator), with no Unity objects: the Tech Bug slides until something
-// stops it, corrupting every Seed Embryo wins, Root Sentinels' roots block tiles (thorny roots destroy the bug),
-// and gates, sap routers and injector glands change the board when clicked. Cells use FabricatorPuzzleSO layout coordinates
-// centred on the board (x right, y up), so they match the Grid's cells.
+// stops it, each slide costs 1 energy, corrupting every Seed Embryo wins, Root Sentinels' roots block cells (thorny roots
+// destroy the bug), Moving Cells step after every slide (hostile ones destroy the bug), resin snares stop a slide, and gates,
+// sap routers and injector glands change the board when clicked. Cells use FabricatorPuzzleSO layout coordinates centred on
+// the board (x right, y up), so they match the Grid's cells.
 public class FabricatorBoard
 {
     public static readonly Vector2Int[] MoveDirectionArray =
@@ -12,13 +13,20 @@ public class FabricatorBoard
         new Vector2Int(0, 1), new Vector2Int(1, 1), new Vector2Int(1, 0), new Vector2Int(1, -1),
         new Vector2Int(0, -1), new Vector2Int(-1, -1), new Vector2Int(-1, 0), new Vector2Int(-1, 1),
     };
-    private static readonly Vector2Int[] RootOffsetArray = { Vector2Int.up, Vector2Int.down, Vector2Int.right, Vector2Int.left };
+    private static readonly Vector2Int[] DefaultRootOffsetArray = { Vector2Int.up, Vector2Int.down, Vector2Int.right, Vector2Int.left };
 
     private readonly Dictionary<Vector2Int, FabricatorBoardTile> tileDictionary = new Dictionary<Vector2Int, FabricatorBoardTile>();
+    // in placement order, which is also the order Moving Cells step in within their group
     private readonly List<FabricatorBoardUnit> unitList = new List<FabricatorBoardUnit>();
     private readonly int retractTurns;
+    // a level with no embryos can't be won, only lost
+    private readonly bool hasEmbryos;
+    private readonly bool isEnergyLimited;
+    private readonly int maxEnergy;
+    private int energy;
 
-    public FabricatorBoard(FabricatorPuzzleSO puzzleSO)
+    // energyOverride > 0 replaces the level's own starting energy (and raises the cap to it)
+    public FabricatorBoard(FabricatorPuzzleSO puzzleSO, int energyOverride)
     {
         retractTurns = puzzleSO.retractTurns;
         string[] rows = puzzleSO.GetRows();
@@ -33,15 +41,25 @@ public class FabricatorBoard
                 tile.isGateOpen = symbol == 'G';
                 tile.routerAngle = GetRouterAngle(symbol);
                 tileDictionary[cell] = tile;
-                if (TryGetUnitType(symbol, out FabricatorBoardUnit.Type unitType)) unitList.Add(new FabricatorBoardUnit(unitType, cell, symbol == 'T'));
             }
         }
-        foreach (FabricatorBoardUnit unit in unitList)
+        foreach (FabricatorPuzzleSO.UnitPlacement placement in puzzleSO.unitPlacementList)
         {
-            if (unit.type != FabricatorBoardUnit.Type.Sentinel) continue;
-            foreach (Vector2Int offset in RootOffsetArray)
-                if (tileDictionary.ContainsKey(unit.cell + offset)) unit.rootCellList.Add(unit.cell + offset);
+            FabricatorBoardUnit unit = new FabricatorBoardUnit(placement.type, LayoutToCell(placement.layoutCell, rows), placement.isDangerous, placement.energyOnCapture, placement.moveSequenceArray);
+            if (unit.type == FabricatorBoardUnit.Type.Sentinel)
+            {
+                bool hasOffsets = placement.rootOffsetArray != null && placement.rootOffsetArray.Length > 0;
+                foreach (Vector2Int offset in hasOffsets ? placement.rootOffsetArray : DefaultRootOffsetArray)
+                    if (offset != Vector2Int.zero && tileDictionary.ContainsKey(unit.cell + offset)) unit.rootCellList.Add(unit.cell + offset);
+            }
+            unitList.Add(unit);
         }
+        hasEmbryos = GetEmbryoCount() > 0;
+
+        int initialEnergy = energyOverride > 0 ? energyOverride : puzzleSO.initialEnergy;
+        isEnergyLimited = initialEnergy > 0;
+        maxEnergy = Mathf.Max(puzzleSO.maxEnergy, initialEnergy);
+        energy = initialEnergy;
     }
 
     // layout column/row (top row first) → board cell, centred on the board
@@ -50,6 +68,11 @@ public class FabricatorBoard
     public IEnumerable<FabricatorBoardTile> GetTiles() => tileDictionary.Values;
     public List<FabricatorBoardUnit> GetUnitList() => unitList;
     public bool TryGetTile(Vector2Int cell, out FabricatorBoardTile tile) => tileDictionary.TryGetValue(cell, out tile);
+    public bool IsEnergyLimited() => isEnergyLimited;
+    public int GetEnergy() => energy;
+    public int GetMaxEnergy() => maxEnergy;
+    public bool IsWon() => hasEmbryos && GetEmbryoCount() == 0;
+    public bool IsOutOfEnergy() => isEnergyLimited && energy <= 0;
 
     public bool TryGetUnit(Vector2Int cell, out FabricatorBoardUnit unit)
     {
@@ -63,20 +86,8 @@ public class FabricatorBoard
         return false;
     }
 
-    public int GetEmbryoCount()
-    {
-        int count = 0;
-        foreach (FabricatorBoardUnit unit in unitList)
-            if (unit.isAlive && unit.type == FabricatorBoardUnit.Type.Embryo) count++;
-        return count;
-    }
-
-    public bool HasLivingBug()
-    {
-        foreach (FabricatorBoardUnit unit in unitList)
-            if (unit.isAlive && unit.type == FabricatorBoardUnit.Type.Bug) return true;
-        return false;
-    }
+    public int GetEmbryoCount() => CountLiving(FabricatorBoardUnit.Type.Embryo);
+    public bool HasLivingBug() => CountLiving(FabricatorBoardUnit.Type.Bug) > 0;
 
     // roots that are out over this cell block it; isHazardous when any of them is thorny
     public bool IsRootBlocked(Vector2Int cell, out bool isHazardous)
@@ -87,15 +98,17 @@ public class FabricatorBoard
         {
             if (!unit.AreRootsOut() || !unit.rootCellList.Contains(cell)) continue;
             isBlocked = true;
-            isHazardous |= unit.isThorny;
+            isHazardous |= unit.isDangerous;
         }
         return isBlocked;
     }
 
     // Every cell the slide passes through, in order; the last one is where the bug ends up. Empty when it can't move that way.
-    //  - board edge, wall, closed gate, root-blocked cell or another bug: stop before it
-    //  - thorny roots over walkable terrain: enter the cell and be destroyed (endsInHazard)
-    //  - Seed Embryo or Root Sentinel: stop on its cell and capture it
+    //  - board edge, wall, closed gate, root-blocked cell or another bug: stop before it. Roots come first, so a unit
+    //    under roots can't be captured through them
+    //  - thorny roots over walkable terrain, or a hostile Moving Cell: enter the cell and be destroyed (endsInHazard)
+    //  - Seed Embryo, Root Sentinel, Energy Cell or passive Moving Cell: stop on its cell and capture it
+    //  - resin snare: enter it and stop there
     //  - sap router: enter it, then carry on in the router's direction
     public List<Vector2Int> GetSlidePath(Vector2Int start, Vector2Int direction, out bool endsInHazard)
     {
@@ -108,11 +121,6 @@ public class FabricatorBoard
         {
             Vector2Int next = current + direction;
             if (!tileDictionary.TryGetValue(next, out FabricatorBoardTile tile)) break;
-            if (TryGetUnit(next, out FabricatorBoardUnit unit))
-            {
-                if (unit.IsCapturable()) path.Add(next);
-                break;
-            }
             if (IsRootBlocked(next, out bool isHazardous))
             {
                 // thorny roots over a wall still just act as a wall
@@ -123,9 +131,20 @@ public class FabricatorBoard
                 }
                 break;
             }
+            if (TryGetUnit(next, out FabricatorBoardUnit unit))
+            {
+                if (unit.IsHostileMovingCell())
+                {
+                    path.Add(next);
+                    endsInHazard = true;
+                }
+                else if (unit.IsCapturable()) path.Add(next);
+                break;
+            }
             if (!tile.IsWalkableTerrain()) break;
             path.Add(next);
             current = next;
+            if (tile.type == FabricatorBoardTile.Type.Snare) break;
             if (tile.type != FabricatorBoardTile.Type.Router) continue;
             direction = tile.GetRouterDirection();
             if (!visitedRouterSet.Add((next, direction))) break;
@@ -133,16 +152,67 @@ public class FabricatorBoard
         return path;
     }
 
-    // moves the bug to the end of the path: it dies in thorns, or captures what stands there
+    // moves the bug to the end of the path: it dies in the hazard (no energy spent), or captures what stands there,
+    // paying 1 energy and gaining what the capture restores
     public void ApplySlide(FabricatorBoardUnit bug, List<Vector2Int> path, bool endsInHazard)
     {
         Vector2Int destination = path[path.Count - 1];
-        if (endsInHazard) bug.isAlive = false;
-        else if (TryGetUnit(destination, out FabricatorBoardUnit captured)) captured.isAlive = false;
+        bug.previousCell = bug.cell;
         bug.cell = destination;
+        if (endsInHazard)
+        {
+            bug.isAlive = false;
+            return;
+        }
+        int restored = 0;
+        foreach (FabricatorBoardUnit unit in unitList)
+        {
+            if (unit == bug || !unit.isAlive || unit.cell != destination) continue;
+            unit.isAlive = false;
+            restored = unit.energyOnCapture;
+        }
+        SetEnergy(energy - 1 + restored);
     }
 
-    // one finished slide: timed root retractions and the glands' own timers count down
+    public bool HasMovingCells(bool isHostile)
+    {
+        foreach (FabricatorBoardUnit unit in unitList)
+            if (unit.isAlive && unit.type == FabricatorBoardUnit.Type.MovingCell && unit.isDangerous == isHostile) return true;
+        return false;
+    }
+
+    // One group's turn (passive or hostile cells, together): each takes the next step of its sequence, in placement order.
+    // A step into a wall, closed gate, roots, another unit or the board edge is skipped (the cell waits), but the sequence
+    // still advances. Into the bug: a passive cell is captured (the bug gains its energy), a hostile one takes the cell and
+    // destroys the bug. Every cell's previousCell is where it started this turn.
+    public void StepMovingCells(bool isHostile)
+    {
+        foreach (FabricatorBoardUnit unit in unitList)
+        {
+            if (!unit.isAlive || unit.type != FabricatorBoardUnit.Type.MovingCell || unit.isDangerous != isHostile) continue;
+            unit.previousCell = unit.cell;
+            Vector2Int step = unit.GetNextStep();
+            unit.AdvanceSequence();
+            if (step == Vector2Int.zero) continue;
+            Vector2Int target = unit.cell + step;
+            if (!tileDictionary.TryGetValue(target, out FabricatorBoardTile tile)) continue;
+            if (TryGetUnit(target, out FabricatorBoardUnit other))
+            {
+                if (other.type != FabricatorBoardUnit.Type.Bug) continue;
+                if (isHostile) other.isAlive = false;
+                else
+                {
+                    unit.isAlive = false;
+                    SetEnergy(energy + unit.energyOnCapture);
+                }
+                unit.cell = target;
+                continue;
+            }
+            if (tile.IsWalkableTerrain() && !IsRootBlocked(target, out _)) unit.cell = target;
+        }
+    }
+
+    // one finished turn: timed root retractions and the glands' own timers count down
     public void PassTurn()
     {
         foreach (FabricatorBoardUnit unit in unitList)
@@ -191,22 +261,32 @@ public class FabricatorBoard
         }
     }
 
-    // Lose: embryos remain, no bug has a safe slide anywhere, and nothing on the board can be clicked (a click might open a path)
+    // Lose: no bug can slide anywhere, not even into a deadly cell (the player decides whether to take those), and nothing
+    // on the board can be clicked (a click might open a path)
     public bool IsStuck()
     {
-        if (GetEmbryoCount() == 0) return false;
         foreach (FabricatorBoardUnit unit in unitList)
         {
             if (!unit.isAlive || unit.type != FabricatorBoardUnit.Type.Bug) continue;
             foreach (Vector2Int direction in MoveDirectionArray)
-            {
-                List<Vector2Int> path = GetSlidePath(unit.cell, direction, out bool endsInHazard);
-                if (path.Count > 0 && !endsInHazard) return false;
-            }
+                if (GetSlidePath(unit.cell, direction, out _).Count > 0) return false;
         }
         foreach (FabricatorBoardTile tile in tileDictionary.Values)
             if (CanInteract(tile)) return false;
         return true;
+    }
+
+    private void SetEnergy(int value)
+    {
+        if (isEnergyLimited) energy = Mathf.Clamp(value, 0, maxEnergy);
+    }
+
+    private int CountLiving(FabricatorBoardUnit.Type type)
+    {
+        int count = 0;
+        foreach (FabricatorBoardUnit unit in unitList)
+            if (unit.isAlive && unit.type == type) count++;
+        return count;
     }
 
     // Root Sentinels a gland reaches: those in the 3x3 around an area gland, or all of them
@@ -228,6 +308,7 @@ public class FabricatorBoard
         switch (symbol)
         {
             case '#': return FabricatorBoardTile.Type.Wall;
+            case 'X': return FabricatorBoardTile.Type.Snare;
             case 'G':
             case 'g': return FabricatorBoardTile.Type.Gate;
             case '>':
@@ -248,18 +329,6 @@ public class FabricatorBoard
             case '<': return 180;
             case 'v': return 270;
             default: return 0;
-        }
-    }
-
-    private static bool TryGetUnitType(char symbol, out FabricatorBoardUnit.Type unitType)
-    {
-        switch (symbol)
-        {
-            case 'B': unitType = FabricatorBoardUnit.Type.Bug; return true;
-            case 'S': unitType = FabricatorBoardUnit.Type.Embryo; return true;
-            case 'R':
-            case 'T': unitType = FabricatorBoardUnit.Type.Sentinel; return true;
-            default: unitType = default; return false;
         }
     }
 }

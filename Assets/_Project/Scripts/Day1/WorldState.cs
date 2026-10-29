@@ -39,6 +39,8 @@ public static class WorldState
     private static readonly HashSet<DialogueSO> givenRewardSet = new HashSet<DialogueSO>();
     // Fabricator recipes made at least once (the latest per seed type), choosable in the recipe panel on later presses
     private static readonly List<FabricatorController.Recipe> unlockedRecipeList = new List<FabricatorController.Recipe>();
+    // Fabricator levels solved so far, in FabricatorLevelListSO order (every press plays the next one)
+    private static int solvedFabricatorLevelCount;
 
     public static void CompleteDay1()
     {
@@ -174,6 +176,8 @@ public static class WorldState
     public static List<ItemAmount> GetInventoryList() => inventoryList;
     public static bool HasRewardBeenGiven(DialogueSO dialogueSO) => givenRewardSet.Contains(dialogueSO);
     public static List<FabricatorController.Recipe> GetUnlockedRecipeList() => unlockedRecipeList;
+    public static int GetSolvedFabricatorLevelCount() => solvedFabricatorLevelCount;
+    public static void SolveFabricatorLevel() => solvedFabricatorLevelCount++;
 
     // a fresh playthrough (the end screen's replay button)
     public static void Clear() => ResetStaticData();
@@ -199,6 +203,7 @@ public static class WorldState
         discoveredItemSet.Clear();
         givenRewardSet.Clear();
         unlockedRecipeList.Clear();
+        solvedFabricatorLevelCount = 0;
     }
 
     // kept apart from ResetStaticData: Clear() (replay) must not drop the open scene's listeners

@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-// The tube machine in front of the house: pick a recipe and how many batches → zoom in → solve the puzzle once → seeds pop out.
-// Resources are only used on success, one recipe's worth per batch. The recipe panel always opens; Make needs the materials.
+// The tube machine in front of the house: pick a recipe and how many batches → zoom in → solve the next puzzle level → seeds pop out.
+// Every press plays the next unsolved level of levelListSO (WorldState counts them across days); once every level is solved a
+// press makes the seeds straight away. Resources are only used on success, one recipe's worth per batch. The recipe panel always
+// opens; Make needs the materials.
 // The panel offers today's recipe first, then every other seed's recipe made on an earlier press (WorldState).
 // A guided recipe (the tutorial's first press) skips the panel: one batch, straight into the puzzle, only with the materials.
 public class FabricatorController : MonoBehaviour, IInteractable
@@ -18,7 +20,7 @@ public class FabricatorController : MonoBehaviour, IInteractable
 
     public enum State { Idle, Choosing, Entering, Puzzle, Solved, Exiting }
 
-    // one press: what goes in, what comes out, and the puzzle that gates it. The last entry repeats.
+    // one press: what goes in and what comes out. The last entry repeats.
     [Serializable]
     public class Recipe
     {
@@ -26,7 +28,6 @@ public class FabricatorController : MonoBehaviour, IInteractable
         public ItemAmount output;
         // given back after a successful run (the bottle the water came in)
         public ItemAmount returned;
-        public FabricatorPuzzleSO puzzleSO;
         public string blockedReason;
         [Tooltip("Tutorial press: no recipe panel, always one batch, and [Interact] is blocked (showing blockedReason) until the materials are there.")]
         public bool isGuided;
@@ -34,10 +35,11 @@ public class FabricatorController : MonoBehaviour, IInteractable
 
     [SerializeField] private FabricatorMiniGame miniGame;
     [SerializeField] private Recipe[] recipeArray;
+    [SerializeField] private FabricatorLevelListSO levelListSO;
     [SerializeField] private float enterDuration = .9f;
     [SerializeField] private float solvedDuration = 1.6f;
     [SerializeField] private float exitDuration = .5f;
-    [Tooltip("Extra seeds for a combo (all liquids into the mould at once).")]
+    [Tooltip("Extra seeds for a combo (a level solved within its par).")]
     [SerializeField] private int comboBonus = 1;
     [Tooltip("Most batches one run can make, even with a full inventory.")]
     [SerializeField] private int maxBatchCount = 9;
@@ -48,6 +50,8 @@ public class FabricatorController : MonoBehaviour, IInteractable
     private float timer;
     private int completedRuns;
     private bool isSuccess;
+    // this run played a level (not an instant make after every level was solved)
+    private bool isPuzzleRun;
     // what the last successful run put in the bag (batches × output + combo bonus), announced once the machine is idle again
     private int madeSeedCount;
     private bool isPlaced = true;
@@ -88,7 +92,7 @@ public class FabricatorController : MonoBehaviour, IInteractable
         switch (state)
         {
             case State.Entering:
-                miniGame.Begin(GetChosenRecipe().puzzleSO);
+                miniGame.Begin(levelListSO.puzzleSOList[WorldState.GetSolvedFabricatorLevelCount()]);
                 SetState(State.Puzzle, 0f);
                 break;
             case State.Solved:
@@ -143,7 +147,7 @@ public class FabricatorController : MonoBehaviour, IInteractable
         GameManager.Instance.SetState(GameManager.State.Fabricating);
         if (GetRecipe().isGuided)
         {
-            SetState(State.Entering, enterDuration);
+            Make();
             return;
         }
         SetState(State.Choosing, 0f);
@@ -171,7 +175,7 @@ public class FabricatorController : MonoBehaviour, IInteractable
     public void ConfirmBatch()
     {
         if (state != State.Choosing || !CanAffordBatches()) return;
-        SetState(State.Entering, enterDuration);
+        Make();
     }
 
     public void CancelBatch()
@@ -189,6 +193,10 @@ public class FabricatorController : MonoBehaviour, IInteractable
     }
 
     public int GetBatchCount() => batchCount;
+    public bool IsEveryLevelSolved() => WorldState.GetSolvedFabricatorLevelCount() >= levelListSO.puzzleSOList.Count;
+    // 1-based number of the level the next (or current) press plays
+    public int GetLevelNumber() => WorldState.GetSolvedFabricatorLevelCount() + 1;
+    public int GetLevelCount() => levelListSO.puzzleSOList.Count;
     // as many batches as the inventory covers for every input, capped at maxBatchCount
     public int GetMaxBatchCount()
     {
@@ -233,11 +241,20 @@ public class FabricatorController : MonoBehaviour, IInteractable
             if (unlocked.output.itemDataSO != todayRecipe.output.itemDataSO) choiceList.Add(unlocked);
     }
 
+    // into the next level, or, with every level solved, straight to the seeds
+    private void Make()
+    {
+        isPuzzleRun = !IsEveryLevelSolved();
+        if (isPuzzleRun) SetState(State.Entering, enterDuration);
+        else Leave(true);
+    }
+
     private void Leave(bool isSuccess)
     {
         this.isSuccess = isSuccess;
         if (isSuccess)
         {
+            if (isPuzzleRun) WorldState.SolveFabricatorLevel();
             Recipe recipe = GetChosenRecipe();
             for (int i = 0; i < batchCount; i++) Inventory.Instance.RemoveItems(recipe.inputArray);
             if (recipe.returned.amount > 0) Inventory.Instance.AddItem(recipe.returned.itemDataSO, recipe.returned.amount * batchCount);

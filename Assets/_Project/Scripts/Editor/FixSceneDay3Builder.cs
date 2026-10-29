@@ -484,7 +484,6 @@ public static class FixSceneDay3Builder
         recipe.FindPropertyRelative("output.amount").intValue = 4;
         recipe.FindPropertyRelative("returned.itemDataSO").objectReferenceValue = null;
         recipe.FindPropertyRelative("returned.amount").intValue = 0;
-        recipe.FindPropertyRelative("puzzleSO").objectReferenceValue = GameDataBuilder.Load<FabricatorPuzzleSO>("Puzzles", "Puzzle_00_Intro");
         recipe.FindPropertyRelative("blockedReason").stringValue = "Needs 3 flowers";
         so.ApplyModifiedPropertiesWithoutUndo();
     }

@@ -114,10 +114,9 @@ public class FabricatorMiniGameVisual : MonoBehaviour
 
     private void BuildTile(FabricatorBoardTile tile, float cellSize)
     {
-        bool isWall = tile.type == FabricatorBoardTile.Type.Wall;
         bool isOffset = (tile.cell.x + tile.cell.y) % 2 != 0;
         Color floorColor = isOffset ? skinSO.floorOffsetColor : skinSO.floorColor;
-        SpriteRenderer floor = CreateCellSprite("Tile", isWall ? skinSO.wallSprite : skinSO.floorSprite, FabricatorSpriteFactory.TILE_ORDER, isWall ? Color.white : floorColor, cellSize);
+        SpriteRenderer floor = CreateCellSprite("Tile", GetTileSprite(tile), FabricatorSpriteFactory.TILE_ORDER, tile.type == FabricatorBoardTile.Type.Floor ? floorColor : Color.white, cellSize);
         floor.transform.position = miniGame.GetCellWorldPosition(tile.cell);
 
         float glyphScale = cellSize;
@@ -156,6 +155,17 @@ public class FabricatorMiniGameVisual : MonoBehaviour
                 glyph.sprite = tile.IsInjectorActive() ? skinSO.injectorReleasedSprite : skinSO.injectorIdleSprite;
                 glyph.color = tile.type == FabricatorBoardTile.Type.AreaInjector ? skinSO.areaInjectorColor : Color.white;
                 break;
+        }
+    }
+
+    // walls and resin snares are whole-tile art; everything else stands on the matrix floor
+    private Sprite GetTileSprite(FabricatorBoardTile tile)
+    {
+        switch (tile.type)
+        {
+            case FabricatorBoardTile.Type.Wall: return skinSO.wallSprite;
+            case FabricatorBoardTile.Type.Snare: return skinSO.snareSprite;
+            default: return skinSO.floorSprite;
         }
     }
 

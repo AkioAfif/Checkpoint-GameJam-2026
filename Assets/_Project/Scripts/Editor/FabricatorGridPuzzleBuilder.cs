@@ -33,11 +33,14 @@ public static class FabricatorGridPuzzleBuilder
             Debug.LogError("This scene has no Fabricator puzzle booth (FabricatorMiniGame, FabricatorController and FabricatorUI).");
             return;
         }
-        GameDataBuilder.BuildPuzzles();
+        SetField(fabricator, "levelListSO", FabricatorLevelBuilder.Build());
         Camera puzzleCamera = miniGame.GetComponentInChildren<FabricatorPuzzleCamera>(true).GetComponent<Camera>();
         SetUpBooth(miniGame, puzzleCamera);
 
         Transform canvas = oldUi.transform.parent;
+        // the first press's yellow hint ring is gone
+        Transform hintUi = canvas.Find("FabricatorHintUI");
+        if (hintUi != null) Object.DestroyImmediate(hintUi.gameObject);
         int siblingIndex = oldUi.transform.GetSiblingIndex();
         Object.DestroyImmediate(oldUi.gameObject);
         BuildHud(canvas, fabricator, miniGame).SetSiblingIndex(siblingIndex);
@@ -80,7 +83,7 @@ public static class FabricatorGridPuzzleBuilder
         WireVisual(GetOrAdd<FabricatorMistVisual>(booth), miniGame, skinSO);
     }
 
-    // the panel right of the board: embryos left, slides vs par, controls; banners for solved and lost
+    // the note right of the board: level, energy, embryos left, slides vs par, controls; banners for solved and lost
     public static RectTransform BuildHud(Transform canvas, FabricatorController fabricator, FabricatorMiniGame miniGame)
     {
         RectTransform root = Rect(canvas, "FabricatorUI", Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero);
@@ -88,14 +91,18 @@ public static class FabricatorGridPuzzleBuilder
         RectTransform panel = Panel(root, "Panel", new Vector2(1f, .5f), new Vector2(1f, .5f), new Vector2(1f, .5f), new Vector2(-40f, 0f), new Vector2(460f, 560f), Cream);
         TextMeshProUGUI title = Text(panel, "Title", "Fabricator", 40, Ink, TextAlignmentOptions.Center, FontStyles.Bold);
         Place(title.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -50f), new Vector2(400f, 60f));
-        TextMeshProUGUI hint = Text(panel, "Hint", "Click the Tech Bug, then an arrow: it slides until something stops it.\nCorrupt every Seed Embryo! Click gates, sap routers and injector glands to change the board.", 23, Ink, TextAlignmentOptions.Center);
+        TextMeshProUGUI level = Text(panel, "Level", "Level 1/12", 26, Ink, TextAlignmentOptions.Center, FontStyles.Bold);
+        Place(level.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -100f), new Vector2(420f, 36f));
+        TextMeshProUGUI hint = Text(panel, "Hint", "Click the Tech Bug, then an arrow: it slides until something stops it. Each slide costs 1 energy.\nCorrupt every Seed Embryo! Energy Cells recharge; Seed Burrs and thorns destroy the bug.", 21, Ink, TextAlignmentOptions.Center);
         hint.textWrappingMode = TextWrappingModes.Normal;
-        Place(hint.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -170f), new Vector2(420f, 180f));
-        TextMeshProUGUI embryos = Text(panel, "Embryos", "Seed Embryos left: 0", 28, Ink, TextAlignmentOptions.Center, FontStyles.Bold);
-        Place(embryos.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -300f), new Vector2(420f, 40f));
+        Place(hint.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -190f), new Vector2(420f, 140f));
+        TextMeshProUGUI energy = Text(panel, "Energy", "Energy: 0 / 0", 34, Ink, TextAlignmentOptions.Center, FontStyles.Bold);
+        Place(energy.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -295f), new Vector2(420f, 46f));
+        TextMeshProUGUI embryos = Text(panel, "Embryos", "Seed Embryos left: 0", 26, Ink, TextAlignmentOptions.Center, FontStyles.Bold);
+        Place(embryos.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -350f), new Vector2(420f, 40f));
         TextMeshProUGUI moves = Text(panel, "Moves", "Slides: 0", 24, Ink, TextAlignmentOptions.Center);
         moves.textWrappingMode = TextWrappingModes.Normal;
-        Place(moves.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -360f), new Vector2(420f, 70f));
+        Place(moves.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -405f), new Vector2(420f, 60f));
         TextMeshProUGUI controls = Text(panel, "Controls", "[Mouse] Click    [R] Restart    [Esc] Leave", 22, Ink, TextAlignmentOptions.Center);
         Place(controls.rectTransform, new Vector2(.5f, 0f), new Vector2(0f, 40f), new Vector2(430f, 40f));
 
@@ -105,6 +112,8 @@ public static class FabricatorGridPuzzleBuilder
         FabricatorUI ui = root.gameObject.AddComponent<FabricatorUI>();
         SetField(ui, "fabricator", fabricator);
         SetField(ui, "miniGame", miniGame);
+        SetField(ui, "levelText", level);
+        SetField(ui, "energyText", energy);
         SetField(ui, "embryoText", embryos);
         SetField(ui, "movesText", moves);
         SetField(ui, "solvedBanner", solvedGroup);
@@ -122,6 +131,7 @@ public static class FabricatorGridPuzzleBuilder
         skinSO.spriteMaterial = AssetDatabase.LoadAssetAtPath<Material>(SPRITE_MATERIAL);
         skinSO.floorSprite = LoadSprite("cytoplasm_tile");
         skinSO.wallSprite = LoadSprite("cellulose_wall");
+        skinSO.snareSprite = LoadSprite("stop_tile");
         skinSO.frameSprite = LoadSprite("fabricator_frame");
         skinSO.gateOpenSprite = LoadSprite("gate_open");
         skinSO.gateClosedSprite = LoadSprite("gate_closed");
@@ -133,6 +143,9 @@ public static class FabricatorGridPuzzleBuilder
         skinSO.bugSprite = LoadSprite("cancer_cell");
         skinSO.embryoSprite = LoadSprite("core_cell");
         skinSO.sentinelSprite = LoadSprite("defensive_cell");
+        skinSO.energyCellSprite = LoadSprite("energy_cell");
+        skinSO.movingCellSprite = LoadSprite("moving_cell");
+        skinSO.hostileMovingCellSprite = LoadSprite("moving_cell_hostile");
         skinSO.rootStemSprite = LoadSprite("vine_stem");
         skinSO.thornyRootStemSprite = LoadSprite("vine_stem_thorny");
         skinSO.rootKnotSprite = LoadSprite("vine_knot");

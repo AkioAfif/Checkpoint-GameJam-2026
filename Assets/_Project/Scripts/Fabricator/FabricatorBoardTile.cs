@@ -4,7 +4,8 @@ using UnityEngine;
 // One cell of the Fabricator board. Plain data, owned and changed by FabricatorBoard.
 public class FabricatorBoardTile
 {
-    public enum Type { Floor, Wall, Gate, Router, Injector, AreaInjector }
+    // Snare = resin snare: walkable, but a slide that enters it stops on it
+    public enum Type { Floor, Wall, Snare, Gate, Router, Injector, AreaInjector }
 
     public readonly Type type;
     public readonly Vector2Int cell;

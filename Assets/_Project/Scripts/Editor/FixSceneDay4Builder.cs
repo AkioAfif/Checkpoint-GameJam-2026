@@ -488,7 +488,6 @@ public static class FixSceneDay4Builder
         GameDataBuilder.Water = GameDataBuilder.Load<ItemDataSO>("Items", "Water");
         GameDataBuilder.Flower = GameDataBuilder.Load<ItemDataSO>("Items", "Flower");
         GameDataBuilder.SawitLv1 = GameDataBuilder.Load<CropDataSO>("Crops", "SawitLv1");
-        GameDataBuilder.PuzzleSplit = GameDataBuilder.Load<FabricatorPuzzleSO>("Puzzles", "Puzzle_03_Split");
         return Day3DataBuilder.BuildCozyFarm();
     }
 }

@@ -10,7 +10,7 @@ public static class GameDataBuilder
 
     public static ItemDataSO EmptyBottle, Water, Flower, Crop, SawitSeed;
     public static CropDataSO SawitLv1;
-    public static FabricatorPuzzleSO PuzzleIntro, PuzzleTutorial, PuzzleNormal, PuzzleSplit;
+    public static FabricatorLevelListSO FabricatorLevelList;
     public static TaskObjectiveSO[] Tasks;
     public static NpcSO Ratna, Darto, Dimas, Ijah, Distributor;
     public static AudioClipRefsSO AudioRefs;
@@ -34,7 +34,7 @@ public static class GameDataBuilder
         SawitLv1.qteCheckCount = 2;
         EditorUtility.SetDirty(SawitLv1);
 
-        BuildPuzzles();
+        FabricatorLevelList = FabricatorLevelBuilder.Build();
         BuildDay1Extras();
 
         Tasks = new[]
@@ -64,7 +64,7 @@ public static class GameDataBuilder
         SawitSeed = Load<ItemDataSO>("Items", "SawitSeed");
         SawitLv1 = Load<CropDataSO>("Crops", "SawitLv1");
         Distributor = Load<NpcSO>("Npcs", "Distributor");
-        BuildPuzzles();
+        FabricatorLevelList = FabricatorLevelBuilder.Build();
         BuildDay1Extras();
         BuildDialogues();
         AssetDatabase.SaveAssets();
@@ -73,28 +73,6 @@ public static class GameDataBuilder
     public static void BakeIcons() => GrayboxIconBaker.BakeIcons(new[] { EmptyBottle, Water, Flower, Crop, SawitSeed });
 
     private static DialogueSO ratnaFirst, ratnaRepeat, dartoFirst, dartoRepeat, dimasFirst, dimasRepeat, ijahFirst, ijahRepeat, distributorFirst, distributorRepeat;
-
-    // The Fabricator's grid puzzles (Sawit-Fabricator rules, symbols in FabricatorPuzzleSO). The assets keep their old file
-    // names (and GUIDs) because recipes, Day2SO and Day3SO point at them. Each layout is checked solvable in its par.
-    public static void BuildPuzzles()
-    {
-        // Day 1's first press: one straight slide onto the embryo, with the ghost cursor showing where to click
-        PuzzleIntro = Puzzle("Puzzle_00_Intro", "First Corruption", 0,
-            "#######\n#..S..#\n#.....#\n#.....#\n#.....#\n#..B..#\n#######");
-        PuzzleIntro.hasHint = true;
-        PuzzleIntro.hintFromCell = new Vector2Int(3, 5);
-        PuzzleIntro.hintToCell = new Vector2Int(3, 4);
-        EditorUtility.SetDirty(PuzzleIntro);
-        // walls stop the slide; two embryos, three slides
-        PuzzleTutorial = Puzzle("Puzzle_01_Tutorial", "Slide and Stop", 3,
-            "#########\n#S......#\n#.......#\n#...#...#\n#.......#\n#B.....S#\n#########");
-        // a Root Sentinel walls off its neighbours; capture it or go around
-        PuzzleNormal = Puzzle("Puzzle_02_Rocks", "Bramble Guard", 5,
-            "#########\n#S..R..S#\n#.......#\n#..#g#..#\n#.......#\n#B..#...#\n#########");
-        // the left embryo is only reachable through the sap router; the gland pulls back the thorny roots
-        PuzzleSplit = Puzzle("Puzzle_03_Split", "Sap Router", 4,
-            "#########\n#S#....S#\n#.#...T.#\n#.#..#..#\n#^......#\n##I.#..B#\n#########");
-    }
 
     // the evening's grown sawit: a new asset no scene instance sits on, so both build paths make it
     private static void BuildDay1Extras()
@@ -275,17 +253,6 @@ public static class GameDataBuilder
         item.liquidColor = liquidColor;
         EditorUtility.SetDirty(item);
         return item;
-    }
-
-    private static FabricatorPuzzleSO Puzzle(string file, string puzzleName, int parMoves, string layout)
-    {
-        FabricatorPuzzleSO puzzle = Asset<FabricatorPuzzleSO>("Puzzles", file);
-        puzzle.puzzleName = puzzleName;
-        puzzle.layout = layout;
-        puzzle.parMoves = parMoves;
-        puzzle.retractTurns = 2;
-        EditorUtility.SetDirty(puzzle);
-        return puzzle;
     }
 
     public static TaskObjectiveSO Task(string file, TaskObjectiveSO.Type type, string description, ItemDataSO item, int count)

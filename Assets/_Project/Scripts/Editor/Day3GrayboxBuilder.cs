@@ -461,7 +461,6 @@ public static class Day3GrayboxBuilder
         recipe.FindPropertyRelative("output.amount").intValue = PLOT_COUNT;
         recipe.FindPropertyRelative("returned.itemDataSO").objectReferenceValue = GameDataBuilder.EmptyBottle;
         recipe.FindPropertyRelative("returned.amount").intValue = 1;
-        recipe.FindPropertyRelative("puzzleSO").objectReferenceValue = GameDataBuilder.PuzzleSplit;
         recipe.FindPropertyRelative("blockedReason").stringValue = "Needs 2 resin, water and a flower";
         so.ApplyModifiedPropertiesWithoutUndo();
     }

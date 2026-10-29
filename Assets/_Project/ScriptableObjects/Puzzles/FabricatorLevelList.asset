@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1da462931eda9f7468063932d8ee205c, type: 3}
+  m_Name: FabricatorLevelList
+  m_EditorClassIdentifier: Assembly-CSharp::FabricatorLevelListSO
+  puzzleSOList:
+  - {fileID: 11400000, guid: 4deed433d943b7848a098f539f96267a, type: 2}
+  - {fileID: 11400000, guid: afb6c0023feadc24297cf3d56b410d0f, type: 2}
+  - {fileID: 11400000, guid: 446c8f5dd5e523048b3751395d88fb02, type: 2}
+  - {fileID: 11400000, guid: 685ff0b14b92fd94b9c54e0d74176888, type: 2}
+  - {fileID: 11400000, guid: 237607b2b01ee3c42bc34021b6bab543, type: 2}
+  - {fileID: 11400000, guid: 5ca0971cda338fa46aa55e407734e7e5, type: 2}
+  - {fileID: 11400000, guid: f2bd9d211779dc742a54dcdc878535ef, type: 2}
+  - {fileID: 11400000, guid: 91938511a73ad344caf530311025e68a, type: 2}
+  - {fileID: 11400000, guid: bd7598ddc8375054fae22b278b17117d, type: 2}
+  - {fileID: 11400000, guid: 7b065ebd26d3d2242aef63643b1b33e7, type: 2}
+  - {fileID: 11400000, guid: 8c2a7109a57dcba4f8d9a7e13196d94f, type: 2}
+  - {fileID: 11400000, guid: a903e861ef95ac544a092bc4c1fa197d, type: 2}

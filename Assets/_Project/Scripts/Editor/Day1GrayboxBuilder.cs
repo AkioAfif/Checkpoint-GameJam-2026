@@ -178,7 +178,6 @@ public static class Day1GrayboxBuilder
         }
         // UI panels live on an inactive-safe canvas child: GameObject.Find skips inactive objects, so sweep those too
         foreach (LetterUI ui in Object.FindObjectsByType<LetterUI>(FindObjectsInactive.Include)) Object.DestroyImmediate(ui.gameObject);
-        foreach (FabricatorHintUI ui in Object.FindObjectsByType<FabricatorHintUI>(FindObjectsInactive.Include)) Object.DestroyImmediate(ui.gameObject);
         foreach (FabricatorComboUI ui in Object.FindObjectsByType<FabricatorComboUI>(FindObjectsInactive.Include)) Object.DestroyImmediate(ui.gameObject);
         foreach (ScreenFadeUI ui in Object.FindObjectsByType<ScreenFadeUI>(FindObjectsInactive.Include)) Object.DestroyImmediate(ui.gameObject);
     }
