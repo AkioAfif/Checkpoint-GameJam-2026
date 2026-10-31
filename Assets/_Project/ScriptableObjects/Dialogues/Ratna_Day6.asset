@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   lineArray:
   - speaker: 1
-    text: Congratulations on the debt. Really.
+    text: ICAN pays us less for our cassava now. Too much on the market, they said.
     playerEmote: 0
     npcEmote: 0
     isShaking: 0
     isNpcGlaring: 0
     focusNpcSO: {fileID: 0}
   - speaker: 1
-    text: ...Dimas, inside. Now.
+    text: Funny. It was always enough before your palms.
     playerEmote: 0
-    npcEmote: 3
+    npcEmote: 10
     isShaking: 0
     isNpcGlaring: 0
     focusNpcSO: {fileID: 0}

@@ -23,6 +23,12 @@ public class Day5SO : ScriptableObject
     public DialogueSO hallucinationDialogueSO;
     public DialogueSO markerDialogueSO;
     public DialogueSO revealDialogueSO;
+    // the empty plantation: too lazy to plant 48 beds by hand, seeds first, one more bite, a new power, the field planted
+    public DialogueSO lazyDialogueSO;
+    public DialogueSO eatMoreDialogueSO;
+    public DialogueSO dashReadyDialogueSO;
+    public DialogueSO moreDashesDialogueSO;
+    public DialogueSO plantedDialogueSO;
     // the MC, turned away from the plants pulsing red at the plantation's edge, heads off to see the village
     public DialogueSO fieldDoneDialogueSO;
     // each villager has noticed something red; the MC talks it away
@@ -40,6 +46,9 @@ public class Day5SO : ScriptableObject
     public TaskObjectiveSO[] digObjectiveArray;
     public TaskObjectiveSO[] eatManyObjectiveArray;
     public TaskObjectiveSO[] markerObjectiveArray;
+    // the empty plantation: press the seeds, then plant every bed
+    public TaskObjectiveSO[] seedObjectiveArray;
+    public TaskObjectiveSO[] plantObjectiveArray;
     // selling and the three villagers, in any order
     public TaskObjectiveSO[] errandObjectiveArray;
     public TaskObjectiveSO[] nightObjectiveArray;
@@ -48,4 +57,13 @@ public class Day5SO : ScriptableObject
     public string nightCaption;
     [Tooltip("Over the crate until the plantation stands: the MC needs every bunch.")]
     public string crateLockedReason;
+
+    [Header("Plough Dash")]
+    [Tooltip("Seeds the plantation takes; with this many in the bag already, the Fabricator step is skipped.")]
+    public int plantationSeedCount = 48;
+    [Tooltip("Lv.2 bunches eaten (at most) for the dash power.")]
+    public int eatMoreBunchCount = 2;
+    public string dashHint;
+    // {0} dashes left
+    public string dashCountFormat;
 }

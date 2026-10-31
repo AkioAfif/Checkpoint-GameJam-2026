@@ -10,25 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e0ce3e543780b04dba488492949ce28, type: 3}
-  m_Name: Day6_Night
+  m_Name: Day6_Stop
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   lineArray:
-  - speaker: 0
-    text: Lv.3...
+  - speaker: 1
+    text: Pity.
     playerEmote: 0
     npcEmote: 0
     isShaking: 0
-    isNpcGlaring: 0
+    isNpcGlaring: 1
     focusNpcSO: {fileID: 0}
-  - speaker: 0
-    text: Four times the yield.
-    playerEmote: 0
-    npcEmote: 0
-    isShaking: 0
-    isNpcGlaring: 0
-    focusNpcSO: {fileID: 0}
-  - speaker: 0
-    text: I'll sleep on it.
+  - speaker: 1
+    text: Farmers who stop tend to owe again. I'll be around when you do.
     playerEmote: 0
     npcEmote: 0
     isShaking: 0

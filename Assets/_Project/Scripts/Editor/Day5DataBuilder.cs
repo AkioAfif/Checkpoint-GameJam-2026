@@ -13,7 +13,7 @@ public static class Day5DataBuilder
         "Tasks/D5_ClearForest", "Tasks/D5_MakeLv2", "Tasks/D5_PlantClearing", "Tasks/D5_Harvest",
     };
 
-    public static Day5SO Build(ItemDataSO bunchLv2)
+    public static Day5SO Build(ItemDataSO bunchLv2, ItemDataSO seedLv2)
     {
         DialogueSO.DialogueLine N(string text, Emote npcEmote = Emote.None) => new DialogueSO.DialogueLine { speaker = DialogueSO.Speaker.Npc, text = text, npcEmote = npcEmote };
         DialogueSO.DialogueLine P(string text, Emote playerEmote = Emote.None) => new DialogueSO.DialogueLine { speaker = DialogueSO.Speaker.Player, text = text, playerEmote = playerEmote };
@@ -25,6 +25,10 @@ public static class Day5DataBuilder
         day5.testDaysUntilDue = 16;
         day5.nightCaption = "That evening...";
         day5.crateLockedReason = "Not yet... I need every bunch.";
+        day5.plantationSeedCount = 48;
+        day5.eatMoreBunchCount = 2;
+        day5.dashHint = "Hold [Space] to charge, release to dash through the beds";
+        day5.dashCountFormat = "Dashes x{0}";
 
         day5.morningDialogueSO = Dialogue("Day5_Morning",
             P("Fifteen days. One field won't do it.", Emote.HeavySigh),
@@ -53,7 +57,22 @@ public static class Day5DataBuilder
             P("Okay, let's try this.", Emote.WideSmile));
         day5.revealDialogueSO = Dialogue("Day5_Reveal",
             P("...Whoa.", Emote.Surprised),
-            P("A whole plantation. Ripe. In one punch.", Emote.Cheer));
+            P("A whole plantation, ready for seed. In one punch.", Emote.Cheer));
+        day5.lazyDialogueSO = Dialogue("Day5_Lazy",
+            P("Forty-eight beds...", Emote.HeavySigh),
+            P("One seed at a time? No way."),
+            P("Seeds first. The Fabricator can press a whole sack."));
+        day5.eatMoreDialogueSO = Dialogue("Day5_EatMore",
+            P("Planting them by hand would take all week."),
+            P("...One more bite.", Emote.WideSmile));
+        day5.dashReadyDialogueSO = Dialogue("Day5_DashReady",
+            P("My legs feel like springs.", Emote.Surprised),
+            P("What if I just... run it in?", Emote.WideSmile));
+        day5.moreDashesDialogueSO = Dialogue("Day5_MoreDashes",
+            P("Still got some go in me."));
+        day5.plantedDialogueSO = Dialogue("Day5_Planted",
+            P("Forty-eight seeds, a few dashes.", Emote.Cheer),
+            P("Done before lunch."));
         day5.fieldDoneDialogueSO = Dialogue("Day5_FieldDone",
             P("Half a day's work!", Emote.Cheer),
             P("Time to sell, and see how everyone in the village is doing."));
@@ -81,6 +100,8 @@ public static class Day5DataBuilder
         day5.digObjectiveArray = new[] { GameDataBuilder.Task("D5_Dig", TaskObjectiveSO.Type.Story, "Dig the land south of the pond", null, 1) };
         day5.eatManyObjectiveArray = new[] { GameDataBuilder.Task("D5_EatMany", TaskObjectiveSO.Type.Story, "Eat the rest of your Lv.2 sawit", null, 1) };
         day5.markerObjectiveArray = new[] { GameDataBuilder.Task("D5_JumpMarker", TaskObjectiveSO.Type.Story, "Stand on the marker by the pond", null, 1) };
+        day5.seedObjectiveArray = new[] { GameDataBuilder.Task("D5_MakeSeeds", TaskObjectiveSO.Type.FabricateSeed, "Press 48 Lv.2 sawit seeds at the Fabricator", seedLv2, 48) };
+        day5.plantObjectiveArray = new[] { GameDataBuilder.Task("D5_PlantField", TaskObjectiveSO.Type.PlantCrop, "Plant the new field (hold Space, dash through the beds)", seedLv2, 48) };
         day5.errandObjectiveArray = new[]
         {
             GameDataBuilder.Task("D5_Sell", TaskObjectiveSO.Type.SellItem, "Sell sawit at the ICAN crate", null, 1),

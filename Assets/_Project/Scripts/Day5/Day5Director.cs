@@ -4,8 +4,10 @@ using UnityEngine;
 
 // Runs "Day 5: Half the Forest" on the CozyFarm map (the morning savings book is BedroomDirector in HouseInterior).
 // The morning after Day 4: harvest the Lv.2 palms (the crate stays shut: the MC needs every bunch), picture a plantation on
-// the land south of the pond, then PlantationSequence (eat, glitch, launch, dive, punch) makes it stand there, ripe. Its edge
-// pulses red behind the MC's back (MutationSpreadVisual); while the MC sells and visits the village, three villagers have
+// the land south of the pond, then PlantationSequence (eat, glitch, launch, dive, punch) makes it stand there, empty (the
+// ponds are gone with the punch). Too lazy to plant 48 beds by hand, the MC presses a sack of seeds at the Fabricator, eats
+// one more sawit and plants the field with the Plough Dash (PlantingDash). Its edge pulses red behind the MC's back
+// (MutationSpreadVisual); while the MC sells and visits the village, three villagers have
 // noticed red things, and the MC talks each one away. The evening's savings book looks good; at night the edge pulses again
 // where only the player sees it.
 public class Day5Director : MonoBehaviour
@@ -13,10 +15,14 @@ public class Day5Director : MonoBehaviour
     public event EventHandler<OnStateChangedEventArgs> OnStateChanged;
     public class OnStateChangedEventArgs : EventArgs { public State state; }
 
-    public enum State { Harvest, Wish, Plantation, Mutation, Errands, Night, Done }
+    public enum State { Harvest, Wish, Plantation, Seeding, Mutation, Errands, Night, Done }
 
     // the sub-steps that wait on a timer or a talk
-    private enum Step { None, WishTalk, PlantationStart, MutationShot, FieldDoneTalk, Book, Math, NightShot, NightTalk }
+    private enum Step
+    {
+        None, WishTalk, PlantationStart, LazyTalk, EatMoreTalk, EatingMore, DashReadyTalk, MoreDashesTalk, PlantedTalk,
+        MutationShot, FieldDoneTalk, Book, Math, NightShot, NightTalk,
+    }
 
     [SerializeField] private Day5SO day5SO;
     [SerializeField] private ScreenFadeUI screenFade;
@@ -28,6 +34,12 @@ public class Day5Director : MonoBehaviour
     [SerializeField] private CropDataSO lv2CropDataSO;
     [SerializeField] private SellCrate sellCrate;
     [SerializeField] private PlantationSequence plantationSequence;
+    [SerializeField] private PlantingDash plantingDash;
+    [SerializeField] private LandQTE landQTE;
+    [SerializeField] private CutsceneActor playerActor;
+    [SerializeField] private ItemDataSO seedItemDataSO;
+    [SerializeField] private ItemDataSO bunchItemDataSO;
+    [SerializeField] private float eatHoldDuration = 1f;
     [SerializeField] private Npc ijahNpc;
     [SerializeField] private Npc ratnaNpc;
     [SerializeField] private Npc dimasNpc;
@@ -51,6 +63,12 @@ public class Day5Director : MonoBehaviour
     private bool isWishPending;
     private bool isNightPending;
     private bool isNightFadePlaying;
+    // the empty plantation's beats that wait for free play: the eat after the seeds, a quip when the dashes refill, the end
+    private bool isEatMorePending;
+    private bool isMoreDashesPending;
+    private bool isPlantedPending;
+    private bool hasEatenMore;
+    private int eatenBunchCount;
     // the villagers still to talk to today
     private readonly HashSet<Npc> worriedNpcSet = new HashSet<Npc>();
 
@@ -62,6 +80,9 @@ public class Day5Director : MonoBehaviour
         TaskManager.Instance.OnRequiredTasksCompleted += TaskManager_OnRequiredTasksCompleted;
         houseDoor.OnStateChanged += HouseDoor_OnStateChanged;
         plantationSequence.OnFinished += PlantationSequence_OnFinished;
+        landQTE.OnStateChanged += LandQTE_OnStateChanged;
+        plantingDash.OnDashesRefilled += PlantingDash_OnDashesRefilled;
+        plantingDash.OnFinished += PlantingDash_OnFinished;
 
         // no-ops when the bedroom already did them this morning
         WorldState.OpenAccounts(testStartingSavings, day5SO.testStartingDebt, day5SO.testDaysUntilDue);
@@ -109,6 +130,22 @@ public class Day5Director : MonoBehaviour
             step = Step.WishTalk;
             DialogueManager.Instance.StartDialogue(null, day5SO.wishDialogueSO);
         }
+        else if (isEatMorePending)
+        {
+            isEatMorePending = false;
+            Talk(Step.EatMoreTalk, day5SO.eatMoreDialogueSO);
+        }
+        else if (isMoreDashesPending && !Player.Instance.IsDashing())
+        {
+            isMoreDashesPending = false;
+            Talk(Step.MoreDashesTalk, day5SO.moreDashesDialogueSO);
+        }
+        else if (isPlantedPending && !Player.Instance.IsDashing())
+        {
+            isPlantedPending = false;
+            GameManager.Instance.SetState(GameManager.State.Cutscene);
+            Talk(Step.PlantedTalk, day5SO.plantedDialogueSO);
+        }
         else if (isNightPending)
         {
             isNightPending = false;
@@ -130,6 +167,8 @@ public class Day5Director : MonoBehaviour
     {
         if (state == State.Harvest) isWishPending = true;
         else if (state == State.Errands) isNightPending = true;
+        // the seeds are pressed (the planting objective's end is PlantingDash.OnFinished)
+        else if (state == State.Seeding && !hasEatenMore) isEatMorePending = true;
     }
 
     private void DialogueManager_OnDialogueEnded(object sender, DialogueManager.OnDialogueEventArgs e)
@@ -147,6 +186,31 @@ public class Day5Director : MonoBehaviour
                 // PlantationSequence listens to the same event: start it a moment later so it doesn't hear this talk end
                 step = Step.PlantationStart;
                 stepTimer = handOffDelay;
+                break;
+            case Step.LazyTalk:
+                step = Step.None;
+                // a sack already in the bag skips the press
+                if (Inventory.Instance.GetCount(seedItemDataSO) >= day5SO.plantationSeedCount) isEatMorePending = true;
+                else TaskManager.Instance.SetObjectives(day5SO.seedObjectiveArray);
+                break;
+            case Step.EatMoreTalk:
+                // one more bite, held like the first
+                step = Step.EatingMore;
+                hasEatenMore = true;
+                GameManager.Instance.SetState(GameManager.State.Cutscene);
+                playerActor.SetPose(CutscenePose.Eat);
+                landQTE.StartHold(eatHoldDuration);
+                break;
+            case Step.DashReadyTalk:
+                step = Step.None;
+                TaskManager.Instance.SetObjectives(day5SO.plantObjectiveArray);
+                plantingDash.Begin(eatenBunchCount);
+                break;
+            case Step.MoreDashesTalk:
+                step = Step.None;
+                break;
+            case Step.PlantedTalk:
+                StartMutationShot();
                 break;
             case Step.FieldDoneTalk:
                 step = Step.None;
@@ -167,13 +231,40 @@ public class Day5Director : MonoBehaviour
         }
     }
 
-    // the plantation stands: its edge pulses red behind the MC's back
+    // the plantation stands, every bed empty: 48 seeds by hand? Seeds first
     private void PlantationSequence_OnFinished(object sender, EventArgs e)
+    {
+        SetState(State.Seeding);
+        Talk(Step.LazyTalk, day5SO.lazyDialogueSO);
+    }
+
+    // the bite is down: the sawit eaten (whatever the sky run left) sets how many dashes the MC gets
+    private void LandQTE_OnStateChanged(object sender, LandQTE.OnStateChangedEventArgs e)
+    {
+        if (step != Step.EatingMore || e.state != LandQTE.State.Idle) return;
+        eatenBunchCount = Mathf.Min(Inventory.Instance.GetCount(bunchItemDataSO), day5SO.eatMoreBunchCount);
+        Inventory.Instance.TryRemoveItem(bunchItemDataSO, eatenBunchCount);
+        playerActor.SetPose(CutscenePose.None);
+        Talk(Step.DashReadyTalk, day5SO.dashReadyDialogueSO);
+    }
+
+    private void PlantingDash_OnDashesRefilled(object sender, EventArgs e) => isMoreDashesPending = true;
+
+    private void PlantingDash_OnFinished(object sender, EventArgs e) => isPlantedPending = true;
+
+    // the field is planted: its edge pulses red behind the MC's back
+    private void StartMutationShot()
     {
         GameManager.Instance.SetState(GameManager.State.Cutscene);
         SetState(State.Mutation);
         step = Step.MutationShot;
         stepTimer = mutationShotDuration;
+    }
+
+    private void Talk(Step talkStep, DialogueSO dialogueSO)
+    {
+        step = talkStep;
+        DialogueManager.Instance.StartDialogue(null, dialogueSO);
     }
 
     // sell the harvest at last, and look in on the village

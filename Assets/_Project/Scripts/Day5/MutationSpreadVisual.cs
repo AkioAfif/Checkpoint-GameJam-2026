@@ -6,6 +6,7 @@ using UnityEngine;
 // Day 5 only swaps materials: most of the map is static-batched, so nothing moves or scales.
 // With no director (Day 6) the red has spread into daylight: the forest pulses all day, and with isTearing every flicker
 // also throws each plant into red, black, nothing or itself, out of shape and out of place (the builder un-batches them).
+// Once the MC has taken the Distributor's Lv.3 seeds (Day 6's choice) it tears harder.
 public class MutationSpreadVisual : MonoBehaviour
 {
     [Tooltip("Empty: pulse all the time.")]
@@ -26,6 +27,8 @@ public class MutationSpreadVisual : MonoBehaviour
     [SerializeField] private float maxJolt = .7f;
     [Tooltip("How far a torn plant stretches or squashes on each axis (0.6 = 40% to 160%).")]
     [SerializeField] private float maxStretch = .6f;
+    [Tooltip("How much harder it tears once the Lv.3 seeds are taken (scales chance, jolt and stretch).")]
+    [SerializeField] private float lv3Harm = 1.6f;
 
     private Material[][] originalMaterialsArray;
     private Material[][] pulseMaterialsArray;
@@ -77,7 +80,7 @@ public class MutationSpreadVisual : MonoBehaviour
                 // every plant on its own: red, black, itself, or gone for this flicker
                 float roll = Random.value;
                 Material[] materials = roll < .4f ? pulseMaterialsArray[i] : roll < .7f ? blackMaterialsArray[i] : originalMaterialsArray[i];
-                Show(i, materials, roll < .88f, Random.value < tearChance);
+                Show(i, materials, roll < .88f, Random.value < tearChance * GetHarm());
             }
         }
     }
@@ -88,13 +91,15 @@ public class MutationSpreadVisual : MonoBehaviour
         plant.enabled = isShown;
         plant.sharedMaterials = materials;
         if (!isTearing) return;
-        Vector3 jolt = isTorn ? Vector3.Scale(Random.insideUnitSphere, new Vector3(1f, .4f, 1f)) * maxJolt : Vector3.zero;
+        Vector3 jolt = isTorn ? Vector3.Scale(Random.insideUnitSphere, new Vector3(1f, .4f, 1f)) * maxJolt * GetHarm() : Vector3.zero;
         Vector3 stretch = isTorn ? new Vector3(Stretch(), Stretch(), Stretch()) : Vector3.one;
         plant.transform.position = positionArray[index] + jolt;
         plant.transform.localScale = Vector3.Scale(localScaleArray[index], stretch);
     }
 
-    private float Stretch() => 1f + Random.Range(-maxStretch, maxStretch);
+    private float Stretch() => 1f + Random.Range(-maxStretch, maxStretch) * GetHarm();
+
+    private float GetHarm() => WorldState.HasTakenLv3() ? lv3Harm : 1f;
 
     private static Material[] Filled(int length, Material material)
     {

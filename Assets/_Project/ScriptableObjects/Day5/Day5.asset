@@ -23,6 +23,11 @@ MonoBehaviour:
   hallucinationDialogueSO: {fileID: 11400000, guid: 5f923450184e44e4eaee64905947b5f4, type: 2}
   markerDialogueSO: {fileID: 11400000, guid: 02ca582c45289b44b9f99abee9291f34, type: 2}
   revealDialogueSO: {fileID: 11400000, guid: a6bc363df961d274c8a8a1589a620c58, type: 2}
+  lazyDialogueSO: {fileID: 11400000, guid: 24b911acf21611445ae9d94dbbb9fde5, type: 2}
+  eatMoreDialogueSO: {fileID: 11400000, guid: fc40b10129dd7944a97953c1376f5824, type: 2}
+  dashReadyDialogueSO: {fileID: 11400000, guid: 8f36406a2df6e9e4b8c8bdc48c3b7a5c, type: 2}
+  moreDashesDialogueSO: {fileID: 11400000, guid: 5daa985d87030714d913bd4bdae2c7ee, type: 2}
+  plantedDialogueSO: {fileID: 11400000, guid: b6acd4aa9fc6e77459c98a1b73c60483, type: 2}
   fieldDoneDialogueSO: {fileID: 11400000, guid: a50af279455f2b242ae7ec49eab53d6b, type: 2}
   ijahDialogueSO: {fileID: 11400000, guid: d95c9982f80ac954ca081090a890eb25, type: 2}
   ratnaDialogueSO: {fileID: 11400000, guid: f5488923aadbcda40a750d89ffe4b0b1, type: 2}
@@ -39,6 +44,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e7d7f852be418664f990c6e6eb69eb09, type: 2}
   markerObjectiveArray:
   - {fileID: 11400000, guid: 4bea1276ad8409a49a6a831e389d3c3a, type: 2}
+  seedObjectiveArray:
+  - {fileID: 11400000, guid: a644a170d4394a14b9eff3d3dc033925, type: 2}
+  plantObjectiveArray:
+  - {fileID: 11400000, guid: dc773f2f472cb5244b5a48e448c8cf9f, type: 2}
   errandObjectiveArray:
   - {fileID: 11400000, guid: fd2fa6f8b55476c4297d382a5d141fff, type: 2}
   - {fileID: 11400000, guid: 36dfa6eb63f4c5a4688090de8b2d86ed, type: 2}
@@ -46,3 +55,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2ef3b67ae2b74bf45b1eae0e670445de, type: 2}
   nightCaption: That evening...
   crateLockedReason: Not yet... I need every bunch.
+  plantationSeedCount: 48
+  eatMoreBunchCount: 2
+  dashHint: Hold [Space] to charge, release to dash through the beds
+  dashCountFormat: Dashes x{0}

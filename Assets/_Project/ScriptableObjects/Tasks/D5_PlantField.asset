@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b5eef9af9623baf47817cd10c4ddca09, type: 3}
-  m_Name: D6_CheckVillagers
+  m_Name: D5_PlantField
   m_EditorClassIdentifier: Assembly-CSharp::TaskObjectiveSO
-  type: 4
-  description: Tell Nek Ijah, Bu Ratna and Dimas the news
-  itemDataSO: {fileID: 0}
-  requiredCount: 3
+  type: 2
+  description: Plant the new field (hold Space, dash through the beds)
+  itemDataSO: {fileID: 11400000, guid: b4a43250077a3c347b72836d91f1aaee, type: 2}
+  requiredCount: 48
