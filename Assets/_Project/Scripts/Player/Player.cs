@@ -62,6 +62,9 @@ public class Player : MonoBehaviour
         currentSpeed = 0f;
     }
 
+    // a cutscene flight: no controller, no gravity, whoever flies the player sets its position and rotation; Teleport ends it
+    public void BeginFlight() => characterController.enabled = false;
+
     // "Unstuck me": back to the front of the house. False (and the player stays put) when this scene has no return point.
     public bool TryReturnHome()
     {

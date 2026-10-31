@@ -8,6 +8,8 @@ using UnityEngine.UI;
 public class LandQTEUI : MonoBehaviour
 {
     [SerializeField] private LandSequence landSequence;
+    [Tooltip("Day 5: shows the eat hint while the plantation sequence waits for a bite.")]
+    [SerializeField] private PlantationSequence plantationSequence;
     [SerializeField] private LandQTE landQTE;
     [SerializeField] private RectTransform group;
     [SerializeField] private GameObject ringGameObject;
@@ -35,7 +37,8 @@ public class LandQTEUI : MonoBehaviour
     {
         LandQTE.State state = landQTE.GetState();
         // the yard day (no LandSequence) only uses the ring
-        bool canEat = landSequence != null && landSequence.GetStep() == LandSequence.Step.WaitEat && GameManager.Instance.IsGamePlaying() && !PlayerInteraction.Instance.HasSelected();
+        bool isWaitingToEat = (landSequence != null && landSequence.GetStep() == LandSequence.Step.WaitEat) || (plantationSequence != null && plantationSequence.IsWaitingToEat());
+        bool canEat = isWaitingToEat && GameManager.Instance.IsGamePlaying() && !PlayerInteraction.Instance.HasSelected();
         bool isVisible = state != LandQTE.State.Idle || canEat;
         if (isVisible != canvasGroup.alpha > 0f) canvasGroup.SetVisible(isVisible);
         if (!isVisible) return;

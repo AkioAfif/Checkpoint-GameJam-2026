@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c9dac0f9f9faa24fa31bc01830a2a1a, type: 3}
+  m_Name: Day5
+  m_EditorClassIdentifier: Assembly-CSharp::Day5SO
+  testStartingDebt: 28000000
+  testDaysUntilDue: 16
+  morningDialogueSO: {fileID: 11400000, guid: 990fd1f8de543c742b48507536e22307, type: 2}
+  wishDialogueSO: {fileID: 11400000, guid: 3f62653a41e6feb4888e2bf44f324920, type: 2}
+  eatOneDialogueSO: {fileID: 11400000, guid: 50bdafe37a09bdb4b89458fbb1101ce6, type: 2}
+  tinyGrowthDialogueSO: {fileID: 11400000, guid: 6cea8834767376f45859595cf63ed400, type: 2}
+  noBunchDialogueSO: {fileID: 11400000, guid: 3df9c14957ba6664d8b88a3396bf83c6, type: 2}
+  revealDialogueSO: {fileID: 11400000, guid: a6bc363df961d274c8a8a1589a620c58, type: 2}
+  fieldDoneDialogueSO: {fileID: 11400000, guid: a50af279455f2b242ae7ec49eab53d6b, type: 2}
+  ijahDialogueSO: {fileID: 11400000, guid: d95c9982f80ac954ca081090a890eb25, type: 2}
+  ratnaDialogueSO: {fileID: 11400000, guid: f5488923aadbcda40a750d89ffe4b0b1, type: 2}
+  dimasDialogueSO: {fileID: 11400000, guid: 7f41c8e5d01ae3d4cb89deee99d76d2b, type: 2}
+  eveningMathDialogueSO: {fileID: 11400000, guid: fff643d9591ce0c40b725f558acb5c67, type: 2}
+  nightDialogueSO: {fileID: 11400000, guid: ec65633b0037d9d46be1314ea571b36e, type: 2}
+  harvestObjectiveArray:
+  - {fileID: 11400000, guid: 342a4d9435321cd43be8e9bc036cf7de, type: 2}
+  eatOneObjectiveArray:
+  - {fileID: 11400000, guid: b79ed43c47f51244483da5bed37b2017, type: 2}
+  eatManyObjectiveArray:
+  - {fileID: 11400000, guid: e7d7f852be418664f990c6e6eb69eb09, type: 2}
+  errandObjectiveArray:
+  - {fileID: 11400000, guid: fd2fa6f8b55476c4297d382a5d141fff, type: 2}
+  - {fileID: 11400000, guid: 36dfa6eb63f4c5a4688090de8b2d86ed, type: 2}
+  nightObjectiveArray:
+  - {fileID: 11400000, guid: 2ef3b67ae2b74bf45b1eae0e670445de, type: 2}
+  nightCaption: That evening...
+  crateLockedReason: Not yet... I need every bunch.

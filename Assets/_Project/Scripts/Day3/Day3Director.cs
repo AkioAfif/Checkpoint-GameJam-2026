@@ -76,7 +76,8 @@ public class Day3Director : MonoBehaviour
         houseDoor.SetLocked(true);
         // no "Finish today's tasks first" over the player's head all day
         houseDoor.SetHidden(true);
-        houseDoor.SetNextScene(Loader.Scene.HouseInterior_Stub);
+        // the bedroom then opens Day 5
+        houseDoor.SetNextScene(Loader.Scene.HouseInterior);
         TaskManager.Instance.SetObjectives(day3SO.harvestObjectiveArray);
         Player.Instance.Teleport(morningPoint.position);
         Player.Instance.FaceTowards(morningPoint.position + morningPoint.forward);
@@ -197,7 +198,7 @@ public class Day3Director : MonoBehaviour
     {
         if (state != State.Night || e.state != HouseDoor.State.IrisClosing) return;
         WorldState.RecordGarden(FindObjectsByType<FarmPlot>());
-        WorldState.CompleteDay3();
+        WorldState.CompleteDay4();
         SetState(State.Done);
     }
 

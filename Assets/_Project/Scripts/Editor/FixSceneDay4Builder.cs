@@ -220,7 +220,10 @@ public static class FixSceneDay4Builder
         fieldTreeArray = marked.Concat(extra).Select(t => t.GetTreeTransform()).ToArray();
 
         TreeClearing treeClearing = director.gameObject.AddComponent<TreeClearing>();
-        SetField(treeClearing, "day3SO", day3SO);
+        SetArray(treeClearing, "treeObjectiveArray", day3SO.treeObjectiveArray);
+        SetField(treeClearing, "treesIdeaDialogueSO", day3SO.treesIdeaDialogueSO);
+        SetField(treeClearing, "firstTreeDialogueSO", day3SO.firstTreeDialogueSO);
+        SetField(treeClearing, "treesClearedDialogueSO", day3SO.treesClearedDialogueSO);
         SetField(treeClearing, "landQTE", landQTE);
         SetField(treeClearing, "playerActor", playerActor);
         SetArray(treeClearing, "markedTreeArray", marked);
@@ -229,9 +232,12 @@ public static class FixSceneDay4Builder
     }
 
     // the interactable sits at the trunk's foot (the model's pivot can be anywhere); punchable ones get a trigger and an outline
-    private static PunchableTree PunchTarget(Transform parent, string treePath, bool isPunchable, Transform dust)
+    private static PunchableTree PunchTarget(Transform parent, string treePath, bool isPunchable, Transform dust) =>
+        PunchTarget(parent, GameObject.Find(treePath), isPunchable, dust);
+
+    // also Day 5's (FixSceneDay5Builder), on trees it picks by position
+    public static PunchableTree PunchTarget(Transform parent, GameObject tree, bool isPunchable, Transform dust)
     {
-        GameObject tree = GameObject.Find(treePath);
         // it falls at runtime, so it can't be static-batched
         GameObjectUtility.SetStaticEditorFlags(tree, 0);
         Bounds bounds = tree.GetComponent<Renderer>().bounds;

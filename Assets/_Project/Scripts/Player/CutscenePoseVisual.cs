@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // Bends the Chibi rig into the cutscene poses it has no clip for (eating, pounding the ground, punching a tree, adjusting glasses,
-// drowning), after the Animator so the pose wins over idle/walk. A punch slams the raised arms down (or drives a fist forward) and
+// drowning, flying), after the Animator so the pose wins over idle/walk. A punch slams the raised arms down (or drives a fist forward) and
 // lets them swing back.
 public class CutscenePoseVisual : MonoBehaviour
 {
@@ -120,6 +120,26 @@ public class CutscenePoseVisual : MonoBehaviour
                 headEuler = new Vector3(-28f, 0f, thrash * 8f);
                 armLEuler = new Vector3(-155f + thrash * 35f, 0f, -22f);
                 armREuler = new Vector3(-155f - thrash * 35f, 0f, 22f);
+                break;
+            case CutscenePose.SupermanFly:
+                // taking off: one fist straight up past the head, the other arm tucked at the side, chin up
+                headEuler = new Vector3(-14f, 0f, 0f);
+                armLEuler = new Vector3(-8f, 0f, -14f);
+                armREuler = new Vector3(-176f, 0f, -4f);
+                break;
+            case CutscenePose.SupermanDive:
+                // both fists locked together ahead of the head, ready to strike
+                headEuler = new Vector3(-20f, 0f, 0f);
+                armLEuler = new Vector3(-176f, 0f, 6f);
+                armREuler = new Vector3(-176f, 0f, -6f);
+                break;
+            case CutscenePose.GroundPunch:
+                // landed in a crouch, one fist driven into the ground, the other arm flung back
+                drop = crouchDrop * 1.3f + punch * .1f;
+                lean = 34f + punch * 10f;
+                headEuler = new Vector3(14f, 0f, 0f);
+                armLEuler = new Vector3(40f, 0f, -35f);
+                armREuler = new Vector3(Mathf.Lerp(-120f, -15f, punch), 0f, 6f);
                 break;
         }
         head.localRotation = Quaternion.Slerp(head.localRotation, Quaternion.Euler(headEuler), weight);
