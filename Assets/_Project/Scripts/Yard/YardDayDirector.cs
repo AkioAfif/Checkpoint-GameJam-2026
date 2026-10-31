@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 // Runs Day 3 on the CozyFarm map, "Dirt Under Your Nails" (the morning savings book is BedroomDirector in HouseInterior):
@@ -124,7 +123,7 @@ public class YardDayDirector : MonoBehaviour
             if (!WorldState.HasGarden())
                 for (int i = 0; i < gardenPlotArray.Length && i < ripeLv2Count + ripeLv1Count; i++)
                     gardenPlotArray[i].SetRipe(i < ripeLv2Count ? lv2CropDataSO : lv1CropDataSO);
-            TaskManager.Instance.SetObjectives(GetHarvestObjectiveArray());
+            TaskManager.Instance.SetObjectives(HarvestObjectiveFilter.Filter(yardDaySO.harvestObjectiveArray));
         }
 
         if (timer >= 0f)
@@ -388,40 +387,6 @@ public class YardDayDirector : MonoBehaviour
         WorldState.RecordGarden(FindObjectsByType<FarmPlot>());
         WorldState.CompleteDay3();
         SetState(State.Done);
-    }
-
-    // harvest one ripe sawit, then sell one; an objective the garden and bag can't serve today is left out, so the day
-    // can't get stuck (yesterday's palms may all have been picked already)
-    private TaskObjectiveSO[] GetHarvestObjectiveArray()
-    {
-        FarmPlot[] farmPlotArray = FindObjectsByType<FarmPlot>();
-        List<TaskObjectiveSO> objectiveSOList = new List<TaskObjectiveSO>();
-        foreach (TaskObjectiveSO objectiveSO in yardDaySO.harvestObjectiveArray)
-        {
-            if (objectiveSO.type == TaskObjectiveSO.Type.HarvestFruit && !HasRipeFruit(farmPlotArray, objectiveSO.itemDataSO)) continue;
-            if (objectiveSO.type == TaskObjectiveSO.Type.SellItem && !HasRipeFruit(farmPlotArray, objectiveSO.itemDataSO) && !CanSellFromBag(objectiveSO.itemDataSO)) continue;
-            objectiveSOList.Add(objectiveSO);
-        }
-        return objectiveSOList.ToArray();
-    }
-
-    // the bag already holds something to sell (null = anything the crate buys)
-    private static bool CanSellFromBag(ItemDataSO itemDataSO)
-    {
-        if (itemDataSO != null) return Inventory.Instance.GetCount(itemDataSO) > 0;
-        SellCrate crate = FindAnyObjectByType<SellCrate>();
-        return crate != null && crate.CanInteract(Player.Instance);
-    }
-
-    // a ripe palm bearing this fruit (null = any fruit)
-    private static bool HasRipeFruit(FarmPlot[] farmPlotArray, ItemDataSO fruitItemDataSO)
-    {
-        foreach (FarmPlot farmPlot in farmPlotArray)
-        {
-            if (farmPlot.GetState() != FarmPlot.State.Ripe) continue;
-            if (fruitItemDataSO == null || farmPlot.GetPlantedCropDataSO().harvestItemDataSO == fruitItemDataSO) return true;
-        }
-        return false;
     }
 
     // ---------- public ----------

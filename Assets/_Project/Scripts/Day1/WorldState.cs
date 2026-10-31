@@ -18,6 +18,8 @@ public static class WorldState
     private static bool isDay1Complete;
     private static bool isDay2Complete;
     private static bool isDay3Complete;
+    private static bool isDay4Complete;
+    private static bool isDay5Complete;
     private static bool hasSkippedTime;
     private static bool isFabricatorPlaced;
     // every plot as the last day's door closed on it; the next morning's plots wake up from these (FarmPlot.Start)
@@ -59,6 +61,8 @@ public static class WorldState
 
     public static void CompleteDay2() => isDay2Complete = true;
     public static void CompleteDay3() => isDay3Complete = true;
+    public static void CompleteDay4() => isDay4Complete = true;
+    public static void CompleteDay5() => isDay5Complete = true;
 
     // later calls keep the running totals
     public static void OpenAccounts(long startingSavings, long startingDebt, int startingDaysUntilDue)
@@ -141,6 +145,8 @@ public static class WorldState
     public static bool IsDay1Complete() => isDay1Complete;
     public static bool IsDay2Complete() => isDay2Complete;
     public static bool IsDay3Complete() => isDay3Complete;
+    public static bool IsDay4Complete() => isDay4Complete;
+    public static bool IsDay5Complete() => isDay5Complete;
     public static bool IsFabricatorPlaced() => isFabricatorPlaced;
     public static bool HasAccounts() => hasAccounts;
     public static bool HasGarden() => hasGarden;
@@ -188,6 +194,8 @@ public static class WorldState
         isDay1Complete = false;
         isDay2Complete = false;
         isDay3Complete = false;
+        isDay4Complete = false;
+        isDay5Complete = false;
         hasSkippedTime = false;
         isFabricatorPlaced = false;
         hasGarden = false;

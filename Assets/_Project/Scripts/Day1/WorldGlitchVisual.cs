@@ -4,7 +4,8 @@ using UnityEngine;
 // A one-second tear in the world, for the player's eyes only: once the Distributor has gone, everything on the right of the
 // screen flickers out, turns void-black / blood-red / bone-white, jolts sideways, and the villagers there stare into the
 // camera, and a pitch-black Distributor flickers in among them. Then it all snaps back. The protagonist never reacts.
-// World objects only, no HUD. Day 3 reuses it (full screen, no apparition) when the MC eats the Lv.2 sawit.
+// World objects only, no HUD. Day 3 reuses it (full screen, no apparition) when the MC eats the Lv.2 sawit, Day 5 for three
+// violent seconds (severity) when the MC eats a whole harvest of it.
 public class WorldGlitchVisual : MonoBehaviour
 {
     private const int UI_LAYER = 5;
@@ -13,7 +14,11 @@ public class WorldGlitchVisual : MonoBehaviour
     [SerializeField] private Day1Director director;
     [Tooltip("Day 3: plays for the sequence's glitch step. Leave empty elsewhere.")]
     [SerializeField] private LandSequence landSequence;
+    [Tooltip("Day 5: plays for the plantation sequence's glitch step. Leave empty elsewhere.")]
+    [SerializeField] private PlantationSequence plantationSequence;
     [SerializeField] private Material[] corruptMaterialArray;
+    [Tooltip("Scales how often renderers vanish, change material and jolt, and how far: 1 normal, about 1.5 for a violent tear.")]
+    [SerializeField] private float severity = 1f;
     [Tooltip("Seconds after Sari's objective appears, so the camera is back on the player.")]
     [SerializeField] private float startDelay = 1f;
     [SerializeField] private float duration = 1f;
@@ -49,6 +54,7 @@ public class WorldGlitchVisual : MonoBehaviour
     {
         if (director != null) director.OnStateChanged += Director_OnStateChanged;
         if (landSequence != null) landSequence.OnStepChanged += LandSequence_OnStepChanged;
+        if (plantationSequence != null) plantationSequence.OnStepChanged += PlantationSequence_OnStepChanged;
     }
 
     private void Update()
@@ -100,6 +106,13 @@ public class WorldGlitchVisual : MonoBehaviour
     {
         if (e.step != LandSequence.Step.Glitch) return;
         duration = landSequence.GetGlitchDuration();
+        Begin();
+    }
+
+    private void PlantationSequence_OnStepChanged(object sender, PlantationSequence.OnStepChangedEventArgs e)
+    {
+        if (e.step != PlantationSequence.Step.Glitch) return;
+        duration = plantationSequence.GetGlitchDuration();
         Begin();
     }
 
@@ -168,6 +181,7 @@ public class WorldGlitchVisual : MonoBehaviour
     {
         // destroyed mid-glitch (e.g. a sapling swapped for its grown palm)
         if (target.renderer == null) return;
+        strength *= severity;
         target.renderer.enabled = Random.value > .35f * strength;
         if (Random.value < .7f * strength)
         {

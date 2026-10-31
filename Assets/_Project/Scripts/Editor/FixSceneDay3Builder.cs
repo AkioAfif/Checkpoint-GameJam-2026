@@ -287,8 +287,9 @@ public static class FixSceneDay3Builder
     private static bool IsNear(Vector3 point, Vector3 centre, float halfSize) =>
         Mathf.Abs(point.x - centre.x) < halfSize && Mathf.Abs(point.z - centre.z) < halfSize;
 
-    // a copy of the model's mesh keeping only the triangles of the listed materials that pass the test (corners in world space)
-    private static Mesh CutMesh(MeshFilter source, string name, int[] subMeshArray, System.Func<Vector3, Vector3, Vector3, bool> isKept)
+    // a copy of the model's mesh keeping only the triangles of the listed materials that pass the test (corners in world space);
+    // Day 5 cuts its single rising bed with it too
+    public static Mesh CutMesh(MeshFilter source, string name, int[] subMeshArray, System.Func<Vector3, Vector3, Vector3, bool> isKept)
     {
         Mesh mesh = Object.Instantiate(source.sharedMesh);
         mesh.name = name;

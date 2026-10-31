@@ -4,12 +4,14 @@ using UnityEngine;
 // What the MC pictures on the CozyFarm map: while he looks at land he wants to farm, a see-through copy of a farm fades in on
 // it and what stands there (trees, weeds, a stump) fades out; while he thinks about a bridge (Day 4), a see-through bridge
 // fades in over the river. The picture twinkles between faint and nearly solid, so it reads as imagined, not as scenery.
-// Day 4 drives it from LandSequence and BridgeBuild, the yard day (Day 3) from YardDayDirector; the others stay empty.
+// Day 4 drives it from LandSequence and BridgeBuild, the yard day (Day 3) from YardDayDirector, Day 5 from Day5Director;
+// the others stay empty.
 public class ImaginationVisual : MonoBehaviour
 {
     [SerializeField] private LandSequence landSequence;
     [SerializeField] private BridgeBuild bridgeBuild;
     [SerializeField] private YardDayDirector yardDayDirector;
+    [SerializeField] private Day5Director day5Director;
     [Tooltip("Copies of farm plots and crops on the new land, models only.")]
     [SerializeField] private GameObject ghostFarmRoot;
     [Tooltip("Optional: a copy of the bridge in its final place, model only.")]
@@ -49,7 +51,7 @@ public class ImaginationVisual : MonoBehaviour
 
     private void Update()
     {
-        bool isFarmImagined = yardDayDirector != null ? yardDayDirector.IsWishShot() : IsLandImagined();
+        bool isFarmImagined = yardDayDirector != null ? yardDayDirector.IsWishShot() : day5Director != null ? day5Director.IsWishShot() : IsLandImagined();
         bool isBridgeImagined = bridgeBuild != null && (bridgeBuild.GetStep() == BridgeBuild.Step.Think || bridgeBuild.GetStep() == BridgeBuild.Step.Idea);
 
         float twinkle = Mathf.Lerp(ghostMinAlpha, ghostMaxAlpha, .5f + .5f * Mathf.Sin(Time.time * 2f * Mathf.PI / twinklePeriod));

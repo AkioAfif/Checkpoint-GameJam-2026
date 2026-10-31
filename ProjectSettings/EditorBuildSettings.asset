@@ -35,6 +35,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Project/Scenes/FixScene_Day3.unity
     guid: 42013191966c416478db651c3874b7a7
+  - enabled: 1
+    path: Assets/_Project/Scenes/FixScene_Day5.unity
+    guid: dda962c21a61bb64abb771c6a69e26ae
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
