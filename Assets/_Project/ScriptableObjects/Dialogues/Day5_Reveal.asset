@@ -21,7 +21,7 @@ MonoBehaviour:
     isNpcGlaring: 0
     focusNpcSO: {fileID: 0}
   - speaker: 0
-    text: A whole plantation. Ripe. In one punch.
+    text: A whole plantation, ready for seed. In one punch.
     playerEmote: 6
     npcEmote: 0
     isShaking: 0

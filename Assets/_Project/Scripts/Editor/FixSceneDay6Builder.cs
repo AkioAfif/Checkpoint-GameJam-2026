@@ -83,6 +83,8 @@ public static class FixSceneDay6Builder
 
         Transform gameplay = GameObject.Find(GAMEPLAY_ROOT).transform;
         FarmPlot[] plantationPlots = StripDay5(gameplay);
+        // Day 6 starts after the punch: the ground is level and the ponds are gone from the start
+        FixSceneDay5Builder.ApplyFlatTerrain();
         Transform graybox = Root(GRAYBOX_ROOT, gameplay).transform;
         Transform director = Root(DIRECTOR_ROOT, gameplay).transform;
         (float minX, float maxX, float minZ, float maxZ) = BuildExtension(graybox);
@@ -175,7 +177,7 @@ public static class FixSceneDay6Builder
         foreach (Component ui in new Component[]
                  {
                      Object.FindAnyObjectByType<LandQTEUI>(FindObjectsInactive.Include), Object.FindAnyObjectByType<SkyRunUI>(FindObjectsInactive.Include),
-                     Object.FindAnyObjectByType<ChildhoodShowUI>(FindObjectsInactive.Include),
+                     Object.FindAnyObjectByType<ChildhoodShowUI>(FindObjectsInactive.Include), Object.FindAnyObjectByType<PlantingDashUI>(FindObjectsInactive.Include),
                  })
             if (ui != null) Object.DestroyImmediate(ui.gameObject);
         Transform day5Graybox = gameplay.Find(DAY5_GRAYBOX_ROOT);

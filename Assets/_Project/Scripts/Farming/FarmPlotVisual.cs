@@ -10,6 +10,8 @@ public class FarmPlotVisual : MonoBehaviour
     [SerializeField] private Transform saplingParent;
     [SerializeField] private Transform burstPrefab;
     [SerializeField] private float growDuration = .6f;
+    [Tooltip("Lifts the planted crop's model above the sapling parent (Day 5's plantation beds stand higher than the plot).")]
+    [SerializeField] private float modelHeight;
 
     private Transform sapling;
     private float growTimer = -1f;
@@ -52,6 +54,7 @@ public class FarmPlotVisual : MonoBehaviour
         Transform modelPrefab = GetModelPrefab(state);
         if (modelPrefab == null) return;
         sapling = Instantiate(modelPrefab, saplingParent);
+        sapling.localPosition += Vector3.up * modelHeight;
         if (!isGrowingIn) return;
         sapling.localScale = Vector3.zero;
         growTimer = 0f;

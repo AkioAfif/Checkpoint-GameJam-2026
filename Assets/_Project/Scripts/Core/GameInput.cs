@@ -22,6 +22,7 @@ public class GameInput : MonoBehaviour
     private InputAction moveAction;
     private InputAction interactAction;
     private InputAction sprintAction;
+    private InputAction jumpAction;
     private InputAction pauseAction;
     private InputAction restartAction;
     private InputAction toggleTasksAction;
@@ -38,6 +39,7 @@ public class GameInput : MonoBehaviour
         moveAction = InputSystem.actions.FindAction("Player/Move", true);
         interactAction = InputSystem.actions.FindAction("Player/Interact", true);
         sprintAction = InputSystem.actions.FindAction("Player/Sprint", true);
+        jumpAction = InputSystem.actions.FindAction("Player/Jump", true);
         pauseAction = InputSystem.actions.FindAction("Player/Pause", true);
         restartAction = InputSystem.actions.FindAction("Player/Restart", true);
         toggleTasksAction = InputSystem.actions.FindAction("Player/ToggleTasks", true);
@@ -89,6 +91,8 @@ public class GameInput : MonoBehaviour
 
     public Vector2 GetMovementVectorNormalized() => moveAction.ReadValue<Vector2>().normalized;
     public bool IsSprintPressed() => sprintAction.IsPressed();
+    // Day 5's Plough Dash: held to charge, released to dash
+    public bool IsJumpPressed() => jumpAction.IsPressed();
     public bool IsInteractPressed() => interactAction.IsPressed();
     public Vector2 GetPointerScreenPosition() => pointAction.ReadValue<Vector2>();
 

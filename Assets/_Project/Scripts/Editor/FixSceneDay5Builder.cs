@@ -28,6 +28,12 @@ public static class FixSceneDay5Builder
     private const string DIRECTOR_ROOT = "Day5";
     private const string BEDROOM_DIRECTOR_PATH = "BedroomDirector";
     public const string GARDEN_3X4_MODEL = "Assets/Ilkham/models/garden/garden_3x4.glb";
+    private const string TERRAIN_MESH_PATH = "Assets/_Project/Art/Models/Day5/Day5_Terrain.asset";
+    // the pond fill, by PondReach: fully level inside POND_FILL (the water and its brown rim), easing out to the grass at
+    // POND_RING_INNER; the grass height and colour are averaged between POND_RING_INNER and POND_RING_OUTER
+    private const float POND_FILL = 1.35f;
+    private const float POND_RING_INNER = 1.7f;
+    private const float POND_RING_OUTER = 2.2f;
     private const string BIRD_PREFAB_PATH = "Assets/_Project/Prefabs/Day5/SkyBird.prefab";
 
     // the marked land, filled exactly by 2 x 2 tiles of the 3x4 garden (9.63 x 7.34 m with its fence, turned like Day 3's)
@@ -44,6 +50,8 @@ public static class FixSceneDay5Builder
     public static readonly float[] BedXArray = { -3.45f, -1.15f, 1.15f, 3.45f };
     public static readonly float[] BedZArray = { -2.3f, 0f, 2.3f };
     private const float BED_HALF_SIZE = .85f;
+    // how far the plantation's planted crops are lifted above their plot (FarmPlotVisual.modelHeight)
+    private const float PLANTATION_CROP_HEIGHT = .117f;
     // the model's furrows and ridges
     private static readonly int[] BedSubMeshArray = { 1, 2 };
     // what isn't scenery on the marked land: the ground, the water, the paths
@@ -117,6 +125,7 @@ public static class FixSceneDay5Builder
 
         Transform gameplay = GameObject.Find(GAMEPLAY_ROOT).transform;
         StripDay4(gameplay);
+        (Mesh flatTerrain, GameObject[] ponds) = BuildFlatTerrain();
         Transform graybox = Root(GRAYBOX_ROOT, gameplay).transform;
         Transform director = Root(DIRECTOR_ROOT, gameplay).transform;
         GameObject[] areaPlants = FindAreaPlants();
@@ -147,10 +156,9 @@ public static class FixSceneDay5Builder
         SetField(sequence, "playerActor", playerActor);
         SetField(sequence, "skyRunMinigame", skyRun);
         SetField(sequence, "bunchItemDataSO", bunchLv2);
-        SetField(sequence, "lv2CropDataSO", Day2DataBuilder.SawitLv2);
-        SetArray(sequence, "plantationPlotArray", plots);
         SetField(sequence, "plantationRoot", plantationRoot);
-        SetArray(sequence, "areaPlantArray", areaPlants);
+        // the ponds go with the land's plants at the impact
+        SetArray(sequence, "areaPlantArray", areaPlants.Concat(ponds).ToArray());
         SetField(sequence, "digSpot", digSpot);
         SetField(sequence, "digStandPoint", digStandPoint);
         SetField(sequence, "launchPoint", launchPoint);
@@ -166,18 +174,38 @@ public static class FixSceneDay5Builder
         SetField(reveal, "tinyBed", tinyBed);
         SetField(reveal, "digSpot", digSpot);
         SetArray(reveal, "gardenTileArray", tiles);
-        SetArray(reveal, "plotVisualArray", plots.Select(p => (Object)p.transform.Find("Visual")).ToArray());
         SetField(reveal, "dustPrefab", dust);
+        GameObject terrain = GameObject.Find("CozyFarm/Terrain");
+        SetField(reveal, "terrainFilter", terrain.GetComponent<MeshFilter>());
+        SetField(reveal, "terrainCollider", terrain.GetComponent<MeshCollider>());
+        SetField(reveal, "flatTerrainMesh", flatTerrain);
+
+        PlantingDash plantingDash = director.gameObject.AddComponent<PlantingDash>();
+        SetArray(plantingDash, "plantationPlotArray", plots);
+        SetField(plantingDash, "seedItemDataSO", Day2DataBuilder.SawitSeedLv2);
+        SetField(plantingDash, "cropDataSO", Day2DataBuilder.SawitLv2);
+        SerializedObject dashSo = new SerializedObject(plantingDash);
+        dashSo.FindProperty("interactableLayerMask").intValue = LayerMask.GetMask("Interactable");
+        dashSo.ApplyModifiedPropertiesWithoutUndo();
+        PlantingDashVisual dashVisual = director.gameObject.AddComponent<PlantingDashVisual>();
+        SetField(dashVisual, "plantingDash", plantingDash);
+        SetField(dashVisual, "playerActor", playerActor);
+        SetField(dashVisual, "dustPrefab", dust);
 
         Day5Director day5 = director.gameObject.AddComponent<Day5Director>();
         SetField(day5, "day5SO", day5SO);
         SetField(day5, "screenFade", Object.FindAnyObjectByType<ScreenFadeUI>(FindObjectsInactive.Include));
         SetField(day5, "savingsBookUI", Object.FindAnyObjectByType<SavingsBookUI>(FindObjectsInactive.Include));
         SetField(day5, "fabricator", Object.FindAnyObjectByType<FabricatorController>(FindObjectsInactive.Include));
-        Day3GrayboxBuilder.SetRecipe(day5);
+        SetSeedSackRecipe(day5);
         SetField(day5, "lv2CropDataSO", Day2DataBuilder.SawitLv2);
         SetField(day5, "sellCrate", Object.FindAnyObjectByType<SellCrate>(FindObjectsInactive.Include));
         SetField(day5, "plantationSequence", sequence);
+        SetField(day5, "plantingDash", plantingDash);
+        SetField(day5, "landQTE", landQTE);
+        SetField(day5, "playerActor", playerActor);
+        SetField(day5, "seedItemDataSO", Day2DataBuilder.SawitSeedLv2);
+        SetField(day5, "bunchItemDataSO", bunchLv2);
         SetField(day5, "ijahNpc", Day3GrayboxBuilder.FindNpc("Npc_Ijah"));
         SetField(day5, "ratnaNpc", Day3GrayboxBuilder.FindNpc("Npc_Ratna"));
         SetField(day5, "dimasNpc", Day3GrayboxBuilder.FindNpc("Npc_Dimas"));
@@ -222,6 +250,7 @@ public static class FixSceneDay5Builder
         BuildImpact(director, sequence, dust, dive, plantation);
         SetField(Day3GrayboxBuilder.BuildUi(null, landQTE), "plantationSequence", sequence);
         BuildSkyRunUi(skyRun);
+        BuildPlantingDashUi(plantingDash, day5SO);
         BuildChildhoodShowUi(sequence);
 
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
@@ -252,6 +281,76 @@ public static class FixSceneDay5Builder
         day3Graybox.Find("NewBridge").gameObject.SetActive(true);
         // after the bridge, Rigel keeps away from the MC
         Day3GrayboxBuilder.FindNpc("Npc_Rigel").gameObject.SetActive(false);
+    }
+
+    // The ground punch levels the ponds: a copy of the terrain where each basin and its brown rim is filled level with the
+    // grass round it (height and vertex colour from a ring just outside the rim). Saved, not applied: PlantationRevealVisual
+    // swaps it in at the impact. Returns it with the pond objects the impact switches off (their water, the water spots).
+    private static (Mesh flatTerrain, GameObject[] ponds) BuildFlatTerrain()
+    {
+        List<GameObject> pondList = new List<GameObject>();
+        MeshFilter terrain = GameObject.Find("CozyFarm/Terrain").GetComponent<MeshFilter>();
+        Transform space = terrain.transform;
+        Mesh mesh = Object.Instantiate(terrain.sharedMesh);
+        mesh.name = "Day5_Terrain";
+        Vector3[] vertices = mesh.vertices;
+        Color[] colors = mesh.colors;
+        foreach (MeshRenderer water in GameObject.Find("CozyFarm").GetComponentsInChildren<MeshRenderer>(true))
+        {
+            if (!water.name.StartsWith("Pond_") || !water.name.EndsWith("_Water")) continue;
+            Bounds pond = water.bounds;
+            float ringHeight = 0f;
+            Color ringColor = Color.clear;
+            int ringCount = 0;
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                float reach = PondReach(space.TransformPoint(vertices[i]), pond);
+                if (reach < POND_RING_INNER || reach > POND_RING_OUTER) continue;
+                ringHeight += space.TransformPoint(vertices[i]).y;
+                ringColor += colors[i];
+                ringCount++;
+            }
+            ringHeight /= ringCount;
+            ringColor /= ringCount;
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                Vector3 world = space.TransformPoint(vertices[i]);
+                // 1 inside the fill, easing to 0 at the ring so the patch meets the ground without a step
+                float fill = 1f - Mathf.InverseLerp(POND_FILL, POND_RING_INNER, PondReach(world, pond));
+                if (fill <= 0f) continue;
+                world.y = Mathf.Lerp(world.y, ringHeight, fill);
+                vertices[i] = space.InverseTransformPoint(world);
+                colors[i] = Color.Lerp(colors[i], ringColor, fill);
+            }
+            pondList.Add(water.gameObject);
+        }
+        mesh.vertices = vertices;
+        mesh.colors = colors;
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+        SaveMesh(mesh, TERRAIN_MESH_PATH);
+        pondList.Add(GameObject.Find("PondWaterSpots"));
+        return (AssetDatabase.LoadAssetAtPath<Mesh>(TERRAIN_MESH_PATH), pondList.ToArray());
+    }
+
+    // Day 6 starts after the punch: the flat terrain from the start, the ponds gone
+    public static void ApplyFlatTerrain()
+    {
+        GameObject terrain = GameObject.Find("CozyFarm/Terrain");
+        Mesh flat = AssetDatabase.LoadAssetAtPath<Mesh>(TERRAIN_MESH_PATH);
+        terrain.GetComponent<MeshFilter>().sharedMesh = flat;
+        terrain.GetComponent<MeshCollider>().sharedMesh = flat;
+        foreach (MeshRenderer water in GameObject.Find("CozyFarm").GetComponentsInChildren<MeshRenderer>(true))
+            if (water.name.StartsWith("Pond_") && water.name.EndsWith("_Water")) water.gameObject.SetActive(false);
+        GameObject.Find("PondWaterSpots").SetActive(false);
+    }
+
+    // 1 on the pond water's outline (its bounds as an ellipse), 2 twice as far from its centre
+    private static float PondReach(Vector3 point, Bounds pond)
+    {
+        float x = (point.x - pond.center.x) / pond.extents.x;
+        float z = (point.z - pond.center.z) / pond.extents.z;
+        return Mathf.Sqrt(x * x + z * z);
     }
 
     // the map's own scenery standing on the marked land (its trees, bushes, rocks)
@@ -305,8 +404,9 @@ public static class FixSceneDay5Builder
                         SerializedObject so = new SerializedObject(plot);
                         so.FindProperty("startState").enumValueIndex = (int)FarmPlot.State.Empty;
                         so.ApplyModifiedPropertiesWithoutUndo();
-                        // the model's bed is the soil
+                        // the model's bed is the soil, and its crops stand on the bed, not sunk into it
                         plot.transform.Find("Visual/Soil").gameObject.SetActive(false);
+                        SetValue(plot.GetComponentInChildren<FarmPlotVisual>(true), "modelHeight", PLANTATION_CROP_HEIGHT);
                         plotList.Add(plot);
                     }
                 }
@@ -447,6 +547,57 @@ public static class FixSceneDay5Builder
         SetField(ui, "countText", count);
         SetField(ui, "countPop", pop);
         fade.transform.SetAsLastSibling();
+    }
+
+    // top-centre: the dash hint, a charge bar and the dashes left; under the screen fade
+    private static void BuildPlantingDashUi(PlantingDash plantingDash, Day5SO day5SO)
+    {
+        ScreenFadeUI fade = Object.FindAnyObjectByType<ScreenFadeUI>(FindObjectsInactive.Include);
+        RectTransform root = Rect(fade.transform.parent, "PlantingDashUI", Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero);
+        root.gameObject.AddComponent<CanvasGroup>();
+        TextMeshProUGUI hint = Text(root, "Hint", string.Empty, 34, Color.white, TextAlignmentOptions.Center, FontStyles.Bold);
+        hint.outlineWidth = .25f;
+        hint.outlineColor = Color.black;
+        Place(hint.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -90f), new Vector2(1300f, 60f));
+        Image barBack = Img(root, "ChargeBar", null, new Color(0f, 0f, 0f, .55f), new Vector2(.5f, 1f), new Vector2(.5f, 1f), new Vector2(.5f, 1f), new Vector2(0f, -135f), new Vector2(420f, 26f));
+        barBack.raycastTarget = false;
+        Image fill = Img(barBack.rectTransform, "Fill", null, Accent, Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero);
+        fill.raycastTarget = false;
+        fill.type = Image.Type.Filled;
+        fill.fillMethod = Image.FillMethod.Horizontal;
+        TextMeshProUGUI count = Text(root, "Count", "Dashes x0", 48, Accent, TextAlignmentOptions.Center, FontStyles.Bold);
+        count.outlineWidth = .25f;
+        count.outlineColor = Color.black;
+        Place(count.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -195f), new Vector2(600f, 70f));
+        PlantingDashUI ui = root.gameObject.AddComponent<PlantingDashUI>();
+        SetField(ui, "plantingDash", plantingDash);
+        SetField(ui, "day5SO", day5SO);
+        SetField(ui, "hintText", hint);
+        SetField(ui, "countText", count);
+        SetField(ui, "chargeFillImage", fill);
+        SetField(ui, "countPop", count.gameObject.AddComponent<UIPop>());
+        fade.transform.SetAsLastSibling();
+    }
+
+    // the day's one press: a water and a flower make the whole plantation's 48 Lv.2 seeds (the bottle comes back)
+    private static void SetSeedSackRecipe(Day5Director director)
+    {
+        SerializedObject so = new SerializedObject(director);
+        SerializedProperty recipe = so.FindProperty("recipeArray");
+        recipe.arraySize = 1;
+        recipe = recipe.GetArrayElementAtIndex(0);
+        SerializedProperty inputArray = recipe.FindPropertyRelative("inputArray");
+        inputArray.arraySize = 2;
+        inputArray.GetArrayElementAtIndex(0).FindPropertyRelative("itemDataSO").objectReferenceValue = GameDataBuilder.Water;
+        inputArray.GetArrayElementAtIndex(0).FindPropertyRelative("amount").intValue = 1;
+        inputArray.GetArrayElementAtIndex(1).FindPropertyRelative("itemDataSO").objectReferenceValue = GameDataBuilder.Flower;
+        inputArray.GetArrayElementAtIndex(1).FindPropertyRelative("amount").intValue = 1;
+        recipe.FindPropertyRelative("output.itemDataSO").objectReferenceValue = Day2DataBuilder.SawitSeedLv2;
+        recipe.FindPropertyRelative("output.amount").intValue = 48;
+        recipe.FindPropertyRelative("returned.itemDataSO").objectReferenceValue = GameDataBuilder.EmptyBottle;
+        recipe.FindPropertyRelative("returned.amount").intValue = 1;
+        recipe.FindPropertyRelative("blockedReason").stringValue = "Needs water and a flower";
+        so.ApplyModifiedPropertiesWithoutUndo();
     }
 
     // ---------- markers, sky, the childhood show ----------
@@ -776,7 +927,7 @@ public static class FixSceneDay5Builder
         GameDataBuilder.EmptyBottle = GameDataBuilder.Load<ItemDataSO>("Items", "EmptyBottle");
         GameDataBuilder.Water = GameDataBuilder.Load<ItemDataSO>("Items", "Water");
         GameDataBuilder.Flower = GameDataBuilder.Load<ItemDataSO>("Items", "Flower");
-        return Day5DataBuilder.Build(bunchLv2);
+        return Day5DataBuilder.Build(bunchLv2, Day2DataBuilder.SawitSeedLv2);
     }
 
     // the bedroom's director needs Day 5's morning thought

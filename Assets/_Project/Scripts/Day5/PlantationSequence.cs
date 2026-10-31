@@ -8,7 +8,7 @@ using UnityEngine;
 // They walk onto the jump marker ("Okay, let's try this.") and shoot up through the sky, the clouds and into orbit while the
 // player steers them through floating sawit and birds (SkyRunMinigame). At the top the camera simply stops following and the
 // MC drops out of its frame; a cut to the dive, fist first into the middle of the marked land: an earthquake
-// (SmashImpactVisual), the land's trees are gone, and the tiled 3x4 gardens stand there with a ripe palm on every bed.
+// (SmashImpactVisual), the land's trees are gone, and the tiled 3x4 gardens stand there, every bed empty and ready for seed.
 // Day5Director starts it and carries on on OnFinished.
 public class PlantationSequence : MonoBehaviour
 {
@@ -31,9 +31,6 @@ public class PlantationSequence : MonoBehaviour
     [SerializeField] private SkyRunMinigame skyRunMinigame;
     [Tooltip("What the MC eats, and what the sky run's pickups add to the bag.")]
     [SerializeField] private ItemDataSO bunchItemDataSO;
-    [SerializeField] private CropDataSO lv2CropDataSO;
-    [Tooltip("Every plot in the tiled gardens: shown and ripened by the impact.")]
-    [SerializeField] private FarmPlot[] plantationPlotArray;
     [SerializeField] private GameObject plantationRoot;
     [Tooltip("The map's trees, bushes and rocks on the marked land: gone with the impact.")]
     [SerializeField] private GameObject[] areaPlantArray;
@@ -76,7 +73,6 @@ public class PlantationSequence : MonoBehaviour
     private Vector3 peakPosition;
     private Vector3 fallStart;
     private float fallSpeed;
-    private bool isRipenPending;
 
     private void Start()
     {
@@ -89,13 +85,6 @@ public class PlantationSequence : MonoBehaviour
 
     private void Update()
     {
-        // the plots run their own Start (startState) the frame they're shown, so they ripen on the next one
-        if (isRipenPending)
-        {
-            isRipenPending = false;
-            foreach (FarmPlot farmPlot in plantationPlotArray) farmPlot.SetRipe(lv2CropDataSO);
-        }
-
         switch (step)
         {
             case Step.WaitMarker: CheckMarker(); break;
@@ -376,7 +365,6 @@ public class PlantationSequence : MonoBehaviour
                 break;
             case Step.Impact:
                 plantationRoot.SetActive(true);
-                isRipenPending = true;
                 SetStep(Step.Reveal);
                 timer = revealShotDuration;
                 break;
