@@ -1,17 +1,22 @@
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UI;
 using static GrayboxBuild;
+using static UiBuilder;
 
-// Builds "Day 6: The Offer" on the CozyFarm map as FixScene_Day6 (Tools > FixScene > Build Day 6 Scene). It copies
-// FixScene_Day5 (so build Day 5 first), strips Day 5's story and lays out the day, two weeks on:
+// Builds "Day 6: The Cost of Success" (DAY6_DESIGN.md) on the CozyFarm map as FixScene_Day6 (Tools > FixScene > Build Day 6
+// Scene). It copies FixScene_Day5 (so build Day 5 first), strips Day 5's story and lays out the day, two weeks on:
 // - Day 5's plantation stands from the start, and "half the forest" is palms: the 3x4 garden model tiled further east
 //   (2 columns x 3 rows, scenery only: the model and a ripe palm on every bed), the map's plants under it hidden;
 // - the wild plants just past the whole plantation's edges pulse red all day (MutationSpreadVisual with no director);
-// - a copy of the Distributor who walks up the path to the MC's door, the cameras, and Day6Director.
+// - a copy of the Distributor who walks up the path to the MC's door, the cameras, and Day6Director;
+// - the damage: a brown river, the old garden's beds and Rigel's garden dried grey, Rigel back at his garden, the old
+//   garden's inspect spot, and the Lv.3 choice panel.
 // Re-runnable: FixScene_Day6 is regenerated each time.
 public static class FixSceneDay6Builder
 {
@@ -41,6 +46,15 @@ public static class FixSceneDay6Builder
     private static readonly Vector3 PathCornerPosition = new Vector3(-14.2f, 0f, -25.6f);
     private static readonly Vector3 StandPosition = new Vector3(-22.2f, 0f, -24f);
     private static readonly Vector3 FabricatorStandPosition = new Vector3(-7.3f, 0f, -23.2f);
+    // in front of Rigel's garden behind his house, facing the village; the old garden's west end, clear of the crate
+    private static readonly Vector3 RigelStandPosition = new Vector3(-13.5f, 0f, 19.6f);
+    private static readonly Vector3 OldGardenSpotPosition = new Vector3(-14.6f, 0f, -29.7f);
+    // Rigel's own garden (the map's Rival_Property_Garden mesh, not its .002 copy under the old garden)
+    private const float RIGEL_GARDEN_MIN_Z = 20f;
+    private static readonly Color DriedSoilColor = new Color(.55f, .5f, .44f);
+    private static readonly Color MurkyRiverColor = new Color(.55f, .42f, .25f);
+    private const string RIVER_MATERIAL_PATH = "Assets/_Project/Art/Materials/RiverWater.mat";
+    private const string MURKY_RIVER_MATERIAL_PATH = "Assets/_Project/Art/Materials/RiverWaterMurky.mat";
 
     [MenuItem("Tools/FixScene/Build Day 6 Scene")]
     public static void Build()
@@ -65,7 +79,7 @@ public static class FixSceneDay6Builder
         GameDataBuilder.EmptyBottle = GameDataBuilder.Load<ItemDataSO>("Items", "EmptyBottle");
         GameDataBuilder.Water = GameDataBuilder.Load<ItemDataSO>("Items", "Water");
         GameDataBuilder.Flower = GameDataBuilder.Load<ItemDataSO>("Items", "Flower");
-        Day6SO day6SO = Day6DataBuilder.Build();
+        Day6SO day6SO = Day6DataBuilder.Build(GameDataBuilder.Load<ItemDataSO>("Items", "SawitBunchLv2"));
 
         Transform gameplay = GameObject.Find(GAMEPLAY_ROOT).transform;
         FarmPlot[] plantationPlots = StripDay5(gameplay);
@@ -79,6 +93,7 @@ public static class FixSceneDay6Builder
         Transform standPoint = Day2GrayboxBuilder.Point(points, "DistributorStandPoint", Ground(StandPosition), 180f);
         Transform fabricatorStandPoint = Day2GrayboxBuilder.Point(points, "FabricatorStandPoint", Ground(FabricatorStandPosition), 180f);
         Transform eveningPoint = Day2GrayboxBuilder.Point(points, "EveningPoint", Ground(FixSceneDay5Builder.EveningPosition), 135f);
+        Transform rigelStandPoint = Day2GrayboxBuilder.Point(points, "RigelStandPoint", Ground(RigelStandPosition), 180f);
         Transform day2Graybox = gameplay.Find("Day2_Graybox");
         Transform morningPoint = day2Graybox.Find("Points/MorningPoint");
 
@@ -88,19 +103,29 @@ public static class FixSceneDay6Builder
         distributorGo.name = "Npc_Distributor";
         distributorGo.GetComponent<NpcWander>().enabled = false;
         CutsceneActor distributorActor = Day1GrayboxBuilder.EnsureActor(distributorGo, distributorGo.GetComponentInChildren<NpcVisual>(true));
+        // Rigel comes back out (switched off since Day 4) and waits at his garden instead of wandering
+        Npc rigel = Day3GrayboxBuilder.FindNpc("Npc_Rigel");
+        rigel.GetComponent<NpcWander>().enabled = false;
+        BuildDamage(gameplay);
+        InspectSpot oldGardenSpot = BuildInspectSpot(graybox, Ground(OldGardenSpotPosition));
 
         Day6Director day6 = director.gameObject.AddComponent<Day6Director>();
         SetField(day6, "day6SO", day6SO);
         SetField(day6, "screenFade", Object.FindAnyObjectByType<ScreenFadeUI>(FindObjectsInactive.Include));
+        SetField(day6, "savingsBookUI", Object.FindAnyObjectByType<SavingsBookUI>(FindObjectsInactive.Include));
         SetField(day6, "fabricator", Object.FindAnyObjectByType<FabricatorController>(FindObjectsInactive.Include));
         Day3GrayboxBuilder.SetRecipe(day6);
         SetField(day6, "lv2CropDataSO", Day2DataBuilder.SawitLv2);
         SetArray(day6, "plantationPlotArray", plantationPlots);
         SetField(day6, "distributorNpc", distributorGo.GetComponent<Npc>());
         SetField(day6, "distributorActor", distributorActor);
-        SetField(day6, "ijahNpc", Day3GrayboxBuilder.FindNpc("Npc_Ijah"));
-        SetField(day6, "ratnaNpc", Day3GrayboxBuilder.FindNpc("Npc_Ratna"));
+        SetField(day6, "riverNode", GameObject.Find("River_Water").GetComponent<ResourceNode>());
+        SetField(day6, "oldGardenSpot", oldGardenSpot);
         SetField(day6, "dimasNpc", Day3GrayboxBuilder.FindNpc("Npc_Dimas"));
+        SetField(day6, "dartoNpc", Day3GrayboxBuilder.FindNpc("Npc_Darto"));
+        SetField(day6, "ijahNpc", Day3GrayboxBuilder.FindNpc("Npc_Ijah"));
+        SetField(day6, "rigelNpc", rigel);
+        SetField(day6, "ratnaNpc", Day3GrayboxBuilder.FindNpc("Npc_Ratna"));
         SetField(day6, "houseDoor", Object.FindAnyObjectByType<HouseDoor>(FindObjectsInactive.Include));
         SetField(day6, "morningPoint", morningPoint);
         SetField(day6, "arrivalPoint", arrivalPoint);
@@ -108,6 +133,7 @@ public static class FixSceneDay6Builder
         SetField(day6, "distributorStandPoint", standPoint);
         SetField(day6, "fabricatorStandPoint", fabricatorStandPoint);
         SetField(day6, "eveningPoint", eveningPoint);
+        SetField(day6, "rigelStandPoint", rigelStandPoint);
 
         NightVisual night = director.gameObject.AddComponent<NightVisual>();
         SetField(night, "day6Director", day6);
@@ -128,7 +154,8 @@ public static class FixSceneDay6Builder
         SetField(mutation, "blackMaterial", GrayboxPalette.Unlit("GlitchVoid", new Color(.02f, .02f, .03f)));
         SetValue(mutation, "isTearing", 1f);
 
-        BuildCameras(director, day6, distributorGo.transform, standPoint.position, edgePlants, minX, maxX, minZ, maxZ);
+        BuildCameras(director, day6, distributorGo.transform, standPoint.position, fabricatorStandPoint.position, edgePlants, minX, maxX, minZ, maxZ);
+        BuildChoiceUi(day6, day6SO);
 
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
@@ -226,9 +253,77 @@ public static class FixSceneDay6Builder
         }
     }
 
+    // ---------- the damage ----------
+
+    // the river runs brown (a copy of its material), and the old garden's beds and Rigel's garden turn dry grey
+    private static void BuildDamage(Transform gameplay)
+    {
+        if (AssetDatabase.LoadAssetAtPath<Material>(MURKY_RIVER_MATERIAL_PATH) == null) AssetDatabase.CopyAsset(RIVER_MATERIAL_PATH, MURKY_RIVER_MATERIAL_PATH);
+        Material murky = AssetDatabase.LoadAssetAtPath<Material>(MURKY_RIVER_MATERIAL_PATH);
+        Material clear = AssetDatabase.LoadAssetAtPath<Material>(RIVER_MATERIAL_PATH);
+        murky.SetColor("_BaseColor", MurkyRiverColor);
+        EditorUtility.SetDirty(murky);
+        foreach (MeshRenderer water in Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include))
+            if (water.sharedMaterial == clear) water.sharedMaterial = murky;
+
+        Material dried = GrayboxPalette.Lit("DriedSoil", DriedSoilColor);
+        // the old garden's furrows and ridges (the model's sub-meshes 1 and 2, as FixSceneDay5Builder cuts them)
+        MeshRenderer oldGarden = gameplay.Find("Day3Yard_Graybox/Garden_3x4").GetComponentInChildren<MeshRenderer>(true);
+        Material[] gardenMaterials = oldGarden.sharedMaterials;
+        gardenMaterials[1] = dried;
+        gardenMaterials[2] = dried;
+        oldGarden.sharedMaterials = gardenMaterials;
+        foreach (MeshRenderer bed in GameObject.Find("CozyFarm").GetComponentsInChildren<MeshRenderer>(true))
+            if (bed.name.StartsWith("Rival_Property_Garden") && bed.bounds.center.z > RIGEL_GARDEN_MIN_Z)
+                bed.sharedMaterials = Enumerable.Repeat(dried, bed.sharedMaterials.Length).ToArray();
+    }
+
+    // an [Interact] spot on the Interactable layer with its prompt above it
+    private static InspectSpot BuildInspectSpot(Transform graybox, Vector3 position)
+    {
+        GameObject spot = Root("OldGardenSpot", graybox);
+        spot.transform.position = position;
+        spot.layer = LayerMask.NameToLayer("Interactable");
+        SphereCollider trigger = spot.AddComponent<SphereCollider>();
+        trigger.isTrigger = true;
+        trigger.radius = 1f;
+        Transform anchor = Root("PromptAnchor", spot.transform).transform;
+        anchor.position = position + Vector3.up * 1.2f;
+        InspectSpot inspect = spot.AddComponent<InspectSpot>();
+        SetField(inspect, "promptAnchor", anchor);
+        return inspect;
+    }
+
+    // a card above the hotbar: title and two buttons; under the screen fade
+    private static void BuildChoiceUi(Day6Director day6, Day6SO day6SO)
+    {
+        ScreenFadeUI fade = Object.FindAnyObjectByType<ScreenFadeUI>(FindObjectsInactive.Include);
+        RectTransform panel = Panel(fade.transform.parent, "OfferChoiceUI", new Vector2(.5f, 0f), new Vector2(.5f, 0f), new Vector2(.5f, 0f), new Vector2(0f, 170f), new Vector2(560f, 220f), Cream);
+        TextMeshProUGUI title = Text(panel, "Title", "The Lv.3 seeds", 34, Ink, TextAlignmentOptions.Center, FontStyles.Bold);
+        Place(title.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -45f), new Vector2(500f, 50f));
+        Button expand = UiBuilder.Button(panel, "ExpandButton", "Take them", new Vector2(-120f, 60f), new Vector2(210f, 64f));
+        Button stop = UiBuilder.Button(panel, "StopButton", "Refuse", new Vector2(120f, 60f), new Vector2(210f, 64f));
+        // the shared button barely changes when selected: dim the other one, so A/D shows which one [E] picks
+        foreach (Button choice in new[] { expand, stop })
+        {
+            ColorBlock colors = choice.colors;
+            colors.normalColor = new Color(.62f, .6f, .58f);
+            colors.highlightedColor = Color.white;
+            colors.selectedColor = Color.white;
+            choice.colors = colors;
+        }
+        OfferChoiceUI ui = panel.gameObject.AddComponent<OfferChoiceUI>();
+        SetField(ui, "director", day6);
+        SetField(ui, "day6SO", day6SO);
+        SetField(ui, "titleText", title);
+        SetField(ui, "expandButton", expand);
+        SetField(ui, "stopButton", stop);
+        fade.transform.SetAsLastSibling();
+    }
+
     // ---------- cameras ----------
 
-    private static void BuildCameras(Transform director, Day6Director day6, Transform distributor, Vector3 stand, Renderer[] edgePlants,
+    private static void BuildCameras(Transform director, Day6Director day6, Transform distributor, Vector3 stand, Vector3 fabricatorStand, Renderer[] edgePlants,
         float minX, float maxX, float minZ, float maxZ)
     {
         Vector3 centre = Ground(new Vector3((minX + maxX) * .5f, 0f, (minZ + maxZ) * .5f));
@@ -245,6 +340,9 @@ public static class FixSceneDay6Builder
         // side-on from the east, the two of them by the door; aimed low so they stand above the dialogue box
         Vector3 between = (stand + Vector3.back * Day6Director.TALK_DISTANCE + stand) * .5f;
         SetField(cameraVisual, "meetingCamera", Day3GrayboxBuilder.FixedCamera(director, "CM_Day6Meeting", between + new Vector3(8f, 3f, .6f), between + Vector3.up * .3f, 40f));
+        // dusk by the Fabricator: side-on from the west, the two of them above the dialogue box
+        Vector3 fabricatorBetween = fabricatorStand + Vector3.back * Day6Director.TALK_DISTANCE * .5f;
+        SetField(cameraVisual, "fabricatorCamera", Day3GrayboxBuilder.FixedCamera(director, "CM_Day6Fabricator", fabricatorBetween + new Vector3(-8f, 3f, .6f), fabricatorBetween + Vector3.up * .3f, 40f));
         // close on his face past the MC's shoulder, off to the east of their hat; aimed under it, above the dialogue box
         Vector3 face = stand + Vector3.up * 1.35f;
         SetField(cameraVisual, "glassesCamera", Day3GrayboxBuilder.FixedCamera(director, "CM_Day6Glasses", face + new Vector3(1.4f, .15f, -2.6f), face + Vector3.down * .45f, 35f));

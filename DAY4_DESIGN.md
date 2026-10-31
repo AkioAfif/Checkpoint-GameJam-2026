@@ -1,6 +1,6 @@
 # Day 4: Room to Grow
 
-> **Moved from Day 3 (2026-10-28).** This design is now **Day 4**. A new Day 3 (`DAY3_DESIGN.md`) comes before it: the MC widens the garden by hand, with no sawit power, and the day ends on the hook below. The beats here are unchanged. Wherever this page says "Day 3" it now means Day 4, and the CozyFarm scene is now `FixScene_Day4` (the graybox `Level01_Day3` keeps its name). Day 4 opens with the "Two weeks later..." caption, so the skip covers two weeks of Day 3's routine. Day 3's 3 hand-dug plots and its 3×4 garden are already in the scene. The CozyFarm version (section 5b) is the one the game plays.
+> **Moved from Day 3 (2026-10-28).** This design is now **Day 4**. A new Day 3 (its `DAY3_DESIGN.md` was removed 2026-10-31, see git history) comes before it: the MC widens the garden by hand, with no sawit power, and the day ends on the hook below. The beats here are unchanged. Wherever this page says "Day 3" it now means Day 4, and the CozyFarm scene is now `FixScene_Day4` (the graybox `Level01_Day3` keeps its name). Day 4 opens with the "Two weeks later..." caption, so the skip covers two weeks of Day 3's routine. Day 3's 3 hand-dug plots and its 3×4 garden are already in the scene. The CozyFarm version (section 5b) is the one the game plays.
 
 Story outline mapping: Day 1 = Prologue + Chapter 0, Day 2 = Chapter 1, Day 3 = Chapter 2 done by hand, **Day 4 = the sawit power and the first trees cut for a new field**, with the hook into Chapter 3's wider deforestation.
 

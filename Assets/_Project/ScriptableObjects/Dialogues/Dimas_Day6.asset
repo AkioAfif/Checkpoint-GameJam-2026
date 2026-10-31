@@ -14,14 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   lineArray:
   - speaker: 1
-    text: Mum says I can't go near your palms any more.
+    text: The worms are gone. Even the red ones.
     playerEmote: 0
     npcEmote: 7
     isShaking: 0
     isNpcGlaring: 0
     focusNpcSO: {fileID: 0}
   - speaker: 1
-    text: Not even to look.
+    text: Mum says don't put your feet in any more. It smells like rust.
     playerEmote: 0
     npcEmote: 0
     isShaking: 0

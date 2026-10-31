@@ -23,6 +23,8 @@ public static class WorldState
     private static bool isDay6Complete;
     private static bool hasSkippedTime;
     private static bool hasPaidOffDebt;
+    // Day 6's choice: the Distributor's Sawit Lv.3 seeds taken (keep expanding) or refused (stop)
+    private static bool hasTakenLv3;
     private static bool isFabricatorPlaced;
     // every plot as the last day's door closed on it; the next morning's plots wake up from these (FarmPlot.Start)
     private static bool hasGarden;
@@ -66,6 +68,7 @@ public static class WorldState
     public static void CompleteDay4() => isDay4Complete = true;
     public static void CompleteDay5() => isDay5Complete = true;
     public static void CompleteDay6() => isDay6Complete = true;
+    public static void ChooseLv3(bool isTaken) => hasTakenLv3 = isTaken;
 
     // later calls keep the running totals
     public static void OpenAccounts(long startingSavings, long startingDebt, int startingDaysUntilDue)
@@ -90,11 +93,13 @@ public static class WorldState
         currentDay = day;
     }
 
-    // what ICAN pays goes straight to the lender
+    // what ICAN pays goes straight to the lender; once the debt is paid, the rest is savings
     public static void Earn(long amount)
     {
         earnedToday += amount;
-        debt = Math.Max(0L, debt - amount);
+        long paid = Math.Min(debt, amount);
+        debt -= paid;
+        savings += amount - paid;
         OnDebtChanged?.Invoke(null, EventArgs.Empty);
     }
 
@@ -163,6 +168,7 @@ public static class WorldState
     public static bool IsDay4Complete() => isDay4Complete;
     public static bool IsDay5Complete() => isDay5Complete;
     public static bool IsDay6Complete() => isDay6Complete;
+    public static bool HasTakenLv3() => hasTakenLv3;
     public static bool IsFabricatorPlaced() => isFabricatorPlaced;
     public static bool HasAccounts() => hasAccounts;
     public static bool HasGarden() => hasGarden;
@@ -215,6 +221,7 @@ public static class WorldState
         isDay6Complete = false;
         hasSkippedTime = false;
         hasPaidOffDebt = false;
+        hasTakenLv3 = false;
         isFabricatorPlaced = false;
         hasGarden = false;
         gardenPlotList.Clear();

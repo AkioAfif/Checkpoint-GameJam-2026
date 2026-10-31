@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b5eef9af9623baf47817cd10c4ddca09, type: 3}
-  m_Name: D6_CheckVillagers
+  m_Name: D6_SeeWhatHeMeant
   m_EditorClassIdentifier: Assembly-CSharp::TaskObjectiveSO
   type: 4
-  description: Tell Nek Ijah, Bu Ratna and Dimas the news
+  description: 'See what he meant: the old garden, Dimas, Pak Darto, Nek Ijah, Rigel'
   itemDataSO: {fileID: 0}
-  requiredCount: 3
+  requiredCount: 5

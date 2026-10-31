@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: D6_GoHome
   m_EditorClassIdentifier: Assembly-CSharp::TaskObjectiveSO
   type: 3
-  description: Go home and think it over
+  description: Go home
   itemDataSO: {fileID: 0}
   requiredCount: 1
