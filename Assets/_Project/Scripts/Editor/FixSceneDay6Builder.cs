@@ -27,6 +27,13 @@ public static class FixSceneDay6Builder
     private const int EXTRA_ROWS = 3;
     // how far past the plantation's edges the pulsing plants stand
     private const float EDGE_BAND = 6f;
+    // the torn forest: everything from the plantation's south edge to past the world border (river to cliffs), and the strip
+    // east of it up to the cliffs
+    private const float TORN_SOUTH_DEPTH = 28f;
+    private const float TORN_EAST_WIDTH = 12f;
+    private const float TORN_WEST_X = 4f;
+    // ground, roads, the skirt and the mountains are bigger than any plant or rock
+    private const float TORN_MAX_SIZE = 15f;
 
     // the Distributor's walk: down the path north of the house, round its corner, to the MC by the front door (stand points on
     // the NavMesh: the agent re-seats him on it after each walk)
@@ -110,10 +117,16 @@ public static class FixSceneDay6Builder
         SetField(director.gameObject.AddComponent<NightCurfew>(), "day6Director", day6);
 
         Renderer[] edgePlants = FindEdgePlants(minX, maxX, minZ, maxZ);
+        Renderer[] tornPlants = edgePlants.Union(FindTornForest(minX, maxX, minZ, maxZ)).ToArray();
+        // static batching would freeze them in place: the tear moves and stretches each one
+        foreach (Renderer plant in tornPlants)
+            GameObjectUtility.SetStaticEditorFlags(plant.gameObject, GameObjectUtility.GetStaticEditorFlags(plant.gameObject) & ~StaticEditorFlags.BatchingStatic);
         MutationSpreadVisual mutation = director.gameObject.AddComponent<MutationSpreadVisual>();
-        SetArray(mutation, "rendererArray", edgePlants);
-        // the same raw red Day 2's palms flicker to (Day2GrayboxBuilder)
+        SetArray(mutation, "rendererArray", tornPlants);
+        // the same raw red Day 2's palms flicker to (Day2GrayboxBuilder), and the void-black of the world glitch
         SetField(mutation, "pulseMaterial", GrayboxPalette.Unlit("MutantPulse", new Color(.62f, .05f, .1f)));
+        SetField(mutation, "blackMaterial", GrayboxPalette.Unlit("GlitchVoid", new Color(.02f, .02f, .03f)));
+        SetValue(mutation, "isTearing", 1f);
 
         BuildCameras(director, day6, distributorGo.transform, standPoint.position, edgePlants, minX, maxX, minZ, maxZ);
 
@@ -123,7 +136,7 @@ public static class FixSceneDay6Builder
         WireBedroom(day6SO);
         AssetDatabase.SaveAssets();
         EditorSceneManager.OpenScene(SCENE_PATH);
-        Debug.Log($"Day 6 built into {SCENE_PATH}: plantation x {minX}..{maxX}, z {minZ}..{maxZ}, {edgePlants.Length} edge plants pulse.");
+        Debug.Log($"Day 6 built into {SCENE_PATH}: plantation x {minX}..{maxX}, z {minZ}..{maxZ}, {tornPlants.Length} plants tear.");
     }
 
     // ---------- the map ----------
@@ -197,6 +210,20 @@ public static class FixSceneDay6Builder
             if (isNear && !isInside) plantList.Add(renderer);
         }
         return plantList.ToArray();
+    }
+
+    // every scenery piece (the map's and the world border's) south of the plantation, river to cliffs, and east of it
+    private static IEnumerable<Renderer> FindTornForest(float minX, float maxX, float minZ, float maxZ)
+    {
+        foreach (MeshRenderer renderer in Object.FindObjectsByType<MeshRenderer>())
+        {
+            Bounds bounds = renderer.bounds;
+            if (bounds.size.x > TORN_MAX_SIZE || bounds.size.z > TORN_MAX_SIZE) continue;
+            Vector3 c = bounds.center;
+            bool isSouth = c.z < minZ && c.z > minZ - TORN_SOUTH_DEPTH && c.x > TORN_WEST_X && c.x < maxX + TORN_EAST_WIDTH;
+            bool isEast = c.x > maxX && c.x < maxX + TORN_EAST_WIDTH && c.z >= minZ && c.z < maxZ + EDGE_BAND;
+            if (isSouth || isEast) yield return renderer;
+        }
     }
 
     // ---------- cameras ----------

@@ -12,9 +12,13 @@ public static class Day6DataBuilder
         DialogueSO.DialogueLine N(string text, Emote npcEmote = Emote.None) => new DialogueSO.DialogueLine { speaker = DialogueSO.Speaker.Npc, text = text, npcEmote = npcEmote };
         DialogueSO.DialogueLine P(string text, Emote playerEmote = Emote.None) => new DialogueSO.DialogueLine { speaker = DialogueSO.Speaker.Player, text = text, playerEmote = playerEmote };
 
-        Day2SO day2 = GameDataBuilder.Load<Day2SO>("Day2", "Day2");
-        day2.bookPaidFormat = BOOK_PAID_FORMAT;
-        EditorUtility.SetDirty(day2);
+        // every Day2SO (Day2 and its CozyFarm copy): the debt can hit 0 on any day the savings book opens, not just Day 6
+        foreach (string guid in AssetDatabase.FindAssets("t:Day2SO"))
+        {
+            Day2SO day2 = AssetDatabase.LoadAssetAtPath<Day2SO>(AssetDatabase.GUIDToAssetPath(guid));
+            day2.bookPaidFormat = BOOK_PAID_FORMAT;
+            EditorUtility.SetDirty(day2);
+        }
 
         Day6SO day6 = GameDataBuilder.Asset<Day6SO>("Day6", "Day6");
         day6.daysUntilDue = 2;
