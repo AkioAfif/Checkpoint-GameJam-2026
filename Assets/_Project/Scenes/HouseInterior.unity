@@ -993,10 +993,15 @@ MonoBehaviour:
   lineText: {fileID: 291293473}
   nameText: {fileID: 1336164115}
   nameTagImage: {fileID: 427144291}
+  playerPortraitFrame: {fileID: 754527301}
   npcPortraitFrame: {fileID: 1985001793}
   playerPortraitImage: {fileID: 1119018328}
   npcPortraitImage: {fileID: 1862363447}
   silentPortraitColor: {r: 0.32, g: 0.32, b: 0.32, a: 1}
+  silentPortraitScale: 0.82
+  speakingPortraitScale: 0.92
+  portraitPopDuration: 0.3
+  portraitPopOvershoot: 0.08
   continueIndicator: {fileID: 174824849}
   boxPop: {fileID: 1603277356}
   playerName: You

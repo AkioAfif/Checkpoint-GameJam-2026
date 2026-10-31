@@ -249,6 +249,7 @@ public static class UiBuilder
         SetField(ui, "lineText", line);
         SetField(ui, "nameText", name);
         SetField(ui, "nameTagImage", nameTag.GetComponent<Image>());
+        SetField(ui, "playerPortraitFrame", playerFrame.gameObject);
         SetField(ui, "npcPortraitFrame", npcFrame.gameObject);
         SetField(ui, "playerPortraitImage", playerFrame.GetComponentInChildren<RawImage>());
         SetField(ui, "npcPortraitImage", npcFrame.GetComponentInChildren<RawImage>());

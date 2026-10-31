@@ -19865,10 +19865,15 @@ MonoBehaviour:
   lineText: {fileID: 1901118078}
   nameText: {fileID: 125035910}
   nameTagImage: {fileID: 1697330193}
+  playerPortraitFrame: {fileID: 737839990}
   npcPortraitFrame: {fileID: 1133225897}
   playerPortraitImage: {fileID: 2143053981}
   npcPortraitImage: {fileID: 746078786}
   silentPortraitColor: {r: 0.32, g: 0.32, b: 0.32, a: 1}
+  silentPortraitScale: 0.82
+  speakingPortraitScale: 0.92
+  portraitPopDuration: 0.3
+  portraitPopOvershoot: 0.08
   continueIndicator: {fileID: 1382419358}
   boxPop: {fileID: 894617425}
   playerName: You

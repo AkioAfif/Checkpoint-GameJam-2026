@@ -209,12 +209,15 @@ public static class Day1GrayboxBuilder
         cam.transform.LookAt(Level01SceneBuilder.FabricatorPosition + new Vector3(0f, .65f, 0f));
     }
 
-    // the dialogue box hides the NPC portrait during the player's monologues
-    private static void PatchDialogueUi()
+    // the dialogue box hides the NPC portrait during the player's monologues, and pops each frame for its speaker
+    public static void PatchDialogueUi()
     {
         DialogueUI ui = Object.FindAnyObjectByType<DialogueUI>(FindObjectsInactive.Include);
         foreach (Transform t in ui.GetComponentsInChildren<Transform>(true))
+        {
             if (t.name == "NpcPortrait") SetField(ui, "npcPortraitFrame", t.gameObject);
+            if (t.name == "PlayerPortrait") SetField(ui, "playerPortraitFrame", t.gameObject);
+        }
     }
 
     // characters get a CutsceneActor so the director can hop them around and ask for emotes
