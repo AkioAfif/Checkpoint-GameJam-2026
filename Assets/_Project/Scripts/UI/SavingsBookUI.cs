@@ -48,7 +48,9 @@ public class SavingsBookUI : MonoBehaviour
         titleText.text = day2SO.bookTitle;
         string savings = Koin.Format(WorldState.GetSavings()), debt = Koin.Format(WorldState.GetDebt());
         long earned = WorldState.GetEarnedToday();
-        bodyText.text = earned > 0L
+        bodyText.text = WorldState.HasAccounts() && WorldState.GetDebt() == 0L
+            ? string.Format(day2SO.bookPaidFormat, savings)
+            : earned > 0L
             ? string.Format(day2SO.bookEveningFormat, savings, Koin.Format(earned), debt, WorldState.GetDaysUntilDue())
             : string.Format(day2SO.bookMorningFormat, savings, debt, WorldState.GetDaysUntilDue());
         continueText.text = string.Format(day2SO.bookCloseHint, GameInput.Instance.GetInteractBindingDisplay());

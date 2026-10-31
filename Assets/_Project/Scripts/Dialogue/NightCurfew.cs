@@ -17,6 +17,7 @@ public class NightCurfew : MonoBehaviour
     [SerializeField] private Day3Director day3Director;
     [SerializeField] private YardDayDirector yardDayDirector;
     [SerializeField] private Day5Director day5Director;
+    [SerializeField] private Day6Director day6Director;
 
     private bool isNight;
     // the villagers sent indoors tonight, to bring back out in the morning
@@ -35,6 +36,7 @@ public class NightCurfew : MonoBehaviour
         if (day3Director != null) day3Director.OnStateChanged += Day3Director_OnStateChanged;
         if (yardDayDirector != null) yardDayDirector.OnStateChanged += YardDayDirector_OnStateChanged;
         if (day5Director != null) day5Director.OnStateChanged += Day5Director_OnStateChanged;
+        if (day6Director != null) day6Director.OnStateChanged += Day6Director_OnStateChanged;
         // a director that started first may already be at night
         SetNight(IsDirectorAtNight());
     }
@@ -54,6 +56,9 @@ public class NightCurfew : MonoBehaviour
     private void Day5Director_OnStateChanged(object sender, Day5Director.OnStateChangedEventArgs e) =>
         SetNight(e.state == Day5Director.State.Night || e.state == Day5Director.State.Done);
 
+    private void Day6Director_OnStateChanged(object sender, Day6Director.OnStateChangedEventArgs e) =>
+        SetNight(e.state == Day6Director.State.Night || e.state == Day6Director.State.Done);
+
     public bool IsNight() => isNight;
 
     private bool IsDirectorAtNight()
@@ -63,6 +68,7 @@ public class NightCurfew : MonoBehaviour
         if (day3Director != null) return day3Director.GetState() == Day3Director.State.Night || day3Director.GetState() == Day3Director.State.Done;
         if (yardDayDirector != null) return yardDayDirector.GetState() == YardDayDirector.State.Night || yardDayDirector.GetState() == YardDayDirector.State.Done;
         if (day5Director != null) return day5Director.GetState() == Day5Director.State.Night || day5Director.GetState() == Day5Director.State.Done;
+        if (day6Director != null) return day6Director.GetState() == Day6Director.State.Night || day6Director.GetState() == Day6Director.State.Done;
         return false;
     }
 

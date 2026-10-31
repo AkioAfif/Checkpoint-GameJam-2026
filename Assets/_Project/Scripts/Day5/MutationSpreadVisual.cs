@@ -4,8 +4,10 @@ using UnityEngine;
 // (MutationPulseVisual), over and over while they're on screen behind the MC's back after the planting, and again through
 // the night, where the player sees it and the MC doesn't.
 // Material swaps only: most of the map is static-batched, so nothing here moves or scales.
+// With no director (Day 6) the red has spread into daylight: the plants pulse all day.
 public class MutationSpreadVisual : MonoBehaviour
 {
+    [Tooltip("Empty: pulse all the time.")]
     [SerializeField] private Day5Director director;
     [Tooltip("The plants at the clearing's edge (in CM_Day5Mutation's and CM_Day5Forest's frame).")]
     [SerializeField] private Renderer[] rendererArray;
@@ -28,7 +30,7 @@ public class MutationSpreadVisual : MonoBehaviour
 
     private void Update()
     {
-        bool shouldPulse = director.IsMutationShot() || director.GetState() == Day5Director.State.Night;
+        bool shouldPulse = director == null || director.IsMutationShot() || director.GetState() == Day5Director.State.Night;
         if (shouldPulse != isPulsing)
         {
             isPulsing = shouldPulse;

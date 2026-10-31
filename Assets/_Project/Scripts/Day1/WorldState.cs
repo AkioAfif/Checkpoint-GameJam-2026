@@ -20,7 +20,9 @@ public static class WorldState
     private static bool isDay3Complete;
     private static bool isDay4Complete;
     private static bool isDay5Complete;
+    private static bool isDay6Complete;
     private static bool hasSkippedTime;
+    private static bool hasPaidOffDebt;
     private static bool isFabricatorPlaced;
     // every plot as the last day's door closed on it; the next morning's plots wake up from these (FarmPlot.Start)
     private static bool hasGarden;
@@ -63,6 +65,7 @@ public static class WorldState
     public static void CompleteDay3() => isDay3Complete = true;
     public static void CompleteDay4() => isDay4Complete = true;
     public static void CompleteDay5() => isDay5Complete = true;
+    public static void CompleteDay6() => isDay6Complete = true;
 
     // later calls keep the running totals
     public static void OpenAccounts(long startingSavings, long startingDebt, int startingDaysUntilDue)
@@ -101,6 +104,18 @@ public static class WorldState
         if (hasSkippedTime) return;
         hasSkippedTime = true;
         debt = Math.Max(0L, debt - paidMeanwhile);
+        OnDebtChanged?.Invoke(null, EventArgs.Empty);
+        daysUntilDue = newDaysUntilDue;
+        earnedToday = 0L;
+    }
+
+    // the two weeks between Day 5 and Day 6: the plantation's harvests paid off whatever was left (applied once; SkipTime
+    // already ran on Day 4)
+    public static void PayOffDebt(int newDaysUntilDue)
+    {
+        if (hasPaidOffDebt) return;
+        hasPaidOffDebt = true;
+        debt = 0L;
         OnDebtChanged?.Invoke(null, EventArgs.Empty);
         daysUntilDue = newDaysUntilDue;
         earnedToday = 0L;
@@ -147,6 +162,7 @@ public static class WorldState
     public static bool IsDay3Complete() => isDay3Complete;
     public static bool IsDay4Complete() => isDay4Complete;
     public static bool IsDay5Complete() => isDay5Complete;
+    public static bool IsDay6Complete() => isDay6Complete;
     public static bool IsFabricatorPlaced() => isFabricatorPlaced;
     public static bool HasAccounts() => hasAccounts;
     public static bool HasGarden() => hasGarden;
@@ -196,7 +212,9 @@ public static class WorldState
         isDay3Complete = false;
         isDay4Complete = false;
         isDay5Complete = false;
+        isDay6Complete = false;
         hasSkippedTime = false;
+        hasPaidOffDebt = false;
         isFabricatorPlaced = false;
         hasGarden = false;
         gardenPlotList.Clear();
