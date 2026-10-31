@@ -140,3 +140,55 @@ The clue only works because of Day 5's rule: the player has watched every conver
 - Play `FixScene_Day5` on its own.
 - Or tick `BedroomDirector.isTestingDay5` in HouseInterior; it fakes Days 1–4. The book then shows Day 4's skip without Day 4's sales, and the bag holds no Lv.2 bunches until the harvest.
 - After a map change, rebuild in order: Day 2 → 3 → 4 → **Tools > FixScene > Build Day 5 Scene**.
+
+## 9. Handoff: building Day 6 (start a fresh session here)
+
+Prompt for the new session: *"Read DAY5_DESIGN.md (section 9) and build Day 6."* The story for Day 6 is section 7 above, and the skip is section 6. The project facts are in `.claude/rules/project-settings.md` (the Day 5 section is the closest template).
+
+**Where things stand (2026-10-31)**
+- Branch `day5-half-the-forest` (pushed). It also carries `still-water-and-bedroom-outline-fix`, and none of it is merged to `main` yet. Branch Day 6 off it, e.g. `day6-the-offer`.
+- Day 5's night door goes to the end screen and calls `WorldState.CompleteDay5()` (`Day5Director.Start`: `houseDoor.SetNextScene(Loader.Scene.HouseInterior_Stub)`).
+- Templates to copy: `Scripts/Editor/FixSceneDay5Builder.cs`, `Scripts/Day5/Day5Director.cs`, `Day5SO.cs`, `Scripts/Editor/Day5DataBuilder.cs`.
+
+**Build steps**
+1. **Flow wiring.**
+   - `WorldState`:
+     - add `isDay6Complete`, `CompleteDay6()`, `IsDay6Complete()` and the reset line;
+     - add a second skip that pays the whole debt off (`SkipTime` only runs once, guarded by `hasSkippedTime`), e.g. `PayOffDebt()` or a separate flag.
+   - `Loader.Scene`: add `FixScene_Day6` at the end.
+   - `BedroomDirector`:
+     - day = `IsDay5Complete() ? 6 : …`;
+     - add a `day6SO` field (morning thought + skip caption);
+     - on day 6, play the "Two weeks later..." caption (same as Day 4), apply the payoff and load `FixScene_Day6`;
+     - add `isTestingDay6`, which fakes Days 1–5.
+   - Day 5's door: go to `Loader.Scene.HouseInterior` instead of the stub.
+   - The savings book must read "Debt: PAID" when the debt is 0. Check `SavingsBookUI.Show` and `Day2SO.book*Format`.
+2. **`FixSceneDay6Builder`** (Tools > FixScene > Build Day 6 Scene) copies `FixScene_Day5`, then:
+   - **Strip** `Gameplay/Day5` (director, sequence, cameras, `NightCurfew`), the HUD panels it added (`HUD/LandQTEUI`, `HUD/SkyRunUI`, `HUD/ChildhoodShowUI`), and `Day5_Graybox/ChildhoodShowStudio`, `Sky`, `TinyBed`, `GhostFarm`, `DigMarker` and `JumpMarker`.
+   - **Keep** `Day5_Graybox/Plantation` and turn it on. Hide the Day 5 area plants (the list is `FixSceneDay5Builder.FindAreaPlants`).
+   - "Half the forest is plantation": tile more `garden_3x4` copies over more of the forest (`BuildPlantation` / `HighestGround`), maybe scenery-only copies with ripe palm models, and hide the map trees under them. **Ask the user** where and how much.
+   - **Re-add** `Day6Director`, `NightVisual` + `NightCurfew` (each needs a new optional `day6Director` ref), the cameras, and `MutationSpreadVisual` (pulsing in daylight at several plantation edges).
+3. **`Day6Director`.** The beats are in section 7:
+   - morning, then the Distributor's truck arrives;
+   - Day 1's truck lives in FixScene's `Day1_Graybox` and is stripped from Days 2+, so copy it back in, or have the Distributor walk in;
+   - congratulations, the Lv.3 pitch (show the projected earnings, e.g. an SO-driven UI panel or dialogue);
+   - the clue line via `GameDataBuilder.Glaring(N(...))` (the lens glare), the MC freezing, and an open ending.
+   - Distributor prefab: `Prefabs/Characters/Npc_Distributor.prefab` (`DistributorFaceVisual` does the glare).
+   - Villagers are quieter (override dialogues, as on Day 5).
+4. **`Day6DataBuilder`**: `Day6SO`, dialogues `Day6_*`, tasks `D6_*`.
+5. **Docs:** a Day 6 section in `project-settings.md` (scene index 11), and update this file.
+
+**Ask the user before building**
+1. How big the "half the forest" plantation is, and where.
+2. Whether the player gets an accept/decline choice for the Lv.3 seed on Day 6.
+3. What follows Day 6: the end screen, or a Day 7.
+
+**Gotchas from Day 5**
+- **Teleport while upright.** Turn the MC upright *before* `Player.Teleport`: re-enabling the CharacterController head-down drops them through the ground.
+- **`GrayboxBuild.Part` takes a LOCAL position.** The `Gameplay` root isn't at the world origin, so set world positions after creating a part.
+- **Cut meshes keep the model's pivot.** `FixSceneDay3Builder.CutMesh` pieces keep the whole model's vertex list and its pivot, so their bounds are the model's. Store the real position separately.
+- **Pond interactables steal [E].** The pond water spots take the [E] press within about 2 m, so keep "[E] here" markers away from ponds. Proximity triggers are fine.
+- **Open another scene before rebuilding.** Builders call `SaveCurrentModifiedScenesIfUserWantsTo`, so open another scene first (Unity MCP `eval` `EditorSceneManager.OpenScene(...)`), or a modal dialog blocks the editor.
+- **MCP flakiness.** Unity MCP calls often fail (400 or a network error) right after a recompile: retry. `eval` defaults to a 5 s timeout, so pass `timeout` for builds.
+- **Same-frame state changes.** A dialogue or popup closing returns `GameState.Playing` only on the next frame, so script tests must wait a frame before the next [E].
+- **Line endings in commit messages.** In PowerShell 5.1 commit messages containing `"` break `git commit -m`; use `-F file`. Leave `ProjectSettings/TimeManager.asset` out of commits (the editor rewrites it).
