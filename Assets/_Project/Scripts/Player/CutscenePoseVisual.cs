@@ -122,10 +122,10 @@ public class CutscenePoseVisual : MonoBehaviour
                 armREuler = new Vector3(-155f - thrash * 35f, 0f, 22f);
                 break;
             case CutscenePose.SupermanFly:
-                // taking off: one fist straight up past the head, the other arm tucked at the side, chin up
+                // taking off: one fist punched up and out past the head (clear of the hat from behind), the other arm tucked, chin up
                 headEuler = new Vector3(-14f, 0f, 0f);
                 armLEuler = new Vector3(-8f, 0f, -14f);
-                armREuler = new Vector3(-176f, 0f, -4f);
+                armREuler = new Vector3(-165f, 0f, 30f);
                 break;
             case CutscenePose.SupermanDive:
                 // both fists locked together ahead of the head, ready to strike

@@ -14,10 +14,14 @@ public class Day5SO : ScriptableObject
     public DialogueSO morningDialogueSO;
     // after the harvest: the camera on the land south of the pond
     public DialogueSO wishDialogueSO;
-    // PlantationSequence: before the first bunch, after the one bed rises, [Interact] with no bunch in the bag, the plantation
+    // PlantationSequence: before the first bunch, after it (dig by hand), after the one bed rises, [Interact] with no bunch in
+    // the bag, after the childhood TV show, on the jump marker, the plantation
     public DialogueSO eatOneDialogueSO;
+    public DialogueSO digIdeaDialogueSO;
     public DialogueSO tinyGrowthDialogueSO;
     public DialogueSO noBunchDialogueSO;
+    public DialogueSO hallucinationDialogueSO;
+    public DialogueSO markerDialogueSO;
     public DialogueSO revealDialogueSO;
     // the MC, turned away from the plants pulsing red at the plantation's edge, heads off to see the village
     public DialogueSO fieldDoneDialogueSO;
@@ -33,7 +37,9 @@ public class Day5SO : ScriptableObject
     [Header("Checklists")]
     public TaskObjectiveSO[] harvestObjectiveArray;
     public TaskObjectiveSO[] eatOneObjectiveArray;
+    public TaskObjectiveSO[] digObjectiveArray;
     public TaskObjectiveSO[] eatManyObjectiveArray;
+    public TaskObjectiveSO[] markerObjectiveArray;
     // selling and the three villagers, in any order
     public TaskObjectiveSO[] errandObjectiveArray;
     public TaskObjectiveSO[] nightObjectiveArray;

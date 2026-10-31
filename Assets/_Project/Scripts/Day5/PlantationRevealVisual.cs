@@ -1,13 +1,15 @@
 using UnityEngine;
 
-// The ground answering what the MC ate. After the first bunch a single garden bed pushes up out of the grass with a puff of
-// dirt; after the dive the whole tiled garden heaves up out of the shockwave and every palm on it springs to full size.
+// The ground answering what the MC ate. Dirt flies with each bare-handed blow, then a single garden bed pushes up out of the
+// grass with a puff of dirt; after the dive the whole tiled garden heaves up out of the shockwave and every palm on it springs to full size.
 // The single bed goes once the real garden stands where it was.
 public class PlantationRevealVisual : MonoBehaviour
 {
     [SerializeField] private PlantationSequence plantationSequence;
     [Tooltip("The one bed that rises after the first bunch (a piece of the first garden tile, at its first bed).")]
     [SerializeField] private Transform tinyBed;
+    [Tooltip("Where that bed is (the cut piece keeps the tile's pivot): the dig's dirt flies from here.")]
+    [SerializeField] private Transform digSpot;
     [Tooltip("The tiled 3x4 garden models.")]
     [SerializeField] private Transform[] gardenTileArray;
     [Tooltip("Each plantation plot's Visual (the palm on it), scaled up from nothing.")]
@@ -26,6 +28,7 @@ public class PlantationRevealVisual : MonoBehaviour
     private void Start()
     {
         plantationSequence.OnStepChanged += PlantationSequence_OnStepChanged;
+        plantationSequence.OnDigBlow += PlantationSequence_OnDigBlow;
         tinyBedRestPosition = tinyBed.localPosition;
         tileRestPositionArray = new Vector3[gardenTileArray.Length];
         for (int i = 0; i < gardenTileArray.Length; i++) tileRestPositionArray[i] = gardenTileArray[i].localPosition;
@@ -53,6 +56,10 @@ public class PlantationRevealVisual : MonoBehaviour
         if (revealTimer >= Mathf.Max(riseDuration, popDuration)) revealTimer = -1f;
     }
 
+    // a little dirt flies up with each bare-handed blow
+    private void PlantationSequence_OnDigBlow(object sender, System.EventArgs e) =>
+        Instantiate(dustPrefab, digSpot.position, Quaternion.identity).localScale = Vector3.one * .6f;
+
     private void PlantationSequence_OnStepChanged(object sender, PlantationSequence.OnStepChangedEventArgs e)
     {
         switch (e.step)
@@ -60,7 +67,7 @@ public class PlantationRevealVisual : MonoBehaviour
             case PlantationSequence.Step.TinyGrowth:
                 tinyBed.gameObject.SetActive(true);
                 tinyTimer = 0f;
-                Instantiate(dustPrefab, tinyBed.position, Quaternion.identity);
+                Instantiate(dustPrefab, digSpot.position, Quaternion.identity);
                 break;
             case PlantationSequence.Step.Reveal:
                 tinyBed.gameObject.SetActive(false);

@@ -1,21 +1,29 @@
 using System;
 using UnityEngine;
 
-// Day 5's set piece, from the wish to the grown plantation. The MC eats one Lv.2 sawit from the bag (hold [Interact]): a
-// single bed pushes out of the ground. Not enough, so they eat every bunch left (mash [Interact], one fill per bunch): the
-// world tears for three seconds (WorldGlitchVisual), then they shoot into the sky in a Superman pose while the player steers
-// them through floating sawit and birds (SkyRunMinigame). At the top they hang, drop out of the fixed peak shot, and dive
-// fist first into the middle of the marked land: an earthquake (SmashImpactVisual), the area's trees and bushes are gone,
-// and the tiled 3x4 gardens stand there with a ripe palm on every bed. Day5Director starts it and carries on on OnFinished.
+// Day 5's set piece, from the wish to the grown plantation. The MC eats one Lv.2 sawit from the bag (hold [Interact]), then
+// digs by hand at the marker south of the pond (a hard mash): one single bed is all it buys. Not enough, so they eat every
+// bunch left (mash, one fill per bunch): the world tears for three seconds (WorldGlitchVisual), and through it the MC
+// remembers a childhood TV show (ChildhoodShowVisual): a superhero who lands from the sky and flowers bloom from the crater.
+// They walk onto the jump marker ("Okay, let's try this.") and shoot up through the sky, the clouds and into orbit while the
+// player steers them through floating sawit and birds (SkyRunMinigame). At the top the camera simply stops following and the
+// MC drops out of its frame; a cut to the dive, fist first into the middle of the marked land: an earthquake
+// (SmashImpactVisual), the land's trees are gone, and the tiled 3x4 gardens stand there with a ripe palm on every bed.
+// Day5Director starts it and carries on on OnFinished.
 public class PlantationSequence : MonoBehaviour
 {
     public event EventHandler<OnStepChangedEventArgs> OnStepChanged;
     public class OnStepChangedEventArgs : EventArgs { public Step step; }
     public event EventHandler<OnImpactEventArgs> OnImpact;
     public class OnImpactEventArgs : EventArgs { public Vector3 position; }
+    public event EventHandler OnDigBlow;
     public event EventHandler OnFinished;
 
-    public enum Step { None, EatOneTalk, WaitEatOne, EatingOne, TinyGrowth, TinyGrowthTalk, WaitEatMany, EatingMany, Glitch, Launch, Peak, Fall, Dive, Impact, Reveal, RevealTalk, Done }
+    public enum Step
+    {
+        None, EatOneTalk, WaitEatOne, EatingOne, DigTalk, WaitDig, Digging, TinyGrowth, TinyGrowthTalk, WaitEatMany, EatingMany,
+        Glitch, Hallucination, HallucinationTalk, WaitMarker, MarkerTalk, Launch, Peak, Fall, Dive, Impact, Reveal, RevealTalk, Done,
+    }
 
     [SerializeField] private Day5SO day5SO;
     [SerializeField] private LandQTE landQTE;
@@ -29,25 +37,35 @@ public class PlantationSequence : MonoBehaviour
     [SerializeField] private GameObject plantationRoot;
     [Tooltip("The map's trees, bushes and rocks on the marked land: gone with the impact.")]
     [SerializeField] private GameObject[] areaPlantArray;
-    [Tooltip("At the marked land's north edge: where the glitch drops the MC to take off.")]
+    [Tooltip("Where the MC digs by hand (the single bed rises there); the MC kneels beside it, facing it.")]
+    [SerializeField] private Transform digSpot;
+    [SerializeField] private Transform digStandPoint;
+    [Tooltip("The jump marker at the marked land's north edge: stepping on it starts the launch.")]
     [SerializeField] private Transform launchPoint;
     [Tooltip("The middle of the marked land: the dive's target.")]
     [SerializeField] private Transform impactPoint;
     [SerializeField] private float eatHoldDuration = 1f;
+    [Tooltip("How close (m) to a marker counts as on it.")]
+    [SerializeField] private float markerRadius = 1.3f;
+    [Tooltip("Digging by hand is hard: many presses per blow.")]
+    [SerializeField] private int digPressesPerBlow = 8;
+    [SerializeField] private int digBlowCount = 3;
     [Tooltip("Mash presses per bunch eaten.")]
     [SerializeField] private int chompsPerBunch = 3;
     [SerializeField] private float tinyGrowthTalkDelay = 1.3f;
     [SerializeField] private float glitchDuration = 3f;
-    [Tooltip("Metres above the impact point the arc peaks.")]
-    [SerializeField] private float launchHeight = 26f;
-    [SerializeField] private float launchDuration = 6f;
+    [Tooltip("Seconds the childhood TV show plays.")]
+    [SerializeField] private float hallucinationDuration = 5.5f;
+    [Tooltip("Metres above the impact point the arc peaks: past the clouds, into orbit.")]
+    [SerializeField] private float launchHeight = 520f;
+    [SerializeField] private float launchDuration = 9f;
     [Tooltip("Sky-run checkpoints laid out evenly up the climb, one row of pickups or birds each.")]
-    [SerializeField] private int skyRunRowCount = 9;
+    [SerializeField] private int skyRunRowCount = 12;
     [SerializeField] private float peakHangDuration = .35f;
-    [Tooltip("Seconds of free fall at the peak shot (the MC drops out of its frame).")]
+    [Tooltip("Seconds of free fall at the peak (the MC drops out of the stopped camera's frame).")]
     [SerializeField] private float fallDuration = .8f;
     [SerializeField] private float fallGravity = 30f;
-    [SerializeField] private float diveDuration = 1.6f;
+    [SerializeField] private float diveDuration = 2.4f;
     [Tooltip("Seconds between the punch and the plantation standing there.")]
     [SerializeField] private float revealDelay = .5f;
     [SerializeField] private float revealShotDuration = 2.4f;
@@ -80,6 +98,7 @@ public class PlantationSequence : MonoBehaviour
 
         switch (step)
         {
+            case Step.WaitMarker: CheckMarker(); break;
             case Step.Launch: UpdateLaunch(); break;
             case Step.Fall: UpdateFall(); break;
             case Step.Dive: UpdateDive(); break;
@@ -96,7 +115,7 @@ public class PlantationSequence : MonoBehaviour
         if (GameInput.Instance != null) GameInput.Instance.OnInteractAction -= GameInput_OnInteractAction;
     }
 
-    // ---------- eating ----------
+    // ---------- eating and digging ----------
 
     private void DialogueManager_OnDialogueEnded(object sender, DialogueManager.OnDialogueEventArgs e)
     {
@@ -106,9 +125,20 @@ public class PlantationSequence : MonoBehaviour
                 TaskManager.Instance.SetObjectives(day5SO.eatOneObjectiveArray);
                 SetStep(Step.WaitEatOne);
                 break;
+            case Step.DigTalk:
+                TaskManager.Instance.SetObjectives(day5SO.digObjectiveArray);
+                SetStep(Step.WaitDig);
+                break;
             case Step.TinyGrowthTalk:
                 TaskManager.Instance.SetObjectives(day5SO.eatManyObjectiveArray);
                 SetStep(Step.WaitEatMany);
+                break;
+            case Step.HallucinationTalk:
+                TaskManager.Instance.SetObjectives(day5SO.markerObjectiveArray);
+                SetStep(Step.WaitMarker);
+                break;
+            case Step.MarkerTalk:
+                StartLaunch();
                 break;
             case Step.RevealTalk:
                 playerActor.SetPose(CutscenePose.None);
@@ -118,10 +148,16 @@ public class PlantationSequence : MonoBehaviour
         }
     }
 
-    // [Interact] anywhere, as long as nothing else is targeted
+    // [Interact] anywhere with nothing targeted to eat; on the dig marker to dig
     private void GameInput_OnInteractAction(object sender, EventArgs e)
     {
-        if (!IsWaitingToEat() || !GameManager.Instance.IsGamePlaying() || PlayerInteraction.Instance.HasSelected()) return;
+        if (!GameManager.Instance.IsGamePlaying() || PlayerInteraction.Instance.HasSelected()) return;
+        if (CanDig())
+        {
+            StartDigging();
+            return;
+        }
+        if (!IsWaitingToEat()) return;
         int count = Inventory.Instance.GetCount(bunchItemDataSO);
         if (count == 0)
         {
@@ -144,33 +180,70 @@ public class PlantationSequence : MonoBehaviour
         }
     }
 
+    private void StartDigging()
+    {
+        Hold();
+        Player.Instance.Teleport(digStandPoint.position);
+        Player.Instance.FaceTowards(digSpot.position);
+        // on the knees, pounding the dirt with bare fists
+        playerActor.SetPose(CutscenePose.Crouch);
+        SetStep(Step.Digging);
+        landQTE.StartMash(digPressesPerBlow, digBlowCount);
+    }
+
     // the hold finished: one bunch down
     private void LandQTE_OnStateChanged(object sender, LandQTE.OnStateChangedEventArgs e)
     {
         if (step != Step.EatingOne || e.state != LandQTE.State.Idle) return;
         TaskManager.Instance.CompleteStory();
         playerActor.SetPose(CutscenePose.None);
-        SetStep(Step.TinyGrowth);
-        timer = tinyGrowthTalkDelay;
+        SetStep(Step.DigTalk);
+        DialogueManager.Instance.StartDialogue(null, day5SO.digIdeaDialogueSO);
     }
 
     private void LandQTE_OnFilled(object sender, LandQTE.OnFilledEventArgs e)
     {
-        if (step != Step.EatingMany) return;
-        Inventory.Instance.TryRemoveItem(bunchItemDataSO);
-        // a big chomp per bunch
-        playerActor.Punch();
-        if (!e.isLast) return;
-        TaskManager.Instance.CompleteStory();
-        playerActor.SetPose(CutscenePose.None);
-        SetStep(Step.Glitch);
-        timer = glitchDuration;
+        switch (step)
+        {
+            case Step.Digging:
+                playerActor.Punch();
+                OnDigBlow?.Invoke(this, EventArgs.Empty);
+                if (!e.isLast) return;
+                TaskManager.Instance.CompleteStory();
+                playerActor.SetPose(CutscenePose.None);
+                SetStep(Step.TinyGrowth);
+                timer = tinyGrowthTalkDelay;
+                break;
+            case Step.EatingMany:
+                Inventory.Instance.TryRemoveItem(bunchItemDataSO);
+                // a big chomp per bunch
+                playerActor.Punch();
+                if (!e.isLast) return;
+                TaskManager.Instance.CompleteStory();
+                playerActor.SetPose(CutscenePose.None);
+                SetStep(Step.Glitch);
+                timer = glitchDuration;
+                break;
+        }
     }
 
-    // ---------- the flight ----------
+    // ---------- the jump ----------
+
+    // standing on the marker: one line, then up
+    private void CheckMarker()
+    {
+        if (!GameManager.Instance.IsGamePlaying() || !IsNear(launchPoint)) return;
+        Hold();
+        TaskManager.Instance.CompleteStory();
+        Player.Instance.Teleport(launchPoint.position);
+        Player.Instance.FaceTowards(launchPoint.position + launchPoint.forward);
+        SetStep(Step.MarkerTalk);
+        DialogueManager.Instance.StartDialogue(null, day5SO.markerDialogueSO);
+    }
 
     private void StartLaunch()
     {
+        Hold();
         Player.Instance.BeginFlight();
         launchStart = launchPoint.position;
         peakPosition = impactPoint.position + Vector3.up * launchHeight;
@@ -251,9 +324,20 @@ public class PlantationSequence : MonoBehaviour
 
     public Step GetStep() => step;
     public bool IsWaitingToEat() => step == Step.WaitEatOne || step == Step.WaitEatMany;
+    public bool CanDig() => step == Step.WaitDig && IsNear(digSpot);
     public float GetGlitchDuration() => glitchDuration;
+    public float GetHallucinationDuration() => hallucinationDuration;
+    // the ground the dive lands on (the sky's altitude bands count from it)
+    public Vector3 GetImpactPosition() => impactPoint.position;
 
     // ---------- helpers ----------
+
+    private bool IsNear(Transform marker)
+    {
+        Vector3 offset = Player.Instance.transform.position - marker.position;
+        offset.y = 0f;
+        return offset.sqrMagnitude <= markerRadius * markerRadius;
+    }
 
     private void TimerFinished()
     {
@@ -264,7 +348,12 @@ public class PlantationSequence : MonoBehaviour
                 DialogueManager.Instance.StartDialogue(null, day5SO.tinyGrowthDialogueSO);
                 break;
             case Step.Glitch:
-                StartLaunch();
+                SetStep(Step.Hallucination);
+                timer = hallucinationDuration;
+                break;
+            case Step.Hallucination:
+                SetStep(Step.HallucinationTalk);
+                DialogueManager.Instance.StartDialogue(null, day5SO.hallucinationDialogueSO);
                 break;
             case Step.Launch:
                 skyRunMinigame.End();

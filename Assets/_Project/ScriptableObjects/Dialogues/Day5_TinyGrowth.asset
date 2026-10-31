@@ -14,21 +14,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
   lineArray:
   - speaker: 0
-    text: ...One bed?!
+    text: Haah... haah...
+    playerEmote: 10
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 0
+    text: All that... for one little bed?!
     playerEmote: 4
     npcEmote: 0
     isShaking: 0
     isNpcGlaring: 0
     focusNpcSO: {fileID: 0}
   - speaker: 0
-    text: That's it? Yesterday one sawit moved trees!
-    playerEmote: 0
-    npcEmote: 0
-    isShaking: 0
-    isNpcGlaring: 0
-    focusNpcSO: {fileID: 0}
-  - speaker: 0
-    text: I'll need to eat a lot more than that.
+    text: By hand this will take forever. I need more sawit. A lot more.
     playerEmote: 14
     npcEmote: 0
     isShaking: 0

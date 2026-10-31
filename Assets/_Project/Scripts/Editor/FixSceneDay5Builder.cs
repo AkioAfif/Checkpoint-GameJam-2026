@@ -5,6 +5,8 @@ using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.UI;
 using static GrayboxBuild;
 using static UiBuilder;
 
@@ -52,7 +54,31 @@ public static class FixSceneDay5Builder
     private static readonly Vector3 ImpactPosition = new Vector3(23.1f, 0f, -40.2f);
     // the evening: the plantation's north-west corner, looking over it
     private static readonly Vector3 EveningPosition = new Vector3(14.6f, 0f, -31.8f);
-    private const float LAUNCH_HEIGHT = 26f;
+    // past the clouds and into orbit
+    private const float LAUNCH_HEIGHT = 520f;
+    private const float DIG_STAND_DISTANCE = 1.1f;
+    // the sky by altitude: the morning's blue, deep blue, the cloud layer's white, the stratosphere, black space
+    private static readonly (float altitude, Color color)[] SkyBandArray =
+    {
+        (20f, new Color(.80f, .88f, .93f)), (90f, new Color(.45f, .70f, .95f)), (145f, new Color(.88f, .92f, .97f)),
+        (200f, new Color(.30f, .50f, .88f)), (290f, new Color(.12f, .16f, .45f)), (380f, new Color(.03f, .03f, .09f)),
+        (520f, new Color(.01f, .01f, .03f)),
+    };
+    private const float SPACE_ALTITUDE = 380f;
+    // the cloud layer the MC punches through
+    private const float CLOUD_BOTTOM = 140f;
+    private const float CLOUD_TOP = 175f;
+    // a planet 120 m under the peak, small enough that its curve and continents read from the top; it shows only above
+    // EARTH_SHOW_ALTITUDE, past its top, so the MC never flies through it
+    private const float EARTH_RADIUS = 3000f;
+    private const float EARTH_TOP_ALTITUDE = 400f;
+    private const float EARTH_SHOW_ALTITUDE = 420f;
+    // far enough for the Earth's horizon and the stars
+    private const float SPACE_FAR_CLIP = 9000f;
+    // the childhood show's studio, far under the map like the portrait booth
+    private static readonly Vector3 StudioPosition = new Vector3(0f, -300f, 60f);
+    private const string SHOW_TEXTURE_PATH = "Assets/_Project/Art/RenderTextures/ChildhoodShow.renderTexture";
+    private const string EARTH_TEXTURE_PATH = "Assets/_Project/Art/Textures/Day5Earth.png";
     // the launch camera rides north of the MC at foot height (any lower starts it under the ground), looking south and up past
     // them, so screen-right is world west
     private static readonly Vector3 LaunchCameraOffset = new Vector3(0f, .6f, 8.5f);
@@ -101,6 +127,9 @@ public static class FixSceneDay5Builder
         Transform eveningPoint = Day2GrayboxBuilder.Point(points, "EveningPoint", Ground(EveningPosition), 135f);
         Transform launchPoint = Day2GrayboxBuilder.Point(points, "LaunchPoint", Ground(LaunchPosition), 180f);
         Transform impactPoint = Day2GrayboxBuilder.Point(points, "ImpactPoint", Ground(ImpactPosition), 0f);
+        // the dig: the single bed's spot, the MC kneeling on its north side (toward the camera's side) facing it
+        Transform digSpot = Day2GrayboxBuilder.Point(points, "DigSpot", Ground(tinyBedPosition), 0f);
+        Transform digStandPoint = Day2GrayboxBuilder.Point(points, "DigStandPoint", Ground(tinyBedPosition + Vector3.forward * DIG_STAND_DISTANCE), 180f);
         Transform day2Graybox = gameplay.Find("Day2_Graybox");
         CutsceneActor playerActor = Object.FindAnyObjectByType<Player>(FindObjectsInactive.Include).GetComponent<CutsceneActor>();
         Transform dust = VfxBuilder.SmashDust().transform;
@@ -122,13 +151,20 @@ public static class FixSceneDay5Builder
         SetArray(sequence, "plantationPlotArray", plots);
         SetField(sequence, "plantationRoot", plantationRoot);
         SetArray(sequence, "areaPlantArray", areaPlants);
+        SetField(sequence, "digSpot", digSpot);
+        SetField(sequence, "digStandPoint", digStandPoint);
         SetField(sequence, "launchPoint", launchPoint);
         SetField(sequence, "impactPoint", impactPoint);
         SetValue(sequence, "launchHeight", LAUNCH_HEIGHT);
+        BuildMarker(graybox, "DigMarker", digSpot.position, sequence, PlantationSequence.Step.WaitDig);
+        BuildMarker(graybox, "JumpMarker", launchPoint.position, sequence, PlantationSequence.Step.WaitMarker);
+        BuildSky(director, graybox, sequence);
+        BuildChildhoodShow(graybox, sequence, dust);
 
         PlantationRevealVisual reveal = director.gameObject.AddComponent<PlantationRevealVisual>();
         SetField(reveal, "plantationSequence", sequence);
         SetField(reveal, "tinyBed", tinyBed);
+        SetField(reveal, "digSpot", digSpot);
         SetArray(reveal, "gardenTileArray", tiles);
         SetArray(reveal, "plotVisualArray", plots.Select(p => (Object)p.transform.Find("Visual")).ToArray());
         SetField(reveal, "dustPrefab", dust);
@@ -186,6 +222,7 @@ public static class FixSceneDay5Builder
         BuildImpact(director, sequence, dust, dive, plantation);
         SetField(Day3GrayboxBuilder.BuildUi(null, landQTE), "plantationSequence", sequence);
         BuildSkyRunUi(skyRun);
+        BuildChildhoodShowUi(sequence);
 
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
@@ -276,12 +313,13 @@ public static class FixSceneDay5Builder
         return (root, tileList.ToArray(), plotList.ToArray());
     }
 
-    // the bed of the first tile nearest the take-off, cut out of its mesh: the only ground one sawit buys
+    // a bed of the first tile near the take-off, cut out of its mesh: the only ground one sawit and bare hands buy
     private static (Transform piece, Vector3 bed) BuildTinyBed(Transform graybox, Transform firstTile)
     {
         MeshFilter model = firstTile.GetComponentInChildren<MeshFilter>(true);
+        // the middle row: the north one is in reach of the pond's water spot, which would take the [Interact] press
         Vector3 bed = BedXArray.SelectMany(x => BedZArray.Select(z => firstTile.position + firstTile.rotation * new Vector3(x, 0f, z)))
-            .OrderByDescending(p => p.z).ThenBy(p => Mathf.Abs(p.x - LaunchPosition.x)).First();
+            .OrderBy(p => Mathf.Abs(p.z - firstTile.position.z)).ThenBy(p => Mathf.Abs(p.x - LaunchPosition.x)).First();
         Mesh mesh = FixSceneDay3Builder.CutMesh(model, "Garden3x4_Bed_Day5", BedSubMeshArray,
             (a, b, c) => Mathf.Abs((a.x + b.x + c.x) / 3f - bed.x) < BED_HALF_SIZE && Mathf.Abs((a.z + b.z + c.z) / 3f - bed.z) < BED_HALF_SIZE);
         GameObject piece = Root("TinyBed", graybox);
@@ -357,7 +395,6 @@ public static class FixSceneDay5Builder
     {
         Transform player = Object.FindAnyObjectByType<Player>(FindObjectsInactive.Include).transform;
         Vector3 impact = Ground(ImpactPosition);
-        Vector3 peak = impact + Vector3.up * LAUNCH_HEIGHT;
         Day5CameraVisual cameraVisual = director.gameObject.AddComponent<Day5CameraVisual>();
         SetField(cameraVisual, "director", day5);
         SetField(cameraVisual, "plantationSequence", sequence);
@@ -368,13 +405,15 @@ public static class FixSceneDay5Builder
         SetField(cameraVisual, "tinyBedCamera", Day3GrayboxBuilder.FixedCamera(director, "CM_Day5TinyBed", tinyBed + new Vector3(0f, 3f, 4.5f), tinyBed + Vector3.down * 1.2f, 40f));
         // below and behind the MC all the way up, looking up past them into the sky
         CinemachineCamera launch = Day3GrayboxBuilder.ChaseCamera(director, "CM_Day5Launch", player, LaunchCameraOffset, 55f);
-        launch.GetComponent<CinemachineRotationComposer>().TargetOffset = new Vector3(0f, 2.5f, 0f);
+        // aimed a little below the MC: at the top, the Earth's curved horizon fills the bottom of the frame
+        launch.GetComponent<CinemachineRotationComposer>().TargetOffset = new Vector3(0f, -.5f, 0f);
+        SetFarClip(launch, SPACE_FAR_CLIP);
+        // at the top it stops following (Day5CameraVisual) and the MC drops out of its frame
         SetField(cameraVisual, "launchCamera", launch);
-        // level with the top of the arc: the MC hangs there, then drops out of the bottom of the frame
-        SetField(cameraVisual, "peakCamera", Day3GrayboxBuilder.FixedCamera(director, "CM_Day5Peak", peak + new Vector3(0f, 1.5f, 11f), peak + Vector3.up * .8f, 45f));
         // above and behind the falling MC, looking down past them at the land rushing up
         CinemachineCamera dive = Day3GrayboxBuilder.ChaseCamera(director, "CM_Day5Dive", player, new Vector3(0f, 4.5f, 3.5f), 60f);
         dive.GetComponent<CinemachineRotationComposer>().TargetOffset = new Vector3(0f, -1f, 0f);
+        SetFarClip(dive, SPACE_FAR_CLIP);
         SetField(cameraVisual, "diveCamera", dive);
         CinemachineCamera plantation = Day3GrayboxBuilder.FixedCamera(director, "CM_Day5Plantation", impact + new Vector3(0f, 15f, 17f), impact + new Vector3(0f, 0f, -1.5f), 50f);
         SetField(cameraVisual, "plantationCamera", plantation);
@@ -407,9 +446,309 @@ public static class FixSceneDay5Builder
         fade.transform.SetAsLastSibling();
     }
 
+    // ---------- markers, sky, the childhood show ----------
+
+    // a glowing disc on the ground and a diamond bobbing over it, shown while the sequence waits for the player there
+    private static void BuildMarker(Transform graybox, string name, Vector3 position, PlantationSequence sequence, PlantationSequence.Step shownStep)
+    {
+        Transform root = Root(name, graybox).transform;
+        root.position = position;
+        GameObject marker = Root("Marker", root);
+        GameObject ring = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        ring.name = "Ring";
+        Object.DestroyImmediate(ring.GetComponent<Collider>());
+        ring.transform.SetParent(marker.transform, false);
+        ring.transform.localPosition = Vector3.up * .05f;
+        ring.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+        ring.transform.localScale = Vector3.one * 2.2f;
+        ring.GetComponent<MeshRenderer>().sharedMaterial = GrayboxPalette.TransparentMapped("MarkerGlow", new Color(1f, .85f, .3f, .6f), GrayboxTextures.Circle.texture, true);
+        ring.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        Transform arrow = Root("Arrow", marker.transform).transform;
+        arrow.localPosition = Vector3.up * 2.4f;
+        GameObject diamond = Part(arrow, "Diamond", GrayboxMeshFactory.RoundedBox(new Vector3(.4f, .4f, .4f), .04f), GrayboxPalette.Unlit("MarkerArrow", new Color(1f, .82f, .25f)), Vector3.zero);
+        diamond.transform.localRotation = Quaternion.Euler(45f, 0f, 45f);
+        diamond.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        GroundMarkerVisual visual = root.gameObject.AddComponent<GroundMarkerVisual>();
+        SetField(visual, "plantationSequence", sequence);
+        SerializedObject so = new SerializedObject(visual);
+        so.FindProperty("shownStep").enumValueIndex = (int)shownStep;
+        so.ApplyModifiedPropertiesWithoutUndo();
+        SetField(visual, "markerRoot", marker);
+        SetField(visual, "ring", ring.transform);
+        SetField(visual, "arrow", arrow);
+    }
+
+    // the cloud layer over the climb, the stars and the Earth (hidden until space), and the visual that colours the sky by altitude
+    private static void BuildSky(Transform director, Transform graybox, PlantationSequence sequence)
+    {
+        Vector3 impact = Ground(ImpactPosition);
+        Vector3 column = (Ground(LaunchPosition) + impact) * .5f;
+        Transform sky = Root("Sky", graybox).transform;
+
+        // squashed white puffs in a wide disc round the climb, some right on it so the MC bursts through
+        Transform clouds = Root("Clouds", sky).transform;
+        Mesh sphere = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
+        Material cloud = GrayboxPalette.Unlit("Cloud", new Color(.97f, .98f, 1f));
+        System.Random random = new System.Random(5);
+        for (int i = 0; i < 60; i++)
+        {
+            float radius = i < 8 ? (float)random.NextDouble() * 4f : 6f + (float)random.NextDouble() * 55f;
+            float angle = (float)random.NextDouble() * Mathf.PI * 2f;
+            float altitude = Mathf.Lerp(CLOUD_BOTTOM, CLOUD_TOP, (float)random.NextDouble());
+            GameObject puff = Part(clouds, $"Puff_{i + 1}", sphere, cloud, Vector3.zero);
+            // world space: the gameplay root isn't at the origin
+            puff.transform.position = column + new Vector3(Mathf.Cos(angle) * radius, altitude, Mathf.Sin(angle) * radius);
+            puff.transform.localScale = new Vector3(8f + (float)random.NextDouble() * 10f, 2.5f + (float)random.NextDouble() * 2f, 8f + (float)random.NextDouble() * 10f);
+            puff.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
+
+        // stars: one mesh of small cubes on a far sphere round the peak, above its horizon
+        Vector3 peak = impact + Vector3.up * LAUNCH_HEIGHT;
+        Mesh cube = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+        List<CombineInstance> starList = new List<CombineInstance>();
+        for (int i = 0; i < 260; i++)
+        {
+            Vector3 direction = new Vector3((float)random.NextDouble() * 2f - 1f, (float)random.NextDouble() * 1.1f - .1f, (float)random.NextDouble() * 2f - 1f).normalized;
+            float size = 6f + (float)random.NextDouble() * 10f;
+            starList.Add(new CombineInstance { mesh = cube, transform = Matrix4x4.TRS(direction * 3000f, Random.rotation, Vector3.one * size) });
+        }
+        Mesh stars = new Mesh { name = "Day5_Stars" };
+        stars.CombineMeshes(starList.ToArray(), true, true);
+        SaveMesh(stars, "Assets/_Project/Art/Models/Day5/Day5_Stars.asset");
+        GameObject starsRoot = Part(sky, "Stars", stars, GrayboxPalette.Unlit("Star", Color.white), Vector3.zero);
+        starsRoot.transform.position = peak;
+        starsRoot.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
+        // the Earth: a vast textured sphere under the peak with a thin pale haze round it
+        GameObject earthRoot = Root("Earth", sky);
+        earthRoot.transform.position = impact + Vector3.up * (EARTH_TOP_ALTITUDE - EARTH_RADIUS);
+        Material earthMaterial = GrayboxPalette.Lit("Day5Earth", Color.white, .35f);
+        earthMaterial.SetTexture("_BaseMap", EarthTexture());
+        EditorUtility.SetDirty(earthMaterial);
+        GameObject earth = Part(earthRoot.transform, "Planet", sphere, earthMaterial, Vector3.zero);
+        earth.transform.localScale = Vector3.one * EARTH_RADIUS * 2f;
+        // turned so a continent faces up under the climb
+        earth.transform.rotation = Quaternion.Euler(-70f, 0f, 20f);
+        earth.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        GameObject haze = Part(earthRoot.transform, "Haze", sphere, GrayboxPalette.TransparentMapped("EarthHaze", new Color(.55f, .78f, 1f, .28f), null, true), Vector3.zero);
+        haze.transform.localScale = Vector3.one * EARTH_RADIUS * 2.012f;
+        haze.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
+        SkyAscentVisual ascent = director.gameObject.AddComponent<SkyAscentVisual>();
+        SetField(ascent, "plantationSequence", sequence);
+        SetField(ascent, "worldCamera", Camera.main);
+        SetField(ascent, "starsRoot", starsRoot);
+        SetField(ascent, "earthRoot", earthRoot);
+        SetValue(ascent, "spaceAltitude", SPACE_ALTITUDE);
+        SetValue(ascent, "earthAltitude", EARTH_SHOW_ALTITUDE);
+        SerializedObject so = new SerializedObject(ascent);
+        SerializedProperty bands = so.FindProperty("skyBandArray");
+        bands.arraySize = SkyBandArray.Length;
+        for (int i = 0; i < SkyBandArray.Length; i++)
+        {
+            bands.GetArrayElementAtIndex(i).FindPropertyRelative("altitude").floatValue = SkyBandArray[i].altitude;
+            bands.GetArrayElementAtIndex(i).FindPropertyRelative("color").colorValue = SkyBandArray[i].color;
+        }
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    // oceans, green and brown land and white cloud wisps on an equirectangular map (wraps left to right)
+    private static Texture2D EarthTexture()
+    {
+        const int width = 2048, height = 1024;
+        Texture2D texture = new Texture2D(width, height, TextureFormat.RGB24, false);
+        Color ocean = new Color(.10f, .32f, .62f), deep = new Color(.05f, .18f, .42f), land = new Color(.28f, .52f, .24f), desert = new Color(.62f, .55f, .34f);
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                float u = (float)x / width, v = (float)y / height;
+                // fine enough that a few continents show in the small cap seen from the peak
+                float continent = WrapNoise(u, v, 24, 12, 1) * .6f + WrapNoise(u, v, 56, 28, 2) * .3f + WrapNoise(u, v, 120, 60, 3) * .1f;
+                float cloudWisp = Mathf.InverseLerp(.62f, .8f, WrapNoise(u, v, 70, 32, 4) * .7f + WrapNoise(u, v, 150, 70, 5) * .3f);
+                Color color = continent > .52f ? Color.Lerp(land, desert, Mathf.InverseLerp(.6f, .75f, continent)) : Color.Lerp(deep, ocean, Mathf.InverseLerp(.3f, .52f, continent));
+                // polar ice
+                if (v < .07f || v > .93f) color = Color.white;
+                texture.SetPixel(x, y, Color.Lerp(color, Color.white, cloudWisp * .85f));
+            }
+        }
+        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(EARTH_TEXTURE_PATH));
+        System.IO.File.WriteAllBytes(EARTH_TEXTURE_PATH, texture.EncodeToPNG());
+        Object.DestroyImmediate(texture);
+        AssetDatabase.ImportAsset(EARTH_TEXTURE_PATH);
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(EARTH_TEXTURE_PATH);
+    }
+
+    // smooth value noise on a grid that wraps in u (cellsX × cellsY, 0..1 in and out)
+    private static float WrapNoise(float u, float v, int cellsX, int cellsY, int seed)
+    {
+        float x = u * cellsX, y = v * cellsY;
+        int x0 = Mathf.FloorToInt(x), y0 = Mathf.FloorToInt(y);
+        float tx = Mathf.SmoothStep(0f, 1f, x - x0), ty = Mathf.SmoothStep(0f, 1f, y - y0);
+        float a = Mathf.Lerp(Hash(x0, y0, cellsX, seed), Hash(x0 + 1, y0, cellsX, seed), tx);
+        float b = Mathf.Lerp(Hash(x0, y0 + 1, cellsX, seed), Hash(x0 + 1, y0 + 1, cellsX, seed), tx);
+        return Mathf.Lerp(a, b, ty);
+    }
+
+    private static float Hash(int x, int y, int cellsX, int seed)
+    {
+        x = ((x % cellsX) + cellsX) % cellsX;
+        uint h = (uint)(x * 374761393 + y * 668265263 + seed * 2147483647);
+        h = (h ^ (h >> 13)) * 1274126177u;
+        return (h ^ (h >> 16)) / (float)uint.MaxValue;
+    }
+
+    // a tiny cartoon studio far under the map: grass, two lollipop trees, a crater, flowers round it and the superhero,
+    // filmed into a RenderTexture for the old TV (ChildhoodShowUI)
+    private static void BuildChildhoodShow(Transform graybox, PlantationSequence sequence, Transform dust)
+    {
+        Transform studio = Root("ChildhoodShowStudio", graybox).transform;
+        studio.position = StudioPosition;
+        Mesh sphere = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
+        Mesh cylinder = Resources.GetBuiltinResource<Mesh>("Cylinder.fbx");
+        Part(studio, "Ground", cylinder, GrayboxPalette.Lit("ShowGrass", new Color(.45f, .78f, .35f)), Vector3.zero).transform.localScale = new Vector3(14f, .05f, 14f);
+        foreach (float x in new[] { -3.6f, 3.4f })
+        {
+            Part(studio, "TreeTrunk", cylinder, GrayboxPalette.Lit("ShowTrunk", new Color(.5f, .32f, .18f)), new Vector3(x, .9f, 3f)).transform.localScale = new Vector3(.35f, .9f, .35f);
+            Part(studio, "TreeTop", sphere, GrayboxPalette.Lit("ShowLeaves", new Color(.25f, .62f, .3f)), new Vector3(x, 2.3f, 3f)).transform.localScale = Vector3.one * 1.8f;
+        }
+
+        Renderer crater = Day3GrayboxBuilder.BuildCrater(studio);
+        crater.transform.position = StudioPosition + Vector3.up * .06f;
+        crater.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+        // the flowers: three rings round the crater, nearest first, so they bloom outward
+        GameObject flower = GameDataBuilder.Load<ItemDataSO>("Items", "Flower").prefab.gameObject;
+        List<Transform> flowerList = new List<Transform>();
+        foreach ((float radius, int count) in new[] { (1.1f, 6), (1.8f, 9), (2.6f, 12) })
+        {
+            for (int i = 0; i < count; i++)
+            {
+                // every other ring turned half a step, so the flowers don't line up in spokes
+                float angle = (i + count % 2 * .5f) * Mathf.PI * 2f / count;
+                GameObject copy = FixSceneDay4Builder.ModelCopy(flower, studio, StudioPosition + new Vector3(Mathf.Cos(angle) * radius, .05f, Mathf.Sin(angle) * radius));
+                copy.transform.localScale *= 1.6f;
+                flowerList.Add(copy.transform);
+            }
+        }
+
+        (Transform hero, Transform armL, Transform armR) = BuildHero(studio);
+
+        Camera camera = Root("ShowCamera", studio).AddComponent<Camera>();
+        camera.transform.position = StudioPosition + new Vector3(0f, 1.9f, -5.6f);
+        camera.transform.LookAt(StudioPosition + Vector3.up * 1.4f);
+        camera.fieldOfView = 45f;
+        camera.nearClipPlane = .1f;
+        camera.farClipPlane = 30f;
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.backgroundColor = new Color(.55f, .82f, 1f);
+        camera.targetTexture = ShowTexture();
+        // the map's terrain is 300 m above: no shadows, or it would darken the studio
+        camera.gameObject.AddComponent<UniversalAdditionalCameraData>().renderShadows = false;
+        camera.enabled = false;
+
+        ChildhoodShowVisual visual = studio.gameObject.AddComponent<ChildhoodShowVisual>();
+        SetField(visual, "plantationSequence", sequence);
+        SetField(visual, "showCamera", camera);
+        SetField(visual, "hero", hero);
+        SetField(visual, "heroArmL", armL);
+        SetField(visual, "heroArmR", armR);
+        SetField(visual, "crater", crater.gameObject);
+        SetArray(visual, "flowerArray", flowerList.ToArray());
+        SetField(visual, "dustPrefab", dust);
+    }
+
+    // a chunky cartoon superhero: blue suit, red mask, gloves and cape, a yellow belt and badge; arms hinge at the shoulders
+    private static (Transform hero, Transform armL, Transform armR) BuildHero(Transform studio)
+    {
+        Transform hero = Root("Superhero", studio).transform;
+        hero.position = StudioPosition;
+        Material suit = GrayboxPalette.Lit("HeroSuit", new Color(.18f, .36f, .85f));
+        Material red = GrayboxPalette.Lit("HeroRed", new Color(.88f, .16f, .14f));
+        Material gold = GrayboxPalette.Lit("HeroGold", new Color(1f, .82f, .2f));
+        Material skin = GrayboxPalette.Lit("HeroSkin", new Color(.93f, .74f, .58f));
+        Mesh Box(float x, float y, float z, float r) => GrayboxMeshFactory.RoundedBox(new Vector3(x, y, z), r);
+        foreach (float x in new[] { -.12f, .12f }) Part(hero, "Leg", Box(.18f, .6f, .2f, .06f), suit, new Vector3(x, .3f, 0f));
+        Part(hero, "Body", Box(.5f, .55f, .32f, .1f), suit, new Vector3(0f, .88f, 0f));
+        Part(hero, "Belt", Box(.52f, .08f, .34f, .02f), gold, new Vector3(0f, .64f, 0f));
+        Part(hero, "Badge", Box(.18f, .18f, .04f, .02f), gold, new Vector3(0f, .95f, -.17f));
+        Part(hero, "Cape", Box(.52f, .78f, .04f, .02f), red, new Vector3(0f, .78f, .2f));
+        Part(hero, "Head", Box(.42f, .42f, .42f, .2f), skin, new Vector3(0f, 1.4f, 0f));
+        Part(hero, "Mask", Box(.44f, .1f, .44f, .04f), red, new Vector3(0f, 1.44f, 0f));
+        Transform Arm(string name, float x)
+        {
+            Transform shoulder = Root(name, hero).transform;
+            shoulder.localPosition = new Vector3(x, 1.1f, 0f);
+            Part(shoulder, "Sleeve", Box(.14f, .5f, .16f, .05f), suit, Vector3.down * .25f);
+            Part(shoulder, "Glove", Box(.17f, .15f, .19f, .05f), red, Vector3.down * .54f);
+            return shoulder;
+        }
+        Transform armL = Arm("ArmL", -.33f);
+        Transform armR = Arm("ArmR", .33f);
+        // built facing -z (badge in front, cape behind): straight at the show's camera
+        return (hero, armL, armR);
+    }
+
+    private static RenderTexture ShowTexture()
+    {
+        RenderTexture texture = AssetDatabase.LoadAssetAtPath<RenderTexture>(SHOW_TEXTURE_PATH);
+        if (texture != null) return texture;
+        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(SHOW_TEXTURE_PATH));
+        texture = new RenderTexture(640, 400, 24) { name = "ChildhoodShow" };
+        AssetDatabase.CreateAsset(texture, SHOW_TEXTURE_PATH);
+        return texture;
+    }
+
+    // an old TV in the middle of the screen, the studio's picture on it, over a dimmed world; under the screen fade
+    private static void BuildChildhoodShowUi(PlantationSequence sequence)
+    {
+        ScreenFadeUI fade = Object.FindAnyObjectByType<ScreenFadeUI>(FindObjectsInactive.Include);
+        Transform canvas = fade.transform.parent;
+        RectTransform root = Rect(canvas, "ChildhoodShowUI", Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero);
+        root.gameObject.AddComponent<CanvasGroup>();
+        Image dim = Img(root, "Dim", null, new Color(0f, 0f, 0f, .7f), Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero);
+        dim.raycastTarget = false;
+        RectTransform tv = Rect(root, "TV", Centre, Centre, Centre, new Vector2(0f, 20f), new Vector2(1060f, 720f));
+        Image body = Img(tv, "Body", null, new Color(.30f, .19f, .12f), Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero);
+        body.raycastTarget = false;
+        Image bezel = Img(tv, "Bezel", null, new Color(.08f, .08f, .09f), Centre, Centre, Centre, new Vector2(0f, 30f), new Vector2(970f, 610f));
+        bezel.raycastTarget = false;
+        RectTransform screenRect = Rect(tv, "Screen", Centre, Centre, Centre, new Vector2(0f, 30f), new Vector2(940f, 588f));
+        RawImage screen = screenRect.gameObject.AddComponent<RawImage>();
+        screen.texture = ShowTexture();
+        // a warm, faded picture: a memory, not a broadcast
+        screen.color = new Color(1f, .93f, .8f);
+        screen.raycastTarget = false;
+        TextMeshProUGUI title = Text(tv, "Title", "CAPTAIN HARVEST", 40, Accent, TextAlignmentOptions.Center, FontStyles.Bold);
+        Place(title.rectTransform, new Vector2(.5f, 0f), new Vector2(0f, 40f), new Vector2(800f, 60f));
+        TextMeshProUGUI caption = Text(root, "Caption", "A show from when I was little...", 36, Color.white, TextAlignmentOptions.Center, FontStyles.Italic);
+        caption.outlineWidth = .2f;
+        caption.outlineColor = Color.black;
+        Place(caption.rectTransform, new Vector2(.5f, 1f), new Vector2(0f, -70f), new Vector2(1200f, 60f));
+        UIPop pop = tv.gameObject.AddComponent<UIPop>();
+        ChildhoodShowUI ui = root.gameObject.AddComponent<ChildhoodShowUI>();
+        SetField(ui, "plantationSequence", sequence);
+        SetField(ui, "tvPop", pop);
+        fade.transform.SetAsLastSibling();
+    }
+
     // ---------- helpers ----------
 
     private static Vector3 Ground(Vector3 position) => FixSceneDay2Builder.Ground(position);
+
+    private static void SetFarClip(CinemachineCamera camera, float farClip)
+    {
+        LensSettings lens = camera.Lens;
+        lens.FarClipPlane = farClip;
+        camera.Lens = lens;
+    }
+
+    private static void SaveMesh(Mesh mesh, string path)
+    {
+        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
+        AssetDatabase.DeleteAsset(path);
+        AssetDatabase.CreateAsset(mesh, path);
+    }
 
     // the highest ground on a 5 x 5 grid over a width x depth rectangle round the centre
     private static float HighestGround(Vector3 centre, float width, float depth)

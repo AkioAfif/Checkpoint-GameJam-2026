@@ -35,12 +35,22 @@ public static class Day5DataBuilder
         day5.eatOneDialogueSO = Dialogue("Day5_EatOne",
             P("One sawit gave me the strength for four plots."),
             P("Let's see what one does today."));
+        day5.digIdeaDialogueSO = Dialogue("Day5_DigIdea",
+            P("...I feel a little stronger."),
+            P("Strong enough to dig a whole field by hand? Only one way to find out."));
         day5.tinyGrowthDialogueSO = Dialogue("Day5_TinyGrowth",
-            P("...One bed?!", Emote.Surprised),
-            P("That's it? Yesterday one sawit moved trees!"),
-            P("I'll need to eat a lot more than that.", Emote.WideSmile));
+            P("Haah... haah...", Emote.HeavySigh),
+            P("All that... for one little bed?!", Emote.Surprised),
+            P("By hand this will take forever. I need more sawit. A lot more.", Emote.WideSmile));
         day5.noBunchDialogueSO = Dialogue("Day5_NoBunch",
             P("I need Lv.2 sawit for this. The palms should have some."));
+        day5.hallucinationDialogueSO = Dialogue("Day5_Hallucination",
+            P("...Captain Harvest."),
+            P("The show I watched every morning when I was little."),
+            P("He jumped down from the sky, and flowers grew wherever he landed."),
+            P("If he could do it...", Emote.WideSmile));
+        day5.markerDialogueSO = Dialogue("Day5_Marker",
+            P("Okay, let's try this.", Emote.WideSmile));
         day5.revealDialogueSO = Dialogue("Day5_Reveal",
             P("...Whoa.", Emote.Surprised),
             P("A whole plantation. Ripe. In one punch.", Emote.Cheer));
@@ -68,7 +78,9 @@ public static class Day5DataBuilder
 
         day5.harvestObjectiveArray = new[] { GameDataBuilder.Task("D5_HarvestLv2", TaskObjectiveSO.Type.HarvestFruit, "Harvest 4 Lv.2 sawit bunches", bunchLv2, 4) };
         day5.eatOneObjectiveArray = new[] { GameDataBuilder.Task("D5_EatOne", TaskObjectiveSO.Type.Story, "Eat a Lv.2 sawit bunch", null, 1) };
+        day5.digObjectiveArray = new[] { GameDataBuilder.Task("D5_Dig", TaskObjectiveSO.Type.Story, "Dig the land south of the pond", null, 1) };
         day5.eatManyObjectiveArray = new[] { GameDataBuilder.Task("D5_EatMany", TaskObjectiveSO.Type.Story, "Eat the rest of your Lv.2 sawit", null, 1) };
+        day5.markerObjectiveArray = new[] { GameDataBuilder.Task("D5_JumpMarker", TaskObjectiveSO.Type.Story, "Stand on the marker by the pond", null, 1) };
         day5.errandObjectiveArray = new[]
         {
             GameDataBuilder.Task("D5_Sell", TaskObjectiveSO.Type.SellItem, "Sell sawit at the ICAN crate", null, 1),
