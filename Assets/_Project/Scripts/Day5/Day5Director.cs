@@ -72,8 +72,8 @@ public class Day5Director : MonoBehaviour
         houseDoor.SetLocked(true);
         // no "Finish today's tasks first" over the player's head all day
         houseDoor.SetHidden(true);
-        // shortcut: the end card until Day 6 is built; then the bedroom (HouseInterior) opens it
-        houseDoor.SetNextScene(Loader.Scene.HouseInterior_Stub);
+        // the bedroom: Day 6's morning, two weeks later
+        houseDoor.SetNextScene(Loader.Scene.HouseInterior);
         Player.Instance.Teleport(morningPoint.position);
         Player.Instance.FaceTowards(morningPoint.position + morningPoint.forward);
         SetState(State.Harvest);

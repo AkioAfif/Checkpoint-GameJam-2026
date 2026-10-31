@@ -28,6 +28,9 @@ MonoBehaviour:
     Debt left<pos=55%>{2} Koin
 
     Due in<pos=55%>{3} days'
+  bookPaidFormat: 'Savings<pos=55%>{0} Koin
+
+    Debt<pos=55%><color=#3E8E5A>PAID</color>'
   bookCloseHint: Press [{0}] to close the book
   morningDialogueSO: {fileID: 11400000, guid: a91bda5bcdac3a645a54c27d414192fe, type: 2}
   soldDialogueSO: {fileID: 11400000, guid: 2b3ceacd06bc23a41bdf03a7737243bb, type: 2}

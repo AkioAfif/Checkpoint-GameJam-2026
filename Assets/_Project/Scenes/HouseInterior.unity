@@ -6574,6 +6574,7 @@ MonoBehaviour:
   yardDaySO: {fileID: 11400000, guid: fd5cfe20f392bfd459ed49eca05e801c, type: 2}
   day3SO: {fileID: 11400000, guid: 0bbfe530d4ff64d41881a3cede1ac49e, type: 2}
   day5SO: {fileID: 11400000, guid: 0d3deab58f604624ab427accb8d11aba, type: 2}
+  day6SO: {fileID: 11400000, guid: 792ae47c0c6af2b41a373fea23e11f7b, type: 2}
   bedsideLetter: {fileID: 2037318580}
   savingsBook: {fileID: 1887145974}
   savingsBookUI: {fileID: 1814996806}
@@ -6585,6 +6586,7 @@ MonoBehaviour:
   isTestingDay3: 0
   isTestingDay4: 0
   isTestingDay5: 0
+  isTestingDay6: 0
 --- !u!4 &1225975154
 Transform:
   m_ObjectHideFlags: 0

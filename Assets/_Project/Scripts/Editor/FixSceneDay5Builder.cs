@@ -27,22 +27,22 @@ public static class FixSceneDay5Builder
     private const string GRAYBOX_ROOT = "Day5_Graybox";
     private const string DIRECTOR_ROOT = "Day5";
     private const string BEDROOM_DIRECTOR_PATH = "BedroomDirector";
-    private const string GARDEN_3X4_MODEL = "Assets/Ilkham/models/garden/garden_3x4.glb";
+    public const string GARDEN_3X4_MODEL = "Assets/Ilkham/models/garden/garden_3x4.glb";
     private const string BIRD_PREFAB_PATH = "Assets/_Project/Prefabs/Day5/SkyBird.prefab";
 
     // the marked land, filled exactly by 2 x 2 tiles of the 3x4 garden (9.63 x 7.34 m with its fence, turned like Day 3's)
-    private const float AREA_MIN_X = 13.5f;
-    private const float AREA_MAX_X = 32.7f;
-    private const float AREA_MIN_Z = -47.5f;
-    private const float AREA_MAX_Z = -32.9f;
-    private const int TILE_COLUMNS = 2;
-    private const int TILE_ROWS = 2;
-    private const float GARDEN_YAW = 180f;
+    public const float AREA_MIN_X = 13.5f;
+    public const float AREA_MAX_X = 32.7f;
+    public const float AREA_MIN_Z = -47.5f;
+    public const float AREA_MAX_Z = -32.9f;
+    public const int TILE_COLUMNS = 2;
+    public const int TILE_ROWS = 2;
+    public const float GARDEN_YAW = 180f;
     // the model's height above the ground, as Day 3 sets it (FixSceneDay3Builder.GARDEN_3X4_Y on its flat ground)
-    private const float GARDEN_LIFT = .19f;
+    public const float GARDEN_LIFT = .19f;
     // the 12 beds in the model's own space: 4 columns x 3 rows, 2.3 m apart
-    private static readonly float[] BedXArray = { -3.45f, -1.15f, 1.15f, 3.45f };
-    private static readonly float[] BedZArray = { -2.3f, 0f, 2.3f };
+    public static readonly float[] BedXArray = { -3.45f, -1.15f, 1.15f, 3.45f };
+    public static readonly float[] BedZArray = { -2.3f, 0f, 2.3f };
     private const float BED_HALF_SIZE = .85f;
     // the model's furrows and ridges
     private static readonly int[] BedSubMeshArray = { 1, 2 };
@@ -53,7 +53,7 @@ public static class FixSceneDay5Builder
     private static readonly Vector3 LaunchPosition = new Vector3(23.1f, 0f, -33.6f);
     private static readonly Vector3 ImpactPosition = new Vector3(23.1f, 0f, -40.2f);
     // the evening: the plantation's north-west corner, looking over it
-    private static readonly Vector3 EveningPosition = new Vector3(14.6f, 0f, -31.8f);
+    public static readonly Vector3 EveningPosition = new Vector3(14.6f, 0f, -31.8f);
     // past the clouds and into orbit
     private const float LAUNCH_HEIGHT = 520f;
     private const float DIG_STAND_DISTANCE = 1.1f;
@@ -255,13 +255,16 @@ public static class FixSceneDay5Builder
     }
 
     // the map's own scenery standing on the marked land (its trees, bushes, rocks)
-    private static GameObject[] FindAreaPlants()
+    public static GameObject[] FindAreaPlants() => FindPlants(AREA_MIN_X, AREA_MAX_X, AREA_MIN_Z, AREA_MAX_Z);
+
+    // the map's own scenery standing in a rectangle (its trees, bushes, rocks)
+    public static GameObject[] FindPlants(float minX, float maxX, float minZ, float maxZ)
     {
         List<GameObject> plantList = new List<GameObject>();
         foreach (MeshRenderer renderer in GameObject.Find("CozyFarm").GetComponentsInChildren<MeshRenderer>(true))
         {
             Vector3 centre = renderer.bounds.center;
-            if (centre.x < AREA_MIN_X || centre.x > AREA_MAX_X || centre.z < AREA_MIN_Z || centre.z > AREA_MAX_Z) continue;
+            if (centre.x < minX || centre.x > maxX || centre.z < minZ || centre.z > maxZ) continue;
             if (KeptNamePartArray.Any(part => renderer.name.Contains(part)) || renderer.bounds.size.x > 15f) continue;
             plantList.Add(renderer.gameObject);
         }
@@ -751,7 +754,7 @@ public static class FixSceneDay5Builder
     }
 
     // the highest ground on a 5 x 5 grid over a width x depth rectangle round the centre
-    private static float HighestGround(Vector3 centre, float width, float depth)
+    public static float HighestGround(Vector3 centre, float width, float depth)
     {
         float highest = float.MinValue;
         for (int i = 0; i <= 4; i++)

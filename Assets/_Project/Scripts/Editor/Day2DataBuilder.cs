@@ -61,6 +61,7 @@ public static class Day2DataBuilder
         Day2.bookTitle = "SAVINGS BOOK";
         Day2.bookMorningFormat = "Savings<pos=55%>{0} Koin\nDebt left<pos=55%>{1} Koin\nDue in<pos=55%>{2} days";
         Day2.bookEveningFormat = "Savings<pos=55%>{0} Koin\nEarned today<pos=55%><color=#3E8E5A>+{1} Koin</color>\nDebt left<pos=55%>{2} Koin\nDue in<pos=55%>{3} days";
+        Day2.bookPaidFormat = Day6DataBuilder.BOOK_PAID_FORMAT;
         Day2.bookCloseHint = "Press [{0}] to close the book";
         Day2.nightCaption = "That evening...";
 
