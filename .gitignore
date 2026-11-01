@@ -129,3 +129,7 @@ InitTestScene*.unity*
 # Fabricator sprite generator (npm install @resvg/resvg-js)
 Tools/FabricatorSprites/node_modules/
 Tools/FabricatorSprites/package*.json
+
+# Design docs kept locally, not on GitHub
+DAY4_DESIGN.md
+DAY6_DESIGN.md
