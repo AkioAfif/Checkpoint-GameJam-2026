@@ -48,7 +48,7 @@ public static partial class Level01SceneBuilder
         so.ApplyModifiedPropertiesWithoutUndo();
         managers.gameObject.AddComponent<DialogueManager>();
         managers.gameObject.AddComponent<QTEManager>();
-        managers.gameObject.AddComponent<PlantingController>();
+        SetField(managers.gameObject.AddComponent<PlantingController>(), "cropListSO", AssetDatabase.LoadAssetAtPath<CropListSO>("Assets/_Project/ScriptableObjects/Crops/CropList.asset"));
         SetArray(managers.gameObject.AddComponent<TaskManager>(), "objectiveSOArray", GameDataBuilder.Tasks);
         PlantingVisual plantingVisual = managers.gameObject.AddComponent<PlantingVisual>();
         SetField(plantingVisual, "successPrefab", VfxBuilder.PlantSuccess().transform);

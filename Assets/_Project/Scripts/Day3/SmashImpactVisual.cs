@@ -6,7 +6,11 @@ using UnityEngine;
 // double-fisted blow does all of it far harder. On the CozyFarm map the tree punches and the bridge's blows hit the same way.
 public class SmashImpactVisual : MonoBehaviour
 {
+    [Tooltip("Day 4's land smash. Leave empty on Day 5.")]
     [SerializeField] private LandSequence landSequence;
+    [Tooltip("Day 5: the punch that ends the dive, an earthquake (earthquakeShakeForce).")]
+    [SerializeField] private PlantationSequence plantationSequence;
+    [SerializeField] private float earthquakeShakeForce = 2.2f;
     [Tooltip("Optional (the CozyFarm map).")]
     [SerializeField] private TreeClearing treeClearing;
     [Tooltip("Optional (the CozyFarm map), with the bank it's pounded from.")]
@@ -37,7 +41,8 @@ public class SmashImpactVisual : MonoBehaviour
 
     private void Start()
     {
-        landSequence.OnSmash += LandSequence_OnSmash;
+        if (landSequence != null) landSequence.OnSmash += LandSequence_OnSmash;
+        if (plantationSequence != null) plantationSequence.OnImpact += PlantationSequence_OnImpact;
         if (treeClearing != null) treeClearing.OnHit += TreeClearing_OnHit;
         if (bridgeBuild != null) bridgeBuild.OnSmash += BridgeBuild_OnSmash;
         baseFovArray = new float[punchCameraArray.Length];
@@ -69,9 +74,13 @@ public class SmashImpactVisual : MonoBehaviour
 
     private void BridgeBuild_OnSmash(object sender, BridgeBuild.OnSmashEventArgs e) => Impact(bridgePoint.position + bridgePoint.forward * .45f, e.isFinal);
 
-    private void Impact(Vector3 impact, bool isFinal)
+    private void PlantationSequence_OnImpact(object sender, PlantationSequence.OnImpactEventArgs e) => Impact(e.position, true, earthquakeShakeForce);
+
+    private void Impact(Vector3 impact, bool isFinal) => Impact(impact, isFinal, isFinal ? finalShakeForce : shakeForce);
+
+    private void Impact(Vector3 impact, bool isFinal, float force)
     {
-        impulseSource.GenerateImpulseWithForce(isFinal ? finalShakeForce : shakeForce);
+        impulseSource.GenerateImpulseWithForce(force);
         zoom = isFinal ? finalZoomPunch : zoomPunch;
 
         Transform dust = Instantiate(dustPrefab, impact, Quaternion.identity);

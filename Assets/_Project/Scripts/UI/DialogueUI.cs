@@ -10,7 +10,19 @@ public class DialogueUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI lineText;
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private Image nameTagImage;
+    [SerializeField] private GameObject playerPortraitFrame;
     [SerializeField] private GameObject npcPortraitFrame;
+    [SerializeField] private RawImage playerPortraitImage;
+    [SerializeField] private RawImage npcPortraitImage;
+    [Tooltip("Tint of the portrait whose character isn't speaking the current line.")]
+    [SerializeField] private Color silentPortraitColor = new Color(.32f, .32f, .32f);
+    [Tooltip("Scale of a portrait frame whose character isn't speaking.")]
+    [SerializeField] private float silentPortraitScale = .82f;
+    [Tooltip("Scale of the speaker's portrait frame once its pop settles.")]
+    [SerializeField] private float speakingPortraitScale = .92f;
+    [SerializeField] private float portraitPopDuration = .3f;
+    [Tooltip("Extra scale at the top of the speaker's pop.")]
+    [SerializeField] private float portraitPopOvershoot = .08f;
     [SerializeField] private GameObject continueIndicator;
     [SerializeField] private UIPop boxPop;
     [SerializeField] private string playerName = "You";
@@ -21,6 +33,9 @@ public class DialogueUI : MonoBehaviour
     private CanvasGroup canvasGroup;
     private Color npcTagColor;
     private bool isShaking;
+    private bool isPlayerSpeaking;
+    private bool isFirstLine;
+    private float portraitPopTimer;
 
     private void Awake()
     {
@@ -43,6 +58,7 @@ public class DialogueUI : MonoBehaviour
         continueIndicator.SetActive(isRevealed);
         if (isRevealed) continueIndicator.transform.localPosition = new Vector3(0f, Mathf.Sin(Time.unscaledTime * 6f) * 4f, 0f);
         if (isShaking) ShakeLetters();
+        AnimatePortraits();
     }
 
     private void OnDestroy()
@@ -60,6 +76,7 @@ public class DialogueUI : MonoBehaviour
         if (e.npc != null) npcTagColor = Color.Lerp(e.npc.GetNpcSO().portraitBackground, Color.black, .25f);
         canvasGroup.SetVisible(true);
         boxPop.Play(.7f);
+        isFirstLine = true;
     }
 
     private void DialogueManager_OnDialogueEnded(object sender, EventArgs e) => Hide();
@@ -72,6 +89,24 @@ public class DialogueUI : MonoBehaviour
         lineText.text = e.line.text;
         lineText.maxVisibleCharacters = 0;
         isShaking = e.line.isShaking;
+        // the speaker stays clear, the listener goes dark
+        playerPortraitImage.color = isPlayer ? Color.white : silentPortraitColor;
+        npcPortraitImage.color = isPlayer ? silentPortraitColor : Color.white;
+        // pop only when the turn passes to the other side (or on the first line), not on every line of the same speaker
+        if (isPlayer != isPlayerSpeaking || isFirstLine) portraitPopTimer = 0f;
+        isPlayerSpeaking = isPlayer;
+        isFirstLine = false;
+    }
+
+    // the speaker grows from the silent size with a bouncy overshoot, the listener eases back down
+    private void AnimatePortraits()
+    {
+        portraitPopTimer += Time.unscaledDeltaTime;
+        float t = Mathf.Clamp01(portraitPopTimer / portraitPopDuration);
+        float speakerScale = Mathf.Lerp(silentPortraitScale, speakingPortraitScale, t) + Mathf.Sin(t * Mathf.PI) * portraitPopOvershoot;
+        float listenerScale = Mathf.Lerp(speakingPortraitScale, silentPortraitScale, t);
+        playerPortraitFrame.transform.localScale = Vector3.one * (isPlayerSpeaking ? speakerScale : listenerScale);
+        npcPortraitFrame.transform.localScale = Vector3.one * (isPlayerSpeaking ? listenerScale : speakerScale);
     }
 
     // jitters every visible letter's vertices from the freshly generated mesh, so the offsets never pile up

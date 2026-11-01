@@ -14,6 +14,9 @@ public class Player : MonoBehaviour
     private Transform cameraTransform;
     private float verticalVelocity;
     private float currentSpeed;
+    // a dash (Day 5's Plough Dash) carries the player in a straight line, input ignored, until the timer runs out
+    private Vector3 dashVelocity;
+    private float dashTimer;
 
     private void Awake()
     {
@@ -36,6 +39,12 @@ public class Player : MonoBehaviour
 
         currentSpeed = moveDir == Vector3.zero ? 0f : GameInput.Instance.IsSprintPressed() ? sprintSpeed : walkSpeed;
         verticalVelocity = characterController.isGrounded ? -1f : verticalVelocity + gravity * Time.deltaTime;
+        if (dashTimer > 0f)
+        {
+            dashTimer -= Time.deltaTime;
+            characterController.Move((dashVelocity + Vector3.up * verticalVelocity) * Time.deltaTime);
+            return;
+        }
         characterController.Move((moveDir * currentSpeed + Vector3.up * verticalVelocity) * Time.deltaTime);
 
         if (moveDir != Vector3.zero) transform.forward = Vector3.Slerp(transform.forward, moveDir, turnSpeed * Time.deltaTime);
@@ -44,6 +53,16 @@ public class Player : MonoBehaviour
     // 0 idle, 1 walking, ~1.5 sprinting
     public float GetSpeedNormalized() => currentSpeed / walkSpeed;
     public bool IsMoving() => currentSpeed > 0f;
+    public bool IsDashing() => dashTimer > 0f;
+
+    // a straight burst along 'direction' (flattened), at 'speed' metres per second for 'duration' seconds
+    public void Dash(Vector3 direction, float speed, float duration)
+    {
+        direction.y = 0f;
+        dashVelocity = direction.normalized * speed;
+        dashTimer = duration;
+        if (dashVelocity != Vector3.zero) transform.forward = dashVelocity.normalized;
+    }
 
     public void FaceTowards(Vector3 worldPosition)
     {
@@ -60,7 +79,11 @@ public class Player : MonoBehaviour
         // no fall speed carried over from where they were
         verticalVelocity = 0f;
         currentSpeed = 0f;
+        dashTimer = 0f;
     }
+
+    // a cutscene flight: no controller, no gravity, whoever flies the player sets its position and rotation; Teleport ends it
+    public void BeginFlight() => characterController.enabled = false;
 
     // "Unstuck me": back to the front of the house. False (and the player stays put) when this scene has no return point.
     public bool TryReturnHome()

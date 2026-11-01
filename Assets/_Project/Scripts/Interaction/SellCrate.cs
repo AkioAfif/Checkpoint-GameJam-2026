@@ -1,11 +1,12 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 // ICAN's collection crate by the Fabricator: everything in the bag ICAN buys goes in at once, and the Koin go to the lender.
 public class SellCrate : MonoBehaviour, IInteractable
 {
     public static event EventHandler<OnAnySoldEventArgs> OnAnySold;
-    public class OnAnySoldEventArgs : EventArgs { public long amount; }
+    public class OnAnySoldEventArgs : EventArgs { public long amount; public List<ItemAmount> soldItemList; }
 
     [SerializeField] private ItemDataSO[] sellableItemDataSOArray;
     [SerializeField] private string promptVerb = "sell to ICAN";
@@ -21,9 +22,16 @@ public class SellCrate : MonoBehaviour, IInteractable
     public void Interact(Player player)
     {
         long amount = GetSaleValue();
-        foreach (ItemDataSO itemDataSO in sellableItemDataSOArray) Inventory.Instance.TryRemoveItem(itemDataSO, Inventory.Instance.GetCount(itemDataSO));
+        List<ItemAmount> soldItemList = new List<ItemAmount>();
+        foreach (ItemDataSO itemDataSO in sellableItemDataSOArray)
+        {
+            int count = Inventory.Instance.GetCount(itemDataSO);
+            if (count == 0) continue;
+            soldItemList.Add(new ItemAmount { itemDataSO = itemDataSO, amount = count });
+            Inventory.Instance.TryRemoveItem(itemDataSO, count);
+        }
         WorldState.Earn(amount);
-        OnAnySold?.Invoke(this, new OnAnySoldEventArgs { amount = amount });
+        OnAnySold?.Invoke(this, new OnAnySoldEventArgs { amount = amount, soldItemList = soldItemList });
     }
 
     public string GetPromptVerb() => promptVerb;

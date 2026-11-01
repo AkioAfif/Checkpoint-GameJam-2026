@@ -15,6 +15,8 @@ public class Day2SO : ScriptableObject
     [TextArea(3, 8)] public string bookMorningFormat;
     // {0} savings, {1} earned today, {2} debt left, {3} days until due
     [TextArea(3, 8)] public string bookEveningFormat;
+    // once the debt is 0: {0} savings
+    [TextArea(3, 8)] public string bookPaidFormat;
     public string bookCloseHint;
 
     [Header("Dialogue")]

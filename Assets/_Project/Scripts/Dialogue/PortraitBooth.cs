@@ -7,6 +7,8 @@ public class PortraitBooth : MonoBehaviour
     [SerializeField] private Transform npcStand;
     [SerializeField] private Camera playerCamera;
     [SerializeField] private Camera npcCamera;
+    [Tooltip("Degrees each copy turns from its camera toward the other portrait (player → screen right, NPC → screen left).")]
+    [SerializeField] private float facingAngle = 30f;
 
     private Animator npcPortraitAnimator;
 
@@ -17,6 +19,7 @@ public class PortraitBooth : MonoBehaviour
         DialogueManager.Instance.OnLineChanged += DialogueManager_OnLineChanged;
         // the player rig prefab can be rebuilt after the booth was, so re-tag its parts for the portrait cameras
         MoveToPortraitLayer(playerPortraitAnimator.transform);
+        FaceAcross(playerPortraitAnimator.transform, playerCamera, 1f);
         SetCamerasEnabled(false);
     }
 
@@ -36,7 +39,7 @@ public class PortraitBooth : MonoBehaviour
             NpcSO npcSO = e.npc.GetNpcSO();
             Transform portrait = Instantiate(npcSO.portraitPrefab, npcStand);
             portrait.localPosition = Vector3.zero;
-            portrait.localRotation = Quaternion.identity;
+            FaceAcross(portrait, npcCamera, -1f);
             MoveToPortraitLayer(portrait);
             npcPortraitAnimator = portrait.GetComponent<Animator>();
             npcCamera.backgroundColor = npcSO.portraitBackground;
@@ -56,6 +59,15 @@ public class PortraitBooth : MonoBehaviour
     {
         ChibiAnimation.PlayEmote(playerPortraitAnimator, e.line.playerEmote);
         if (npcPortraitAnimator != null) ChibiAnimation.PlayEmote(npcPortraitAnimator, e.line.npcEmote);
+    }
+
+    // faces the copy back at its camera, then turns it toward screen right (side 1) or left (-1), so the two portraits face each other
+    private void FaceAcross(Transform copy, Camera portraitCamera, float side)
+    {
+        Vector3 toCamera = Vector3.ProjectOnPlane(portraitCamera.transform.position - copy.position, Vector3.up);
+        Vector3 screenRight = Vector3.ProjectOnPlane(portraitCamera.transform.right, Vector3.up).normalized;
+        Vector3 facing = toCamera.normalized * Mathf.Cos(facingAngle * Mathf.Deg2Rad) + screenRight * (side * Mathf.Sin(facingAngle * Mathf.Deg2Rad));
+        copy.rotation = Quaternion.LookRotation(facing, Vector3.up);
     }
 
     private void MoveToPortraitLayer(Transform root)

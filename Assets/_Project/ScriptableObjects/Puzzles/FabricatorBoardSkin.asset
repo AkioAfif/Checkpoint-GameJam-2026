@@ -15,6 +15,7 @@ MonoBehaviour:
   spriteMaterial: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
   floorSprite: {fileID: 21300000, guid: 0ebd7cdc20fa92e42af4ea1300dd3d70, type: 3}
   wallSprite: {fileID: 21300000, guid: 1e0b11a89dd800348b2d49f458300016, type: 3}
+  snareSprite: {fileID: 21300000, guid: 052abac800bb90f4789f8756af9acacd, type: 3}
   frameSprite: {fileID: 21300000, guid: 0b533778f587803469809eff63a16ccb, type: 3}
   floorColor: {r: 1, g: 1, b: 1, a: 1}
   floorOffsetColor: {r: 0.95, g: 0.91, b: 0.84, a: 1}
@@ -32,6 +33,10 @@ MonoBehaviour:
   embryoSprite: {fileID: 21300000, guid: 934f69867f29d8f44805658cca24c27f, type: 3}
   sentinelSprite: {fileID: 21300000, guid: d930ddb8c1afac04c805aeda5da9906b, type: 3}
   thornySentinelColor: {r: 1, g: 0.62, b: 0.62, a: 1}
+  energyCellSprite: {fileID: 21300000, guid: 2476db47bd1fef1469134d406938b664, type: 3}
+  movingCellSprite: {fileID: 21300000, guid: 0fbb0ef2b319bd543a212e32aad5adf2, type: 3}
+  hostileMovingCellSprite: {fileID: 21300000, guid: 92a605900f293f341b0c509c93837f68, type: 3}
+  stepIndicatorColor: {r: 1, g: 0.85, b: 0.3, a: 0.95}
   rootStemSprite: {fileID: 21300000, guid: 79171a229d7da6d4e88890120061e29f, type: 3}
   thornyRootStemSprite: {fileID: 21300000, guid: b5e76bb869f22a74cb1813b9e46f0fdd, type: 3}
   rootKnotSprite: {fileID: 21300000, guid: 1de38b52dfac2d843a33da4ef1145133, type: 3}

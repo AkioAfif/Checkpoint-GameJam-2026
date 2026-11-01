@@ -73,7 +73,7 @@ public static class Day3DataBuilder
         TaskObjectiveSO sell = GameDataBuilder.Task("D3_SellSawit", TaskObjectiveSO.Type.Story, "Sell the sawit at the ICAN crate", null, 1);
         TaskObjectiveSO eat = GameDataBuilder.Task("D3_EatSawit", TaskObjectiveSO.Type.Story, "Eat a Lv.2 sawit bunch", null, 1);
         TaskObjectiveSO smash = GameDataBuilder.Task("D3_SmashLand", TaskObjectiveSO.Type.Story, "Go to the empty grass by the forest", null, 1);
-        TaskObjectiveSO fabricate = GameDataBuilder.Task("D3_MakeLv2", TaskObjectiveSO.Type.FabricateSeed, "Press Sawit Lv.2 seeds in the Fabricator", null, 1);
+        TaskObjectiveSO fabricate = GameDataBuilder.Task("D3_MakeLv2", TaskObjectiveSO.Type.FabricateSeed, "Press Sawit Lv.2 seeds in the Fabricator", Day2DataBuilder.SawitSeedLv2, 1);
         TaskObjectiveSO plant = GameDataBuilder.Task("D3_PlantStrip", TaskObjectiveSO.Type.PlantCrop, "Plant 4 seeds in the new field", null, 4);
         TaskObjectiveSO home = GameDataBuilder.Task("D3_GoHome", TaskObjectiveSO.Type.EnterHouse, "Go home", null, 1);
         Day3.harvestObjectiveArray = new[] { harvest, sell };

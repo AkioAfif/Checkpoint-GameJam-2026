@@ -2,22 +2,24 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-// The puzzle inside the tube (the Sawit-Fabricator rules, see FabricatorBoard): click the Tech Bug, click an arrow next to it,
-// and it slides until something stops it. Corrupting every Seed Embryo solves it; losing the bug in thorns or getting stuck loses
-// ([R] rebuilds it, Esc leaves). The bug is picked automatically when there is only one.
+// The puzzle inside the Fabricator (the Sawit-Fabricator rules, see FabricatorBoard): click the Tech Bug, click an arrow next
+// to it, and it slides until something stops it. Each slide costs 1 energy. After a slide the Moving Cells take their turn
+// (passive ones, then hostile ones). Corrupting every Seed Embryo solves it; losing the bug, running out of energy or getting
+// stuck loses ([R] rebuilds it, Esc leaves). The bug is picked automatically when there is only one.
 public class FabricatorMiniGame : MonoBehaviour
 {
     private const float HAZARD_DEATH_DURATION = .25f;
 
     public event EventHandler OnBuilt;
-    // something on the board changed: selection, a gate/router/gland click, a finished slide
+    // something on the board changed: selection, a gate/router/gland click, a finished slide or Moving Cell step, energy
     public event EventHandler OnBoardChanged;
     public event EventHandler OnSlideStarted;
     public event EventHandler OnSolved;
     public event EventHandler OnLost;
     public event EventHandler OnEnded;
 
-    public enum State { Off, Playing, Sliding, Solved, Lost }
+    public enum State { Off, Playing, Sliding, MovingCells, Solved, Lost }
+    public enum LoseReason { Destroyed, OutOfEnergy, Stuck }
 
     // a direction the selected bug can slide in; the arrow sits on the neighbouring cell
     public struct Move
@@ -28,8 +30,10 @@ public class FabricatorMiniGame : MonoBehaviour
 
     [SerializeField] private Grid grid;
     [SerializeField] private Camera puzzleCamera;
-    [Tooltip("Cells per second while the bug slides.")]
+    [Tooltip("Cells per second while the bug slides; a Moving Cell's step takes one cell's worth.")]
     [SerializeField] private float slideSpeed = 8f;
+    [Tooltip("Testing: every level starts with this much energy (its cap is raised to match). 0 = each level's own energy.")]
+    [SerializeField] private int testInitialEnergy = 15;
 
     private FabricatorPuzzleSO puzzleSO;
     private FabricatorBoard board;
@@ -40,10 +44,12 @@ public class FabricatorMiniGame : MonoBehaviour
     private Vector2Int slideStartCell;
     private List<Vector2Int> slidePath;
     private bool slideEndsInHazard;
-    private float slideTimer;
+    // the slide's or the Moving Cell step's time so far
+    private float timer;
+    // which Moving Cells are stepping (passive first, then hostile)
+    private bool isHostileStep;
     private int moveCount;
-    private bool hasPlayerMoved;
-    private bool isLostInThorns;
+    private LoseReason loseReason;
 
     private void Start()
     {
@@ -52,9 +58,14 @@ public class FabricatorMiniGame : MonoBehaviour
 
     private void Update()
     {
-        if (state != State.Sliding) return;
-        slideTimer += Time.deltaTime;
-        if (slideTimer >= GetSlideDuration()) FinishSlide();
+        if (state != State.Sliding && state != State.MovingCells) return;
+        timer += Time.deltaTime;
+        if (state == State.Sliding && timer >= GetSlideDuration()) FinishSlide();
+        else if (state == State.MovingCells && timer >= GetCellStepDuration())
+        {
+            if (isHostileStep) EndTurn();
+            else StepHostileCells();
+        }
     }
 
     private void OnDestroy()
@@ -83,7 +94,7 @@ public class FabricatorMiniGame : MonoBehaviour
         {
             board.Interact(tile);
             ChangeBoard();
-            if (board.IsStuck()) SetState(State.Lost);
+            if (board.IsStuck()) Lose(LoseReason.Stuck);
             return;
         }
         selectedBug = null;
@@ -98,7 +109,7 @@ public class FabricatorMiniGame : MonoBehaviour
 
     public void Restart()
     {
-        if (state == State.Playing || state == State.Sliding || state == State.Lost) Build();
+        if (state != State.Off && state != State.Solved) Build();
     }
 
     public void End()
@@ -109,10 +120,9 @@ public class FabricatorMiniGame : MonoBehaviour
 
     public bool IsRunning() => state != State.Off;
     public bool IsPlaying() => state == State.Playing;
-    public bool IsLost() => state == State.Lost;
-    // lost because the last bug slid into thorny roots (not because it got stuck)
-    public bool IsLostInThorns() => isLostInThorns;
+    public LoseReason GetLoseReason() => loseReason;
     public FabricatorBoard GetBoard() => board;
+    public FabricatorPuzzleSO GetPuzzleSO() => puzzleSO;
     public List<Move> GetMoveList() => moveList;
     public int GetMoveCount() => moveCount;
     public int GetParMoves() => puzzleSO.parMoves;
@@ -131,18 +141,26 @@ public class FabricatorMiniGame : MonoBehaviour
         bug = slidingBug;
         startCell = slideStartCell;
         path = slidePath;
-        cellsTravelled = state == State.Sliding ? Mathf.Min(slideTimer * slideSpeed, slidePath.Count) : 0f;
+        cellsTravelled = state == State.Sliding ? Mathf.Min(timer * slideSpeed, slidePath.Count) : 0f;
         return state == State.Sliding;
     }
 
-    // 0..1 once a bug sliding into thorns has reached them
+    // 0..1 once a bug sliding into thorns or a hostile Moving Cell has reached it
     public float GetHazardDeathProgress()
     {
         if (state != State.Sliding || !slideEndsInHazard) return 0f;
-        return Mathf.Clamp01((slideTimer - slidePath.Count / slideSpeed) / HAZARD_DEATH_DURATION);
+        return Mathf.Clamp01((timer - slidePath.Count / slideSpeed) / HAZARD_DEATH_DURATION);
     }
 
-    // the board cell under the mouse, on the board's plane (the puzzle camera sways, so this goes through a ray)
+    // while one group of Moving Cells steps: which group, and how far along (0..1) the step is
+    public bool TryGetCellStep(out bool isHostile, out float progress)
+    {
+        isHostile = isHostileStep;
+        progress = Mathf.Clamp01(timer / GetCellStepDuration());
+        return state == State.MovingCells;
+    }
+
+    // the board cell under the mouse, on the board's plane (the puzzle camera may move, so this goes through a ray)
     public bool TryGetPointerCell(out Vector2Int cell)
     {
         cell = default;
@@ -167,29 +185,14 @@ public class FabricatorMiniGame : MonoBehaviour
         return false;
     }
 
-    // tutorial ghost cursor: shown until the player's first slide
-    public bool IsHintActive() => IsRunning() && state != State.Solved && !hasPlayerMoved && puzzleSO.hasHint;
-
-    // screen position along the hint path, t = 0..1
-    public Vector2 GetHintScreenPoint(float t)
-    {
-        string[] rows = puzzleSO.GetRows();
-        Vector3 from = GetCellWorldPosition(FabricatorBoard.LayoutToCell(puzzleSO.hintFromCell, rows));
-        Vector3 to = GetCellWorldPosition(FabricatorBoard.LayoutToCell(puzzleSO.hintToCell, rows));
-        return puzzleCamera.WorldToScreenPoint(Vector3.Lerp(from, to, t));
-    }
-
     // solved within the puzzle's par
     public bool IsCombo() => state == State.Solved && puzzleSO.parMoves > 0 && moveCount <= puzzleSO.parMoves;
 
     private void Build()
     {
-        board = new FabricatorBoard(puzzleSO);
+        board = new FabricatorBoard(puzzleSO, testInitialEnergy);
         moveCount = 0;
-        hasPlayerMoved = false;
-        isLostInThorns = false;
         slidingBug = null;
-        selectedBug = null;
         SelectOnlyBug();
         RefreshMoves();
         SetState(State.Playing);
@@ -201,7 +204,7 @@ public class FabricatorMiniGame : MonoBehaviour
         slidingBug = selectedBug;
         slideStartCell = selectedBug.cell;
         slidePath = board.GetSlidePath(selectedBug.cell, move.direction, out slideEndsInHazard);
-        slideTimer = 0f;
+        timer = 0f;
         selectedBug = null;
         RefreshMoves();
         SetState(State.Sliding);
@@ -212,29 +215,50 @@ public class FabricatorMiniGame : MonoBehaviour
     {
         board.ApplySlide(slidingBug, slidePath, slideEndsInHazard);
         moveCount++;
-        hasPlayerMoved = true;
-        // win before the turn passes, so the last capture wins even if roots grow back this turn
-        if (board.GetEmbryoCount() == 0)
+        // win before the Moving Cells and the energy check, so the last capture wins even on the last energy
+        if (board.IsWon())
         {
             ChangeBoard();
             SetState(State.Solved);
             return;
         }
+        if (board.HasLivingBug() && board.HasMovingCells(false)) StartCellStep(false);
+        else StepHostileCells();
+    }
+
+    private void StepHostileCells()
+    {
+        if (board.HasLivingBug() && board.HasMovingCells(true)) StartCellStep(true);
+        else EndTurn();
+    }
+
+    private void StartCellStep(bool isHostile)
+    {
+        isHostileStep = isHostile;
+        board.StepMovingCells(isHostile);
+        timer = 0f;
+        SetState(State.MovingCells);
+        ChangeBoard();
+    }
+
+    private void EndTurn()
+    {
         if (!board.HasLivingBug())
         {
-            isLostInThorns = true;
             ChangeBoard();
-            SetState(State.Lost);
+            Lose(LoseReason.Destroyed);
             return;
         }
         board.PassTurn();
         SelectOnlyBug();
         SetState(State.Playing);
         ChangeBoard();
-        if (board.IsStuck()) SetState(State.Lost);
+        if (board.IsOutOfEnergy()) Lose(LoseReason.OutOfEnergy);
+        else if (board.IsStuck()) Lose(LoseReason.Stuck);
     }
 
     private float GetSlideDuration() => slidePath.Count / slideSpeed + (slideEndsInHazard ? HAZARD_DEATH_DURATION : 0f);
+    private float GetCellStepDuration() => 1f / slideSpeed;
 
     private void SelectOnlyBug()
     {
@@ -251,7 +275,7 @@ public class FabricatorMiniGame : MonoBehaviour
         }
     }
 
-    // only offer directions where the bug would actually move (moves into thorns are offered too, as a warning)
+    // only offer directions where the bug would actually move (deadly moves are offered too, as a warning)
     private void RefreshMoves()
     {
         moveList.Clear();
@@ -267,6 +291,14 @@ public class FabricatorMiniGame : MonoBehaviour
     {
         RefreshMoves();
         OnBoardChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void Lose(LoseReason loseReason)
+    {
+        this.loseReason = loseReason;
+        selectedBug = null;
+        RefreshMoves();
+        SetState(State.Lost);
     }
 
     private void SetState(State state)

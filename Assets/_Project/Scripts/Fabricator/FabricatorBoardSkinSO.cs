@@ -9,6 +9,7 @@ public class FabricatorBoardSkinSO : ScriptableObject
     [Header("Board")]
     public Sprite floorSprite;
     public Sprite wallSprite;
+    public Sprite snareSprite;
     public Sprite frameSprite;
     public Color floorColor = Color.white;
     public Color floorOffsetColor = new Color(.95f, .91f, .84f);
@@ -31,6 +32,11 @@ public class FabricatorBoardSkinSO : ScriptableObject
     public Sprite embryoSprite;
     public Sprite sentinelSprite;
     public Color thornySentinelColor = new Color(1f, .62f, .62f);
+    public Sprite energyCellSprite;
+    public Sprite movingCellSprite;
+    public Sprite hostileMovingCellSprite;
+    // the small arrow on a Moving Cell's edge showing its next step
+    public Color stepIndicatorColor = new Color(1f, .85f, .3f, .95f);
 
     [Header("Roots")]
     public Sprite rootStemSprite;

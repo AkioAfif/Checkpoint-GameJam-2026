@@ -76,5 +76,12 @@ public class YardErrands : MonoBehaviour
         dimasNpc.SetOverrideDialogue(null);
     }
 
+    // the new plots are dug: the sickle, hoe and rope go back to their owners
+    public void ReturnTools()
+    {
+        foreach (ItemDataSO toolItemDataSO in new[] { sickleItemDataSO, hoeItemDataSO, ropeItemDataSO })
+            Inventory.Instance.TryRemoveItem(toolItemDataSO, Inventory.Instance.GetCount(toolItemDataSO));
+    }
+
     private static bool Has(ItemDataSO itemDataSO) => Inventory.Instance.GetCount(itemDataSO) > 0;
 }

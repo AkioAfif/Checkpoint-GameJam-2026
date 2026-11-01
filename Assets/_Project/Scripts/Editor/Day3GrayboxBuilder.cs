@@ -442,10 +442,11 @@ public static class Day3GrayboxBuilder
         Day3DataBuilder.Build();
     }
 
-    // every press: 2 resin + water + flower make 4 Lv.2 seeds (one press fills the strip) and hand the bottle back
-    public static void SetRecipe(Day3Director day3)
+    // every press: 2 resin + water + flower make 4 Lv.2 seeds (one press fills the strip) and hand the bottle back;
+    // any director with a 'recipeArray' (Day 4's and Day 5's)
+    public static void SetRecipe(MonoBehaviour director)
     {
-        SerializedObject so = new SerializedObject(day3);
+        SerializedObject so = new SerializedObject(director);
         SerializedProperty recipes = so.FindProperty("recipeArray");
         recipes.arraySize = 1;
         SerializedProperty recipe = recipes.GetArrayElementAtIndex(0);
@@ -461,7 +462,6 @@ public static class Day3GrayboxBuilder
         recipe.FindPropertyRelative("output.amount").intValue = PLOT_COUNT;
         recipe.FindPropertyRelative("returned.itemDataSO").objectReferenceValue = GameDataBuilder.EmptyBottle;
         recipe.FindPropertyRelative("returned.amount").intValue = 1;
-        recipe.FindPropertyRelative("puzzleSO").objectReferenceValue = GameDataBuilder.PuzzleSplit;
         recipe.FindPropertyRelative("blockedReason").stringValue = "Needs 2 resin, water and a flower";
         so.ApplyModifiedPropertiesWithoutUndo();
     }

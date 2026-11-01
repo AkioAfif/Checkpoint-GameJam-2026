@@ -5,7 +5,7 @@ using static GrayboxBuild;
 using static UiBuilder;
 
 // Day 1's extra HUD panels, added to the existing HUD canvas: the debt letter (HouseInterior), the Fabricator's
-// ghost-cursor hint and combo label (Level01) and the screen fade (both).
+// combo label (Level01) and the screen fade (both).
 public static class Day1UiBuilder
 {
     private static readonly Color Paper = new Color(.98f, .95f, .86f);
@@ -13,7 +13,6 @@ public static class Day1UiBuilder
 
     public static ScreenFadeUI BuildVillage(Transform canvas, FabricatorMiniGame miniGame)
     {
-        BuildHint(canvas, miniGame);
         BuildCombo(canvas, miniGame);
         return BuildFade(canvas); // last, so it draws over everything
     }
@@ -50,18 +49,6 @@ public static class Day1UiBuilder
         SetField(ui, "debtText", debt);
         SetField(ui, "continueText", hint);
         SetField(ui, "cardPop", card.gameObject.AddComponent<UIPop>());
-    }
-
-    // the ring is moved around by FabricatorHintUI, so it lives on its own full-screen layer
-    private static void BuildHint(Transform canvas, FabricatorMiniGame miniGame)
-    {
-        RectTransform root = Rect(canvas, "FabricatorHintUI", Vector2.zero, Vector2.one, Centre, Vector2.zero, Vector2.zero);
-        root.gameObject.AddComponent<CanvasGroup>();
-        Image ring = Img(root, "Ring", GrayboxTextures.Ring, new Color(1f, .93f, .55f, .95f), Centre, Centre, Centre, Vector2.zero, new Vector2(130f, 130f));
-        Img(ring.rectTransform, "Dot", GrayboxTextures.Circle, new Color(1f, .93f, .55f, .5f), Centre, Centre, Centre, Vector2.zero, new Vector2(60f, 60f));
-        FabricatorHintUI ui = root.gameObject.AddComponent<FabricatorHintUI>();
-        SetField(ui, "miniGame", miniGame);
-        SetField(ui, "ring", ring.rectTransform);
     }
 
     private static void BuildCombo(Transform canvas, FabricatorMiniGame miniGame)

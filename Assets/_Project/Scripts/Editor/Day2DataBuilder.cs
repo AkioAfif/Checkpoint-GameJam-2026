@@ -61,6 +61,7 @@ public static class Day2DataBuilder
         Day2.bookTitle = "SAVINGS BOOK";
         Day2.bookMorningFormat = "Savings<pos=55%>{0} Koin\nDebt left<pos=55%>{1} Koin\nDue in<pos=55%>{2} days";
         Day2.bookEveningFormat = "Savings<pos=55%>{0} Koin\nEarned today<pos=55%><color=#3E8E5A>+{1} Koin</color>\nDebt left<pos=55%>{2} Koin\nDue in<pos=55%>{3} days";
+        Day2.bookPaidFormat = Day6DataBuilder.BOOK_PAID_FORMAT;
         Day2.bookCloseHint = "Press [{0}] to close the book";
         Day2.nightCaption = "That evening...";
 
@@ -83,8 +84,8 @@ public static class Day2DataBuilder
         TaskObjectiveSO sell = GameDataBuilder.Task("D2_SellSawit", TaskObjectiveSO.Type.Story, "Sell the sawit at the ICAN crate", null, 1);
         TaskObjectiveSO meetRigel = GameDataBuilder.Task("D2_MeetRigel", TaskObjectiveSO.Type.Story, "Talk to Rigel by his field", null, 1);
         TaskObjectiveSO gatherResin = GameDataBuilder.Task("D2_GatherResin", TaskObjectiveSO.Type.CollectItem, "Scrape 2 resin at the forest edge", Resin, 2);
-        TaskObjectiveSO fabricate = GameDataBuilder.Task("D2_MakeLv2", TaskObjectiveSO.Type.FabricateSeed, "Press Sawit Lv.2 seeds in the Fabricator", null, 1);
-        TaskObjectiveSO plant = GameDataBuilder.Task("D2_PlantLv2", TaskObjectiveSO.Type.PlantCrop, "Plant 2 Sawit Lv.2 seeds", null, 2);
+        TaskObjectiveSO fabricate = GameDataBuilder.Task("D2_MakeLv2", TaskObjectiveSO.Type.FabricateSeed, "Press Sawit Lv.2 seeds in the Fabricator", SawitSeedLv2, 1);
+        TaskObjectiveSO plant = GameDataBuilder.Task("D2_PlantLv2", TaskObjectiveSO.Type.PlantCrop, "Plant 2 Sawit Lv.2 seeds", SawitSeedLv2, 2);
         TaskObjectiveSO showRigel = GameDataBuilder.Task("D2_ShowRigel", TaskObjectiveSO.Type.Story, "Show Rigel your new sawit", null, 1);
         TaskObjectiveSO home = GameDataBuilder.Task("D2_GoHome", TaskObjectiveSO.Type.EnterHouse, "Go home", null, 1);
         Day2.morningObjectiveArray = new[] { readBook };

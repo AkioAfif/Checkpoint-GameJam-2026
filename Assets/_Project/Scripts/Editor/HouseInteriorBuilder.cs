@@ -54,7 +54,7 @@ public static class HouseInteriorBuilder
         managers.gameObject.AddComponent<DialogueManager>();
         // the player's visual listens to these even indoors
         managers.gameObject.AddComponent<QTEManager>();
-        managers.gameObject.AddComponent<PlantingController>();
+        SetField(managers.gameObject.AddComponent<PlantingController>(), "cropListSO", AssetDatabase.LoadAssetAtPath<CropListSO>("Assets/_Project/ScriptableObjects/Crops/CropList.asset"));
         SetArray(managers.gameObject.AddComponent<TaskManager>(), "objectiveSOArray", day1SO.letterObjectiveArray);
 
         // before the player: it re-saves the character rig prefab, which resets the player instance's position

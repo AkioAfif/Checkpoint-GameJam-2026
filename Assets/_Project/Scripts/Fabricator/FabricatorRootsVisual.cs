@@ -142,7 +142,7 @@ public class FabricatorRootsVisual : MonoBehaviour
             childList.Add(pair.Key - pair.Value);
         }
 
-        Sprite stemSprite = sentinel.isThorny ? skinSO.thornyRootStemSprite : skinSO.rootStemSprite;
+        Sprite stemSprite = sentinel.isDangerous ? skinSO.thornyRootStemSprite : skinSO.rootStemSprite;
         // the host's own cell draws the stems leaving it (under the sentinel's sprite)
         if (childDictionary.TryGetValue(host, out List<Vector2Int> hostChildList)) AddSegment(network, host, Vector2Int.zero, hostChildList, 0, stemSprite);
         foreach (Vector2Int cell in coveredSet)

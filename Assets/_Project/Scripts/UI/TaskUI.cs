@@ -1,14 +1,18 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
-// Top-left "Today" checklist. Tab shows or hides it; it starts open.
+// Top-left "Quest" checklist, with the debt still owed under the title once the accounts are open. Tab shows or hides it;
+// it starts open.
 [RequireComponent(typeof(CanvasGroup))]
 public class TaskUI : MonoBehaviour
 {
     [SerializeField] private Transform container;
     [SerializeField] private TaskSingleUI rowTemplate;
     [SerializeField] private UIPop headerPop;
+    [SerializeField] private TextMeshProUGUI debtText;
+    [SerializeField] private string debtFormat = "Remaining debt: {0} Koin";
 
     private readonly List<TaskSingleUI> rowList = new List<TaskSingleUI>();
     private CanvasGroup canvasGroup;
@@ -28,11 +32,14 @@ public class TaskUI : MonoBehaviour
         TaskManager.Instance.OnRequiredTasksCompleted += TaskManager_OnRequiredTasksCompleted;
         TaskManager.Instance.OnObjectivesChanged += TaskManager_OnObjectivesChanged;
         GameInput.Instance.OnToggleTasksAction += GameInput_OnToggleTasksAction;
+        WorldState.OnDebtChanged += WorldState_OnDebtChanged;
         BuildRows();
+        UpdateDebt();
     }
 
     private void OnDestroy()
     {
+        WorldState.OnDebtChanged -= WorldState_OnDebtChanged;
         if (GameInput.Instance != null) GameInput.Instance.OnToggleTasksAction -= GameInput_OnToggleTasksAction;
         if (TaskManager.Instance == null) return;
         TaskManager.Instance.OnObjectiveProgress -= TaskManager_OnObjectiveProgress;
@@ -47,6 +54,8 @@ public class TaskUI : MonoBehaviour
         canvasGroup.SetVisible(isOpen);
     }
 
+    private void WorldState_OnDebtChanged(object sender, EventArgs e) => UpdateDebt();
+
     private void TaskManager_OnObjectiveProgress(object sender, TaskManager.OnObjectiveProgressEventArgs e) => RefreshAll(e.index);
 
     private void TaskManager_OnRequiredTasksCompleted(object sender, EventArgs e) => headerPop.Play();
@@ -57,6 +66,13 @@ public class TaskUI : MonoBehaviour
         rowList.Clear();
         BuildRows();
         headerPop.Play();
+    }
+
+    // the debt is only known from the first look at the savings book (Day 2) on
+    private void UpdateDebt()
+    {
+        debtText.gameObject.SetActive(WorldState.HasAccounts());
+        debtText.text = string.Format(debtFormat, Koin.Format(WorldState.GetDebt()));
     }
 
     private void BuildRows()

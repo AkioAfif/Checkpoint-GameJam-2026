@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 // Day 3 on the CozyFarm map, after the buff: the MC realises the trees on the new field can go. Walk up to each marked tree
 // and mash [Interact] (LandQTE) to punch it down; the first one gets a line, and with the last one the rest of the trees on
-// the field fall too. LandSequence starts it and carries on to the land smash on OnFinished.
+// the field fall too. LandSequence starts it and carries on to the land smash on OnFinished. Day 5's director runs it too,
+// with its own lines and lighter punches.
 public class TreeClearing : MonoBehaviour
 {
     public event EventHandler<OnStepChangedEventArgs> OnStepChanged;
@@ -14,7 +15,13 @@ public class TreeClearing : MonoBehaviour
 
     public enum Step { None, Idea, Wait, Punching, FirstTreeTalk, Clearing, ClearedTalk, Done }
 
-    [SerializeField] private Day3SO day3SO;
+    [Tooltip("Story Ã—(marked trees): one per tree.")]
+    [SerializeField] private TaskObjectiveSO[] treeObjectiveArray;
+    [Tooltip("The MC's idea, before the trees can be punched.")]
+    [SerializeField] private DialogueSO treesIdeaDialogueSO;
+    [SerializeField] private DialogueSO firstTreeDialogueSO;
+    [Tooltip("After the last marked tree and the rest have fallen.")]
+    [SerializeField] private DialogueSO treesClearedDialogueSO;
     [SerializeField] private LandQTE landQTE;
     [SerializeField] private CutsceneActor playerActor;
     [Tooltip("The trees the player punches down, one by one.")]
@@ -58,7 +65,7 @@ public class TreeClearing : MonoBehaviour
         switch (step)
         {
             case Step.Idea:
-                TaskManager.Instance.SetObjectives(day3SO.treeObjectiveArray);
+                TaskManager.Instance.SetObjectives(treeObjectiveArray);
                 foreach (PunchableTree tree in markedTreeArray) tree.SetPunchable(true);
                 SetStep(Step.Wait);
                 break;
@@ -104,7 +111,7 @@ public class TreeClearing : MonoBehaviour
     {
         Hold();
         SetStep(Step.Idea);
-        DialogueManager.Instance.StartDialogue(null, day3SO.treesIdeaDialogueSO);
+        DialogueManager.Instance.StartDialogue(null, treesIdeaDialogueSO);
     }
 
     public Step GetStep() => step;
@@ -125,7 +132,7 @@ public class TreeClearing : MonoBehaviour
                 else if (felledCount == 1)
                 {
                     SetStep(Step.FirstTreeTalk);
-                    DialogueManager.Instance.StartDialogue(null, day3SO.firstTreeDialogueSO);
+                    DialogueManager.Instance.StartDialogue(null, firstTreeDialogueSO);
                 }
                 else
                 {
@@ -143,7 +150,7 @@ public class TreeClearing : MonoBehaviour
                     break;
                 }
                 SetStep(Step.ClearedTalk);
-                DialogueManager.Instance.StartDialogue(null, day3SO.treesClearedDialogueSO);
+                DialogueManager.Instance.StartDialogue(null, treesClearedDialogueSO);
                 break;
         }
     }

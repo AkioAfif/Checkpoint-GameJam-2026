@@ -4,11 +4,17 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-// Opens when the player uses the Fabricator: the materials one batch needs, the seeds it makes, and how many batches to run at once.
+// Opens when the player uses the Fabricator: which recipe (once more than one is unlocked), the materials one batch needs,
+// the seeds it makes, and how many batches to run at once.
 [RequireComponent(typeof(CanvasGroup))]
 public class FabricatorRecipeUI : MonoBehaviour
 {
     [SerializeField] private FabricatorController fabricator;
+    [Tooltip("The recipe switcher row; hidden while only one recipe is unlocked.")]
+    [SerializeField] private GameObject recipeSelector;
+    [SerializeField] private TextMeshProUGUI recipeNameText;
+    [SerializeField] private Button previousRecipeButton;
+    [SerializeField] private Button nextRecipeButton;
     [SerializeField] private Transform inputContainer;
     [SerializeField] private FabricatorRecipeSingleUI inputRowTemplate;
     [SerializeField] private Image outputIconImage;
@@ -26,6 +32,8 @@ public class FabricatorRecipeUI : MonoBehaviour
     {
         canvasGroup = GetComponent<CanvasGroup>();
         inputRowTemplate.gameObject.SetActive(false);
+        previousRecipeButton.onClick.AddListener(() => { fabricator.ChangeRecipe(-1); });
+        nextRecipeButton.onClick.AddListener(() => { fabricator.ChangeRecipe(1); });
         minusButton.onClick.AddListener(() => { fabricator.ChangeBatchCount(-1); });
         plusButton.onClick.AddListener(() => { fabricator.ChangeBatchCount(1); });
         makeButton.onClick.AddListener(() => { fabricator.ConfirmBatch(); });
@@ -36,7 +44,7 @@ public class FabricatorRecipeUI : MonoBehaviour
     private void Start()
     {
         fabricator.OnStateChanged += Fabricator_OnStateChanged;
-        fabricator.OnBatchCountChanged += Fabricator_OnBatchCountChanged;
+        fabricator.OnChoiceChanged += Fabricator_OnChoiceChanged;
     }
 
     private void Fabricator_OnStateChanged(object sender, FabricatorController.OnStateChangedEventArgs e)
@@ -45,7 +53,7 @@ public class FabricatorRecipeUI : MonoBehaviour
         else Hide();
     }
 
-    private void Fabricator_OnBatchCountChanged(object sender, EventArgs e) => UpdateVisual();
+    private void Fabricator_OnChoiceChanged(object sender, EventArgs e) => UpdateVisual();
 
     private void UpdateVisual()
     {
@@ -62,6 +70,9 @@ public class FabricatorRecipeUI : MonoBehaviour
         }
 
         ItemAmount output = fabricator.GetOutput();
+        int choiceCount = fabricator.GetChoiceCount();
+        recipeSelector.SetActive(choiceCount > 1);
+        recipeNameText.text = $"{output.itemDataSO.itemName}  ({fabricator.GetChoiceIndex() + 1}/{choiceCount})";
         outputIconImage.sprite = output.itemDataSO.icon;
         outputIconImage.enabled = output.itemDataSO.icon != null;
         outputText.text = $"{output.itemDataSO.itemName} x{output.amount * batchCount}";
