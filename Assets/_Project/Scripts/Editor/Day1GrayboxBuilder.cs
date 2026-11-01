@@ -106,6 +106,7 @@ public static class Day1GrayboxBuilder
         Day1Director day1 = director.gameObject.AddComponent<Day1Director>();
         SetField(day1, "day1SO", Day1DataBuilder.Day1);
         SetField(day1, "screenFade", fade);
+        SetField(day1, "chapterListSO", ChapterDataBuilder.Build());
         SetField(day1, "truck", truck);
         SetField(day1, "fabricator", fabricator);
         SetField(day1, "fabricatorDelivery", delivery);

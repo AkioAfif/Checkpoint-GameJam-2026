@@ -6,6 +6,8 @@ using UnityEngine;
 [RequireComponent(typeof(CanvasGroup))]
 public class ScreenFadeUI : MonoBehaviour
 {
+    private const float MAX_FRAME_STEP = .1f;
+
     public event EventHandler OnBlack;
     public event EventHandler OnFinished;
 
@@ -18,6 +20,9 @@ public class ScreenFadeUI : MonoBehaviour
     private State state;
     private float timer;
     private float holdDuration;
+    // held one after the other on the black
+    private string[] captionArray;
+    private int captionIndex;
 
     private void Awake()
     {
@@ -29,7 +34,8 @@ public class ScreenFadeUI : MonoBehaviour
     private void Update()
     {
         if (state == State.Idle) return;
-        timer += Time.unscaledDeltaTime;
+        // capped: a scene's first frames hitch while it loads, and a title card shown from black would be skipped
+        timer += Mathf.Min(Time.unscaledDeltaTime, MAX_FRAME_STEP);
         switch (state)
         {
             case State.FadingOut:
@@ -39,7 +45,14 @@ public class ScreenFadeUI : MonoBehaviour
                 OnBlack?.Invoke(this, EventArgs.Empty);
                 break;
             case State.Holding:
-                if (timer >= holdDuration) SetState(State.FadingIn);
+                if (timer < holdDuration) break;
+                captionIndex++;
+                if (captionIndex < captionArray.Length)
+                {
+                    captionText.text = captionArray[captionIndex];
+                    timer = 0f;
+                }
+                else SetState(State.FadingIn);
                 break;
             case State.FadingIn:
                 canvasGroup.alpha = 1f - Mathf.Clamp01(timer / fadeDuration);
@@ -54,10 +67,25 @@ public class ScreenFadeUI : MonoBehaviour
     // caption may be empty; OnBlack fires once the screen is fully black
     public void Play(string caption, float holdDuration)
     {
-        captionText.text = caption;
+        StartCaptions(new[] { caption }, holdDuration);
+        SetState(State.FadingOut);
+    }
+
+    // a chapter's title card: the scene opens already black (no OnBlack), holds each caption in turn, then fades in
+    public void PlayFromBlack(string[] captionArray, float holdDuration)
+    {
+        StartCaptions(captionArray, holdDuration);
+        canvasGroup.alpha = 1f;
+        SetState(State.Holding);
+    }
+
+    private void StartCaptions(string[] captionArray, float holdDuration)
+    {
+        this.captionArray = captionArray;
+        captionIndex = 0;
+        captionText.text = captionArray[0];
         this.holdDuration = holdDuration;
         canvasGroup.blocksRaycasts = true;
-        SetState(State.FadingOut);
     }
 
     private void SetState(State state)

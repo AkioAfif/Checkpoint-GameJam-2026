@@ -25,6 +25,7 @@ public class Day1Director : MonoBehaviour
 
     [SerializeField] private Day1SO day1SO;
     [SerializeField] private ScreenFadeUI screenFade;
+    [SerializeField] private ChapterListSO chapterListSO;
     [SerializeField] private DistributorTruck truck;
     [SerializeField] private FabricatorController fabricator;
     [SerializeField] private FabricatorDelivery fabricatorDelivery;
@@ -81,12 +82,16 @@ public class Day1Director : MonoBehaviour
     private int eveningPathIndex;
     // centre of the plants that grew by nightfall; the night walk's last shot frames it
     private bool hasGardenFocus;
+    private bool isChapterCardPlaying;
     private Vector3 gardenFocus;
 
     private void Start()
     {
         screenFade.OnBlack += ScreenFade_OnBlack;
         screenFade.OnFinished += ScreenFade_OnFinished;
+        // Chapter 1 opens on its title card; the stroll waits for it
+        isChapterCardPlaying = true;
+        screenFade.PlayFromBlack(new[] { chapterListSO.chapterTitleArray[1] }, chapterListSO.holdDuration);
         truck.OnStateChanged += Truck_OnStateChanged;
         distributorActor.OnMoveFinished += DistributorActor_OnMoveFinished;
         playerActor.OnMoveFinished += PlayerActor_OnMoveFinished;
@@ -124,6 +129,10 @@ public class Day1Director : MonoBehaviour
 
     private void Update()
     {
+        // GameManager.Start puts the game in Playing: hold the player while the title card is up
+        if (isChapterCardPlaying && GameManager.Instance.GetState() == GameManager.State.Playing)
+            GameManager.Instance.SetState(GameManager.State.Cutscene);
+
         // a few free steps out of the door (or, with a trigger point, a walk over to the garden), then the truck comes roaring in
         if (state == State.Stroll && GameManager.Instance.IsGamePlaying() && HasStrolled())
             BeginArrival();
@@ -192,6 +201,12 @@ public class Day1Director : MonoBehaviour
     // the screen clears, still a cutscene: the MC walks up the path (or into the house-front shot from the west)
     private void ScreenFade_OnFinished(object sender, EventArgs e)
     {
+        if (isChapterCardPlaying)
+        {
+            isChapterCardPlaying = false;
+            GameManager.Instance.SetState(GameManager.State.Playing);
+            return;
+        }
         if (!isNightFadePlaying) return;
         isNightFadePlaying = false;
         if (HasEveningPath()) WalkEveningPath();
