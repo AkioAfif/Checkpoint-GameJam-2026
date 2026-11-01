@@ -73,6 +73,7 @@ public static class HouseInteriorBuilder
 
         BedroomDirector director = Root("BedroomDirector").AddComponent<BedroomDirector>();
         SetField(director, "day1SO", day1SO);
+        SetField(director, "chapterListSO", ChapterDataBuilder.Build());
         SetField(director, "bedsideLetter", letter);
         SetField(director, "bedroomDoor", bedroomDoor);
         SetField(director, "screenFade", fade);

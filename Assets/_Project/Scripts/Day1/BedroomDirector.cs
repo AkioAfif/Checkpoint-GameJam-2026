@@ -4,7 +4,7 @@ using UnityEngine;
 // The morning in the HouseInterior scene: wake up, read what lies on the bedside table, think it over, then the door
 // leads out to that day's village scene. Day 1 is the debt letter; from Day 2 on it is the savings book. Day 3 is the next
 // morning (the yard day); Day 4 opens two weeks later, on a caption; Day 5 is the morning after it; Day 6 opens two weeks
-// after that, on a caption, with the debt paid off.
+// after that, on a caption, with the debt paid off. Every morning opens on its chapter's title card (Day 1's is Chapter 0).
 public class BedroomDirector : MonoBehaviour
 {
     [SerializeField] private Day1SO day1SO;
@@ -17,6 +17,7 @@ public class BedroomDirector : MonoBehaviour
     [SerializeField] private Day5SO day5SO;
     [Tooltip("Day 6, two weeks after Day 5: the skip caption, the payoff and its morning thought.")]
     [SerializeField] private Day6SO day6SO;
+    [SerializeField] private ChapterListSO chapterListSO;
     [SerializeField] private BedsideLetter bedsideLetter;
     [SerializeField] private BedsideLetter savingsBook;
     [SerializeField] private SavingsBookUI savingsBookUI;
@@ -39,7 +40,8 @@ public class BedroomDirector : MonoBehaviour
     private bool hasStarted;
     // 1 to 6: which morning this is
     private int day;
-    private bool isSkipCaptionPlaying;
+    // the title card (and the time-skip caption after it) on the black the morning opens on
+    private bool isChapterCardPlaying;
     // today's thing to read on the bedside table
     private BedsideLetter readable;
 
@@ -71,7 +73,11 @@ public class BedroomDirector : MonoBehaviour
         if (day >= 4) WorldState.SkipTime(day3SO.paidDuringSkip, day3SO.daysUntilDue);
         // the second skip: the plantation paid everything off (the book reads PAID)
         if (day == 6) WorldState.PayOffDebt(day6SO.daysUntilDue);
-        isSkipCaptionPlaying = day == 4 || day == 6;
+        isChapterCardPlaying = true;
+        // the bedroom on Day 1 is Chapter 0; Day N's morning opens Chapter N
+        string chapterTitle = chapterListSO.chapterTitleArray[day == 1 ? 0 : day];
+        string[] captionArray = day == 6 ? new[] { chapterTitle, day6SO.skipCaption } : day == 4 ? new[] { chapterTitle, day3SO.skipCaption } : new[] { chapterTitle };
+        screenFade.PlayFromBlack(captionArray, chapterListSO.holdDuration);
         TaskManager.Instance.SetObjectives(day > 1 ? day2SO.morningObjectiveArray : day1SO.letterObjectiveArray);
     }
 
@@ -82,8 +88,6 @@ public class BedroomDirector : MonoBehaviour
         {
             hasStarted = true;
             GameManager.Instance.SetState(GameManager.State.Cutscene);
-            if (isSkipCaptionPlaying) screenFade.Play(day == 6 ? day6SO.skipCaption : day3SO.skipCaption, 2f);
-            else WakeUp();
         }
         if (wakeUpTimer <= 0f) return;
         wakeUpTimer -= Time.deltaTime;
@@ -119,16 +123,15 @@ public class BedroomDirector : MonoBehaviour
 
     private void ScreenFade_OnBlack(object sender, EventArgs e)
     {
-        // the same fade shows the time-skip caption first thing in the morning
-        if (isSkipCaptionPlaying) return;
+        if (isChapterCardPlaying) return;
         Loader.Scene scene = day == 6 ? Loader.Scene.FixScene_Day6 : day == 5 ? Loader.Scene.FixScene_Day5 : day == 4 ? Loader.Scene.FixScene_Day4 : day == 3 ? Loader.Scene.FixScene_Day3 : day == 2 ? Loader.Scene.FixScene_Day2 : Loader.Scene.FixScene;
         Loader.Load(scene);
     }
 
     private void ScreenFade_OnFinished(object sender, EventArgs e)
     {
-        if (!isSkipCaptionPlaying) return;
-        isSkipCaptionPlaying = false;
+        if (!isChapterCardPlaying) return;
+        isChapterCardPlaying = false;
         WakeUp();
     }
 

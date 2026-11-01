@@ -8103,6 +8103,8 @@ MonoBehaviour:
   day2Director: {fileID: 0}
   day3Director: {fileID: 0}
   yardDayDirector: {fileID: 0}
+  day5Director: {fileID: 0}
+  day6Director: {fileID: 0}
   sun: {fileID: 410056323}
   worldCamera: {fileID: 1001530985}
   doorLamp: {fileID: 274539986}
@@ -8125,10 +8127,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WorldGlitchVisual
   director: {fileID: 281581698}
   landSequence: {fileID: 0}
+  plantationSequence: {fileID: 0}
   corruptMaterialArray:
   - {fileID: 2100000, guid: 8f66356b687e2da40b01a1bd4c327ac8, type: 2}
   - {fileID: 2100000, guid: f773229116ba72d4ea3e8df757a04f94, type: 2}
   - {fileID: 2100000, guid: 8d41524c3c94ca8488570ace14cfb9c3, type: 2}
+  severity: 1
   startDelay: 1
   duration: 1
   tickInterval: 0.05
@@ -8187,6 +8191,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Day1Director
   day1SO: {fileID: 11400000, guid: f1df287a559b8f94b898ee1361d2022b, type: 2}
   screenFade: {fileID: 2072927726}
+  chapterListSO: {fileID: 11400000, guid: 0e748127570f1864fb44bbefd20b09c4, type: 2}
   truck: {fileID: 235000481}
   fabricator: {fileID: 839007258}
   fabricatorDelivery: {fileID: 839007257}
@@ -52878,6 +52883,7 @@ MonoBehaviour:
   npcStand: {fileID: 717558074}
   playerCamera: {fileID: 778700474}
   npcCamera: {fileID: 286480448}
+  facingAngle: 30
 --- !u!4 &1985516039
 Transform:
   m_ObjectHideFlags: 0
