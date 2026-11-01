@@ -22,6 +22,9 @@ public static class FixSceneDay4Builder
     private const string GAMEPLAY_ROOT = "Gameplay";
     private const string GRAYBOX_ROOT = "Day3_Graybox";
     private const string DIRECTOR_ROOT = "Day3";
+    // the yard day's 3x4 garden (on from Day 4) and the old 3x3 one under CozyFarm (off from Day 4), for the flashback
+    private const string EXPANDED_GARDEN_PATH = "Day3Yard_Graybox/Garden_3x4";
+    private const string OLD_GARDEN_NAME = "Player_Garden";
 
     // the new field: four plots in a square between the river's east bank (x ~9.5) and the pond (x 20-26)
     private static readonly Vector3 FieldCentre = new Vector3(15.6f, 0f, -29.4f);
@@ -120,6 +123,7 @@ public static class FixSceneDay4Builder
             flashbackPlayerPoint, flashbackDistributorPoint, out Npc distributor);
         SetField(day3, "landSequence", landSequence);
         Day3GrayboxBuilder.BuildLandVisuals(director, landSequence, plotsRoot, null, crater, smashPoint, distributor);
+        SetFlashbackSet(director, fieldPlots, crate, rigel);
 
         LandQTE landQTE = director.GetComponent<LandQTE>();
         CutsceneActor playerActor = Object.FindAnyObjectByType<Player>(FindObjectsInactive.Include).GetComponent<CutsceneActor>();
@@ -367,6 +371,17 @@ public static class FixSceneDay4Builder
         copy.AddComponent<MeshRenderer>().sharedMaterials = source.GetComponent<MeshRenderer>().sharedMaterials;
         if (hasCollider) copy.AddComponent<MeshCollider>().sharedMesh = mesh;
         else copy.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+    }
+
+    // the flashback is the day the Fabricator arrived (Day 1): the old 3x3 garden with empty beds, no ICAN crate, no Rigel
+    public static void SetFlashbackSet(Transform director, FarmPlot[] gardenPlots, SellCrate crate, Npc rigel)
+    {
+        Transform gameplay = director.parent;
+        List<Object> presentList = new List<Object> { gameplay.Find(EXPANDED_GARDEN_PATH).gameObject, crate.gameObject, rigel.gameObject };
+        presentList.AddRange(gardenPlots.Select(plot => (Object)plot.gameObject));
+        FlashbackVisual flashback = director.GetComponent<FlashbackVisual>();
+        SetArray(flashback, "presentOnlyArray", presentList.ToArray());
+        SetArray(flashback, "pastOnlyArray", new Object[] { GameObject.Find("CozyFarm").transform.Find(OLD_GARDEN_NAME).gameObject });
     }
 
     // Rigel steps on at the bridge's garden (west) end and stops the MC halfway across, filmed side-on from downstream
