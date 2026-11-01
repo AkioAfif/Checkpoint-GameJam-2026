@@ -413,7 +413,7 @@ public static class Day3GrayboxBuilder
         cam.transform.LookAt(lookAt);
         LensSettings lens = LensSettings.Default;
         lens.FieldOfView = fov;
-        lens.FarClipPlane = 200f;
+        lens.FarClipPlane = CAMERA_FAR_CLIP;
         cam.Lens = lens;
         cam.enabled = false;
         return cam;

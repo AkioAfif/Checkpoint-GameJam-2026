@@ -93,7 +93,7 @@ public static class HouseInteriorBuilder
         camera.backgroundColor = new Color(.80f, .88f, .93f);
         camera.cullingMask = ~LayerMask.GetMask("Portrait", "Puzzle");
         camera.fieldOfView = 46f;
-        camera.farClipPlane = 200f;
+        camera.farClipPlane = CAMERA_FAR_CLIP;
         cameraGo.AddComponent<AudioListener>();
         cameraGo.AddComponent<UniversalAdditionalCameraData>().renderPostProcessing = true;
         cameraGo.transform.position = new Vector3(.9f, 3.3f, -4.6f);

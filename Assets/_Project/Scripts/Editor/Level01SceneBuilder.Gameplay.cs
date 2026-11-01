@@ -93,7 +93,7 @@ public static partial class Level01SceneBuilder
         mainCamera.clearFlags = CameraClearFlags.SolidColor;
         mainCamera.backgroundColor = new Color(.80f, .88f, .93f);
         mainCamera.cullingMask = ~LayerMask.GetMask("Portrait", "Puzzle");
-        mainCamera.farClipPlane = 200f;
+        mainCamera.farClipPlane = CAMERA_FAR_CLIP;
         cameraGo.AddComponent<AudioListener>();
         cameraGo.AddComponent<UniversalAdditionalCameraData>().renderPostProcessing = true;
         CinemachineBrain brain = cameraGo.AddComponent<CinemachineBrain>();
@@ -137,7 +137,7 @@ public static partial class Level01SceneBuilder
         cam.LookAt = cameraTarget;
         LensSettings lens = LensSettings.Default;
         lens.FieldOfView = fov;
-        lens.FarClipPlane = 200f;
+        lens.FarClipPlane = CAMERA_FAR_CLIP;
         cam.Lens = lens;
         CinemachineFollow follow = go.AddComponent<CinemachineFollow>();
         follow.FollowOffset = offset;

@@ -144,11 +144,7 @@ public static class FixSceneDay6Builder
         SetField(night, "doorLamp", day2Graybox.Find("DoorLamp").gameObject);
         SetField(director.gameObject.AddComponent<NightCurfew>(), "day6Director", day6);
 
-        Renderer[] edgePlants = FindEdgePlants(minX, maxX, minZ, maxZ);
-        Renderer[] tornPlants = edgePlants.Union(FindTornForest(minX, maxX, minZ, maxZ)).ToArray();
-        // static batching would freeze them in place: the tear moves and stretches each one
-        foreach (Renderer plant in tornPlants)
-            GameObjectUtility.SetStaticEditorFlags(plant.gameObject, GameObjectUtility.GetStaticEditorFlags(plant.gameObject) & ~StaticEditorFlags.BatchingStatic);
+        Renderer[] tornPlants = CollectTornPlants(minX, maxX, minZ, maxZ, out Renderer[] edgePlants);
         MutationSpreadVisual mutation = director.gameObject.AddComponent<MutationSpreadVisual>();
         SetArray(mutation, "rendererArray", tornPlants);
         // the same raw red Day 2's palms flicker to (Day2GrayboxBuilder), and the void-black of the world glitch
@@ -190,12 +186,21 @@ public static class FixSceneDay6Builder
     }
 
     // more 3x4 gardens east of Day 5's, each with a ripe palm model on every bed; returns the whole plantation's rectangle
+    // the whole plantation (Day 5's tiles plus the extension east of them)
+    private static (float minX, float maxX, float minZ, float maxZ) GetPlantationRect()
+    {
+        float tileWidth = (FixSceneDay5Builder.AREA_MAX_X - FixSceneDay5Builder.AREA_MIN_X) / FixSceneDay5Builder.TILE_COLUMNS;
+        float tileDepth = (FixSceneDay5Builder.AREA_MAX_Z - FixSceneDay5Builder.AREA_MIN_Z) / FixSceneDay5Builder.TILE_ROWS;
+        return (FixSceneDay5Builder.AREA_MIN_X, FixSceneDay5Builder.AREA_MAX_X + tileWidth * EXTRA_COLUMNS,
+            FixSceneDay5Builder.AREA_MIN_Z, FixSceneDay5Builder.AREA_MIN_Z + tileDepth * EXTRA_ROWS);
+    }
+
     private static (float minX, float maxX, float minZ, float maxZ) BuildExtension(Transform graybox)
     {
         float tileWidth = (FixSceneDay5Builder.AREA_MAX_X - FixSceneDay5Builder.AREA_MIN_X) / FixSceneDay5Builder.TILE_COLUMNS;
         float tileDepth = (FixSceneDay5Builder.AREA_MAX_Z - FixSceneDay5Builder.AREA_MIN_Z) / FixSceneDay5Builder.TILE_ROWS;
-        float minX = FixSceneDay5Builder.AREA_MAX_X, maxX = minX + tileWidth * EXTRA_COLUMNS;
-        float minZ = FixSceneDay5Builder.AREA_MIN_Z, maxZ = minZ + tileDepth * EXTRA_ROWS;
+        float minX = FixSceneDay5Builder.AREA_MAX_X, maxX = GetPlantationRect().maxX;
+        float minZ = FixSceneDay5Builder.AREA_MIN_Z, maxZ = GetPlantationRect().maxZ;
         foreach (GameObject plant in FixSceneDay5Builder.FindPlants(minX, maxX, minZ, maxZ)) plant.SetActive(false);
 
         Transform root = Root("PlantationExtension", graybox).transform;
@@ -224,6 +229,17 @@ public static class FixSceneDay6Builder
             }
         }
         return (FixSceneDay5Builder.AREA_MIN_X, maxX, minZ, maxZ);
+    }
+
+    // the edge plants (pulse) plus the torn forest; static batching would freeze them in place, so it is cleared: the tear
+    // moves and stretches each one
+    private static Renderer[] CollectTornPlants(float minX, float maxX, float minZ, float maxZ, out Renderer[] edgePlants)
+    {
+        edgePlants = FindEdgePlants(minX, maxX, minZ, maxZ);
+        Renderer[] tornPlants = edgePlants.Union(FindTornForest(minX, maxX, minZ, maxZ)).ToArray();
+        foreach (Renderer plant in tornPlants)
+            GameObjectUtility.SetStaticEditorFlags(plant.gameObject, GameObjectUtility.GetStaticEditorFlags(plant.gameObject) & ~StaticEditorFlags.BatchingStatic);
+        return tornPlants;
     }
 
     // the map's trees and bushes within EDGE_BAND outside the plantation's rectangle
@@ -260,13 +276,7 @@ public static class FixSceneDay6Builder
     // the river runs brown (a copy of its material), and the old garden's beds and Rigel's garden turn dry grey
     private static void BuildDamage(Transform gameplay)
     {
-        if (AssetDatabase.LoadAssetAtPath<Material>(MURKY_RIVER_MATERIAL_PATH) == null) AssetDatabase.CopyAsset(RIVER_MATERIAL_PATH, MURKY_RIVER_MATERIAL_PATH);
-        Material murky = AssetDatabase.LoadAssetAtPath<Material>(MURKY_RIVER_MATERIAL_PATH);
-        Material clear = AssetDatabase.LoadAssetAtPath<Material>(RIVER_MATERIAL_PATH);
-        murky.SetColor("_BaseColor", MurkyRiverColor);
-        EditorUtility.SetDirty(murky);
-        foreach (MeshRenderer water in Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include))
-            if (water.sharedMaterial == clear) water.sharedMaterial = murky;
+        MuddyTheRiver();
 
         Material dried = GrayboxPalette.Lit("DriedSoil", DriedSoilColor);
         // the old garden's furrows and ridges (the model's sub-meshes 1 and 2, as FixSceneDay5Builder cuts them)
@@ -278,6 +288,38 @@ public static class FixSceneDay6Builder
         foreach (MeshRenderer bed in GameObject.Find("CozyFarm").GetComponentsInChildren<MeshRenderer>(true))
             if (bed.name.StartsWith("Rival_Property_Garden") && bed.bounds.center.z > RIGEL_GARDEN_MIN_Z)
                 bed.sharedMaterials = Enumerable.Repeat(dried, bed.sharedMaterials.Length).ToArray();
+    }
+
+    // every water surface using the clear river material, the world border's carried-on river included
+    private static void MuddyTheRiver()
+    {
+        if (AssetDatabase.LoadAssetAtPath<Material>(MURKY_RIVER_MATERIAL_PATH) == null) AssetDatabase.CopyAsset(RIVER_MATERIAL_PATH, MURKY_RIVER_MATERIAL_PATH);
+        Material murky = AssetDatabase.LoadAssetAtPath<Material>(MURKY_RIVER_MATERIAL_PATH);
+        Material clear = AssetDatabase.LoadAssetAtPath<Material>(RIVER_MATERIAL_PATH);
+        murky.SetColor("_BaseColor", MurkyRiverColor);
+        EditorUtility.SetDirty(murky);
+        foreach (MeshRenderer water in Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include))
+            if (water.sharedMaterial == clear) water.sharedMaterial = murky;
+    }
+
+    // Tools > World Border > Bake Visuals replaces the border's pieces: this puts back what Day 6 does to them (the murky
+    // carried-on river, and the border pieces among the torn forest) without rebuilding the day
+    [MenuItem("Tools/FixScene/Refresh Day 6 Border Damage")]
+    public static void RefreshBorderDamage()
+    {
+        if (EditorApplication.isPlaying || EditorSceneManager.GetActiveScene().path != SCENE_PATH)
+        {
+            Debug.LogError($"Open {SCENE_PATH} (not in Play mode) first.");
+            return;
+        }
+        MuddyTheRiver();
+        MutationSpreadVisual mutation = GameObject.Find($"{GAMEPLAY_ROOT}/{DIRECTOR_ROOT}").GetComponent<MutationSpreadVisual>();
+        (float minX, float maxX, float minZ, float maxZ) = GetPlantationRect();
+        Renderer[] tornPlants = CollectTornPlants(minX, maxX, minZ, maxZ, out _);
+        SetArray(mutation, "rendererArray", tornPlants);
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+        Debug.Log($"Day 6 border damage refreshed: {tornPlants.Length} plants tear.");
     }
 
     // an [Interact] spot on the Interactable layer with its prompt above it

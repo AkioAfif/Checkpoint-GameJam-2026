@@ -19,6 +19,11 @@ public static class WorldBorderVisualBuilder
     private const float RIVER_END_TOLERANCE = 3f;
     // the skirt starts this far above the ground mesh's edge: any lower and the edge throws a thin shadow line onto it
     private const float SEAM_LIFT = .03f;
+    // mountains that would stand on a road or the carried-on river are turned this far around the map per try
+    private const float MOUNTAIN_NUDGE_ANGLE = 2f * Mathf.Deg2Rad;
+    // up to ±32°: a mountain beside a river running straight out needs ~25° to clear it (they may then overlap a neighbour)
+    private const int MOUNTAIN_NUDGE_STEP_COUNT = 32;
+    private const float MOUNTAIN_CORRIDOR_MARGIN = 4f;
 
     private class Corridor
     {
@@ -694,23 +699,47 @@ public static class WorldBorderVisualBuilder
         for (int i = 0; i < layout.mountainCount; i++)
         {
             float angle = (i + Signed(random) * .3f) / layout.mountainCount * Mathf.PI * 2f;
-            Vector2 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-            // from the centre to the ground's edge along this direction
-            float toEdgeX = Mathf.Abs(direction.x) > .001f ? rect.width * .5f / Mathf.Abs(direction.x) : float.MaxValue;
-            float toEdgeZ = Mathf.Abs(direction.y) > .001f ? rect.height * .5f / Mathf.Abs(direction.y) : float.MaxValue;
             float radius = Mathf.Lerp(layout.mountainWidthRange.x, layout.mountainWidthRange.y, (float)random.NextDouble());
             float height = Mathf.Lerp(layout.mountainHeightRange.x, layout.mountainHeightRange.y, (float)random.NextDouble());
             // the gap is measured from the ground's edge to the mountain's foot, so no slope reaches into the map
             float gap = Mathf.Lerp(layout.mountainDistanceRange.x, layout.mountainDistanceRange.y, (float)random.NextDouble());
-            Vector2 point = center + direction * (Mathf.Min(toEdgeX, toEdgeZ) + gap + radius);
-
             Transform prefab = layout.mountainPrefabArray[random.Next(layout.mountainPrefabArray.Length)];
             float yaw = (float)random.NextDouble() * 360f;
             if (prefab == null) continue;
+
+            // a foot over a road or the river running out of the map cuts it off in a hard line: turn the mountain around
+            // the map, a little either way, until it stands clear (no random draws here, so the others keep their places)
+            Vector2 point = GetMountainPoint(rect, angle, gap, radius);
+            for (int step = 1; step <= MOUNTAIN_NUDGE_STEP_COUNT && IsOverCorridor(bake, point, radius); step++)
+            {
+                float nudge = (step + 1) / 2 * MOUNTAIN_NUDGE_ANGLE * (step % 2 == 0 ? -1f : 1f);
+                point = GetMountainPoint(rect, angle + nudge, gap, radius);
+            }
+            if (IsOverCorridor(bake, point, radius))
+            {
+                Debug.LogWarning($"WorldBorderVisualBuilder: mountain {i} can't clear the roads/river, skipped");
+                continue;
+            }
             Spawn(prefab, parent, point, -2f, yaw, new Vector3(radius, height, radius), Quaternion.identity);
             placedCount++;
         }
         return placedCount;
+    }
+
+    // from the map's centre past the ground's edge (toward angle) by the gap, plus the mountain's own radius
+    private static Vector2 GetMountainPoint(Rect rect, float angle, float gap, float radius)
+    {
+        Vector2 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+        float toEdgeX = Mathf.Abs(direction.x) > .001f ? rect.width * .5f / Mathf.Abs(direction.x) : float.MaxValue;
+        float toEdgeZ = Mathf.Abs(direction.y) > .001f ? rect.height * .5f / Mathf.Abs(direction.y) : float.MaxValue;
+        return rect.center + direction * (Mathf.Min(toEdgeX, toEdgeZ) + gap + radius);
+    }
+
+    private static bool IsOverCorridor(Bake bake, Vector2 point, float radius)
+    {
+        foreach (Corridor corridor in bake.corridorList)
+            if (corridor.GetDistance(point, out _) < radius + corridor.halfWidth + MOUNTAIN_CORRIDOR_MARGIN) return true;
+        return false;
     }
 
     private static void ApplyHaze(WorldBorderLayoutSO layout)

@@ -327,7 +327,7 @@ public static class Day1GrayboxBuilder
         CinemachineCamera cam = go.AddComponent<CinemachineCamera>();
         LensSettings lens = LensSettings.Default;
         lens.FieldOfView = fov;
-        lens.FarClipPlane = 200f;
+        lens.FarClipPlane = CAMERA_FAR_CLIP;
         cam.Lens = lens;
         return cam;
     }

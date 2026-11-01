@@ -5,6 +5,9 @@ using UnityEngine;
 public static class GrayboxBuild
 {
     public const string PREFABS = "Assets/_Project/Prefabs";
+    // world cameras draw past the world border's haze (fully opaque at 260 m): a nearer far plane slices the distant
+    // mountains and ground skirt off in a hard line while they are still visible through the haze
+    public const float CAMERA_FAR_CLIP = 300f;
 
     public static GameObject Root(string name, Transform parent = null)
     {

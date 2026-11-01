@@ -121,7 +121,7 @@ public static class Day2GrayboxBuilder
         farmCamera.transform.LookAt(farmCameraLookAt);
         LensSettings lens = LensSettings.Default;
         lens.FieldOfView = 42f;
-        lens.FarClipPlane = 200f;
+        lens.FarClipPlane = CAMERA_FAR_CLIP;
         farmCamera.Lens = lens;
         farmCamera.enabled = false;
         Day2CameraVisual cameraVisual = director.gameObject.AddComponent<Day2CameraVisual>();
