@@ -124,33 +124,36 @@ public static class FabricatorGridPuzzleBuilder
         return root;
     }
 
-    // the board's sprites (copied from Sawit-Fabricator, 512 px = 1 cell) and tints; tints set by hand survive a re-run
+    // the board's sprites and tints, as Sawit-Fabricator maps them (its CLAUDE.md "Art notes"): the 64 px pixel set from its
+    // Assets/simplified where one exists, the 512 px smooth art for the rest. Tints set by hand survive a re-run.
     public static FabricatorBoardSkinSO Skin()
     {
         FabricatorBoardSkinSO skinSO = GameDataBuilder.Asset<FabricatorBoardSkinSO>("Puzzles", "FabricatorBoardSkin");
         skinSO.spriteMaterial = AssetDatabase.LoadAssetAtPath<Material>(SPRITE_MATERIAL);
-        skinSO.floorSprite = LoadSprite("cytoplasm_tile");
-        skinSO.wallSprite = LoadSprite("cellulose_wall");
+        skinSO.floorSprite = LoadSprite("tile_64");
+        skinSO.wallSprite = LoadSprite("cellulose_wall_64");
         skinSO.snareSprite = LoadSprite("stop_tile");
-        skinSO.frameSprite = LoadSprite("fabricator_frame");
-        skinSO.gateOpenSprite = LoadSprite("gate_open");
-        skinSO.gateClosedSprite = LoadSprite("gate_closed");
+        skinSO.frameSprite = LoadSprite("panel_64");
+        skinSO.gateOpenSprite = LoadSprite("pod_crate_64");
+        skinSO.gateClosedSprite = LoadSprite("fan_panel_64");
         skinSO.routerNodeSprite = LoadSprite("valve_node");
-        skinSO.routerArrowSprite = LoadSprite("valve_arrow");
-        skinSO.injectorIdleSprite = LoadSprite("chemical_valve_idle");
-        skinSO.injectorReleasedSprite = LoadSprite("chemical_valve_released");
+        skinSO.routerArrowSprite = LoadSprite("gold_arrow_64");
+        skinSO.injectorIdleSprite = LoadSprite("vault_door_64");
+        skinSO.injectorReleasedSprite = LoadSprite("core_unit_64");
         skinSO.mistSprite = LoadSprite("chemical_mist");
-        skinSO.bugSprite = LoadSprite("cancer_cell");
-        skinSO.embryoSprite = LoadSprite("core_cell");
+        skinSO.bugSprite = LoadSprite("cancer_cell_3x_palette");
+        skinSO.embryoSprite = LoadSprite("seed_coin_64");
         skinSO.sentinelSprite = LoadSprite("defensive_cell");
         skinSO.energyCellSprite = LoadSprite("energy_cell");
         skinSO.movingCellSprite = LoadSprite("moving_cell");
         skinSO.hostileMovingCellSprite = LoadSprite("moving_cell_hostile");
-        skinSO.rootStemSprite = LoadSprite("vine_stem");
-        skinSO.thornyRootStemSprite = LoadSprite("vine_stem_thorny");
-        skinSO.rootKnotSprite = LoadSprite("vine_knot");
-        skinSO.rootTipSprite = LoadSprite("vine_tip");
-        skinSO.arrowSprite = LoadSprite("move_arrow");
+        skinSO.rootStemSprite = LoadSprite("vine_stem_1_5tone");
+        skinSO.thornyRootStemSprite = LoadSprite("vine_stem_thorn");
+        skinSO.rootKnotSprite = LoadSprite("vine_knot_64");
+        skinSO.thornyRootKnotSprite = LoadSprite("vine_knot_thorn_recolor");
+        skinSO.rootTipSprite = LoadSprite("vine_tip_recolor");
+        skinSO.thornyRootTipSprite = LoadSprite("vine_tip_thorn");
+        skinSO.arrowSprite = LoadSprite("arrow_64");
         EditorUtility.SetDirty(skinSO);
         return skinSO;
     }

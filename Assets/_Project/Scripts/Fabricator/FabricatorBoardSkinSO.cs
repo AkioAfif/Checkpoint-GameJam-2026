@@ -1,6 +1,7 @@
 using UnityEngine;
 
-// The Fabricator board's art (the Sawit-Fabricator sprites, 512 px = 1 cell) and tints. One asset only → no CreateAssetMenu.
+// The Fabricator board's art (the Sawit-Fabricator sprites, 1 cell = 1 unit: the 64 px pixel set at 64 PPU, the rest 512 px
+// at 512 PPU) and tints. One asset only → no CreateAssetMenu.
 public class FabricatorBoardSkinSO : ScriptableObject
 {
     [Tooltip("Sprite-Unlit-Default: sprites in this 3D renderer shouldn't pick up the diorama's light.")]
@@ -43,6 +44,9 @@ public class FabricatorBoardSkinSO : ScriptableObject
     public Sprite thornyRootStemSprite;
     public Sprite rootKnotSprite;
     public Sprite rootTipSprite;
+    [Tooltip("Optional: thorny roots' own knot and tip; empty uses the plain ones.")]
+    public Sprite thornyRootKnotSprite;
+    public Sprite thornyRootTipSprite;
 
     [Header("Arrows")]
     public Sprite arrowSprite;

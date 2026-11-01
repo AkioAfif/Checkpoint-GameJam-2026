@@ -42,6 +42,13 @@ public class FabricatorRootsVisual : MonoBehaviour
         public bool isShown;
     }
 
+    private struct RootSprites
+    {
+        public Sprite stem;
+        public Sprite knot;
+        public Sprite tip;
+    }
+
     [SerializeField] private FabricatorMiniGame miniGame;
     [SerializeField] private FabricatorBoardSkinSO skinSO;
 
@@ -142,20 +149,33 @@ public class FabricatorRootsVisual : MonoBehaviour
             childList.Add(pair.Key - pair.Value);
         }
 
-        Sprite stemSprite = sentinel.isDangerous ? skinSO.thornyRootStemSprite : skinSO.rootStemSprite;
+        RootSprites sprites = GetRootSprites(sentinel.isDangerous);
         // the host's own cell draws the stems leaving it (under the sentinel's sprite)
-        if (childDictionary.TryGetValue(host, out List<Vector2Int> hostChildList)) AddSegment(network, host, Vector2Int.zero, hostChildList, 0, stemSprite);
+        if (childDictionary.TryGetValue(host, out List<Vector2Int> hostChildList)) AddSegment(network, host, Vector2Int.zero, hostChildList, 0, sprites);
         foreach (Vector2Int cell in coveredSet)
         {
             List<Vector2Int> childList = childDictionary.TryGetValue(cell, out List<Vector2Int> list) ? list : new List<Vector2Int>();
-            AddSegment(network, cell, parentDictionary[cell] - cell, childList, depthDictionary[cell], stemSprite);
+            AddSegment(network, cell, parentDictionary[cell] - cell, childList, depthDictionary[cell], sprites);
             network.maxDepth = Mathf.Max(network.maxDepth, depthDictionary[cell]);
         }
         return network;
     }
 
-    private void AddSegment(RootNetwork network, Vector2Int cell, Vector2Int parentDirection, List<Vector2Int> childDirectionList, int depth, Sprite stemSprite)
+    // thorny roots use their own pieces where the skin has them
+    private RootSprites GetRootSprites(bool isThorny)
     {
+        if (!isThorny) return new RootSprites { stem = skinSO.rootStemSprite, knot = skinSO.rootKnotSprite, tip = skinSO.rootTipSprite };
+        return new RootSprites
+        {
+            stem = skinSO.thornyRootStemSprite,
+            knot = skinSO.thornyRootKnotSprite != null ? skinSO.thornyRootKnotSprite : skinSO.rootKnotSprite,
+            tip = skinSO.thornyRootTipSprite != null ? skinSO.thornyRootTipSprite : skinSO.rootTipSprite,
+        };
+    }
+
+    private void AddSegment(RootNetwork network, Vector2Int cell, Vector2Int parentDirection, List<Vector2Int> childDirectionList, int depth, RootSprites sprites)
+    {
+        Sprite stemSprite = sprites.stem;
         Transform segmentTransform = new GameObject($"Root {cell}") { layer = gameObject.layer }.transform;
         segmentTransform.SetParent(rootsRoot, false);
         segmentTransform.position = miniGame.GetCellWorldPosition(cell);
@@ -169,8 +189,8 @@ public class FabricatorRootsVisual : MonoBehaviour
             bool isTip = childDirectionList.Count == 0;
             bool isStraight = childDirectionList.Count == 1 && childDirectionList[0] == -parentDirection;
             // a tip points away from the stem it grows out of; bends and branches get a knot; straight pieces join seamlessly
-            if (isTip) AddCentrePiece(segmentTransform, skinSO.rootTipSprite, -parentDirection);
-            else if (!isStraight) AddCentrePiece(segmentTransform, skinSO.rootKnotSprite, Vector2Int.right);
+            if (isTip) AddCentrePiece(segmentTransform, sprites.tip, -parentDirection);
+            else if (!isStraight) AddCentrePiece(segmentTransform, sprites.knot, Vector2Int.right);
         }
         network.segmentList.Add(new RootSegment { transform = segmentTransform, depth = depth });
     }

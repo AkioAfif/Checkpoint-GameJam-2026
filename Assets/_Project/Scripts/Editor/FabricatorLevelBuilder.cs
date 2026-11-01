@@ -79,7 +79,9 @@ public static class FabricatorLevelBuilder
                 Embryo(3, 4, 1),
                 MovingCell(5, 2, true, 0, V(0, 1), V(0, -1)),
                 MovingCell(5, 5, true, 0, V(0, 1), V(0, -1)),
-                EnergyCell(10, 4, 3)),
+                EnergyCell(10, 4, 3),
+                // Sawit e92b5a1 (2026-10-29): a second embryo on the top-left snare
+                Embryo(1, 1, 1)),
             Level("Level_08_BiblicalGreed", "Biblical Greed", 5, 10,
                 new[] { "############", "#..........#", "#.##...###.#", "#.##X....#.#", "#.#....###.#", "#.....X###.#", "###.......X#", "##########.#", "#...######.#", "#..........#", "#...########", "############" },
                 Bug(4, 9),

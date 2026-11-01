@@ -13,35 +13,37 @@ MonoBehaviour:
   m_Name: FabricatorBoardSkin
   m_EditorClassIdentifier: Assembly-CSharp::FabricatorBoardSkinSO
   spriteMaterial: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
-  floorSprite: {fileID: 21300000, guid: 0ebd7cdc20fa92e42af4ea1300dd3d70, type: 3}
-  wallSprite: {fileID: 21300000, guid: 1e0b11a89dd800348b2d49f458300016, type: 3}
+  floorSprite: {fileID: 21300000, guid: 0909861b6a2c7934fa4038b70436af20, type: 3}
+  wallSprite: {fileID: 21300000, guid: d7f9d55afd791424db01fccb4a131e26, type: 3}
   snareSprite: {fileID: 21300000, guid: 052abac800bb90f4789f8756af9acacd, type: 3}
-  frameSprite: {fileID: 21300000, guid: 0b533778f587803469809eff63a16ccb, type: 3}
+  frameSprite: {fileID: 21300000, guid: 060b756b828cf944195547379fa125bf, type: 3}
   floorColor: {r: 1, g: 1, b: 1, a: 1}
   floorOffsetColor: {r: 0.95, g: 0.91, b: 0.84, a: 1}
-  gateOpenSprite: {fileID: 21300000, guid: e964b55d3795b154795251b1eff108b0, type: 3}
-  gateClosedSprite: {fileID: 21300000, guid: 7bd2ce5270354f1439cb72b6cd630d19, type: 3}
+  gateOpenSprite: {fileID: 21300000, guid: a2eba01d741bd3e4b94b03f354e44f21, type: 3}
+  gateClosedSprite: {fileID: 21300000, guid: f0cc029ece9fdd541bf59d45f9936728, type: 3}
   routerNodeSprite: {fileID: 21300000, guid: e47c4e81eb6dfaa4aa780d42bfb6a88c, type: 3}
-  routerArrowSprite: {fileID: 21300000, guid: b3df5c5fc76feac418e0cceb40ed08f7, type: 3}
-  injectorIdleSprite: {fileID: 21300000, guid: 0bb7a28bf9adc7a42a60e3e071eed311, type: 3}
-  injectorReleasedSprite: {fileID: 21300000, guid: 0e2468b7f44e80c489b8db5a685860c1, type: 3}
+  routerArrowSprite: {fileID: 21300000, guid: 4fe9f3b512b33f042bd02e70f0c33664, type: 3}
+  injectorIdleSprite: {fileID: 21300000, guid: bcd34d77b85afa449b81b29402ec1018, type: 3}
+  injectorReleasedSprite: {fileID: 21300000, guid: e19d63871f32f744e97c724a5e126ed0, type: 3}
   areaInjectorColor: {r: 0.75, g: 0.9, b: 1, a: 1}
   mistSprite: {fileID: 21300000, guid: b798ba7d4447bef478b493e43eaf8ee2, type: 3}
   mistColor: {r: 0.45, g: 0.9, b: 1, a: 1}
   mistAlpha: 0.4
-  bugSprite: {fileID: 21300000, guid: 9732aecb869c9c14581c3fa02ad202f6, type: 3}
-  embryoSprite: {fileID: 21300000, guid: 934f69867f29d8f44805658cca24c27f, type: 3}
+  bugSprite: {fileID: 21300000, guid: 889a8abfd75f0e44a929e106fa7e2e84, type: 3}
+  embryoSprite: {fileID: 21300000, guid: b3fcd0d8f02556e41b871e4a0660169f, type: 3}
   sentinelSprite: {fileID: 21300000, guid: d930ddb8c1afac04c805aeda5da9906b, type: 3}
   thornySentinelColor: {r: 1, g: 0.62, b: 0.62, a: 1}
   energyCellSprite: {fileID: 21300000, guid: 2476db47bd1fef1469134d406938b664, type: 3}
   movingCellSprite: {fileID: 21300000, guid: 0fbb0ef2b319bd543a212e32aad5adf2, type: 3}
   hostileMovingCellSprite: {fileID: 21300000, guid: 92a605900f293f341b0c509c93837f68, type: 3}
   stepIndicatorColor: {r: 1, g: 0.85, b: 0.3, a: 0.95}
-  rootStemSprite: {fileID: 21300000, guid: 79171a229d7da6d4e88890120061e29f, type: 3}
-  thornyRootStemSprite: {fileID: 21300000, guid: b5e76bb869f22a74cb1813b9e46f0fdd, type: 3}
-  rootKnotSprite: {fileID: 21300000, guid: 1de38b52dfac2d843a33da4ef1145133, type: 3}
-  rootTipSprite: {fileID: 21300000, guid: eb5d28e651255134fb7738edbb242792, type: 3}
-  arrowSprite: {fileID: 21300000, guid: f31ffc017f5ee2d46b8e5e1cb4d4ba0d, type: 3}
+  rootStemSprite: {fileID: 21300000, guid: 788b44ea6f36ce0478b938ee91eac72a, type: 3}
+  thornyRootStemSprite: {fileID: 21300000, guid: 3c26ed60faddf1d41bac86d3c1b8848a, type: 3}
+  rootKnotSprite: {fileID: 21300000, guid: a66f2cb2c2b8e904d809af3a40225158, type: 3}
+  rootTipSprite: {fileID: 21300000, guid: b74e1036783c77b40a4090c5aee9991e, type: 3}
+  thornyRootKnotSprite: {fileID: 21300000, guid: fb26c46326218b54c89a9c901b76a202, type: 3}
+  thornyRootTipSprite: {fileID: 21300000, guid: f58e862012c90b44ca4859b9b0037efa, type: 3}
+  arrowSprite: {fileID: 21300000, guid: 16cc9cb181916c542ac8b0c9512650a4, type: 3}
   arrowColor: {r: 1, g: 0.85, b: 0.2, a: 0.9}
   dangerArrowColor: {r: 1, g: 0.25, b: 0.3, a: 0.95}
   hoverColor: {r: 1, g: 1, b: 1, a: 1}
