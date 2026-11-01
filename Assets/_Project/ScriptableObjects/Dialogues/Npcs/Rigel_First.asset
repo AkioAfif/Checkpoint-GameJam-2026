@@ -1,0 +1,89 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e0ce3e543780b04dba488492949ce28, type: 3}
+  m_Name: Rigel_First
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
+  lineArray:
+  - speaker: 1
+    text: Hey, neighbour! What's with the new plants? It wasn't there two days ago.
+    playerEmote: 0
+    npcEmote: 5
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 0
+    text: Believe it or not, i just planted them yesterday.
+    playerEmote: 0
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 1
+    text: Ten years I've farmed this soil. Nothing grows that fast.
+    playerEmote: 0
+    npcEmote: 13
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 1
+    text: Where'd you get the seeds?
+    playerEmote: 0
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 0
+    text: A distributor from ICAN gave me a machine called the Fabricator. i made those seeds using that.
+    playerEmote: 0
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 1
+    text: A machine that makes seeds. Huh.
+    playerEmote: 0
+    npcEmote: 3
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 1
+    text: Tell you what. Let's see who brings in the better harvest this week.
+    playerEmote: 0
+    npcEmote: 14
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 1
+    text: Bet you can't grow anything better than that.
+    playerEmote: 0
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 0
+    text: game's on!
+    playerEmote: 6
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 0
+    text: Maybe something from the old forest will do the trick...
+    playerEmote: 0
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  reward:
+    itemDataSO: {fileID: 0}
+    amount: 0
+  rewardDay: 0

@@ -1,0 +1,103 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e0ce3e543780b04dba488492949ce28, type: 3}
+  m_Name: Sari_First
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueSO
+  lineArray:
+  - speaker: 1
+    text: Did you see that?! He nearly flattened me!
+    playerEmote: 0
+    npcEmote: 4
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 1
+    text: Who drives like that? Reckless!
+    playerEmote: 0
+    npcEmote: 3
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 1
+    text: Anyway, What's that giant tube in front of your house?
+    playerEmote: 0
+    npcEmote: 5
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 0
+    text: A Fabricator. A man from ICAN gave it to me For free.
+    playerEmote: 0
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 1
+    text: For free?
+    playerEmote: 0
+    npcEmote: 13
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 1
+    text: Nothing's free. Not even my grandmother's advice, and she gives that to everyone.
+    playerEmote: 0
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 0
+    text: It supposedly makes good seeds from normal ones. if what the distributor said is true, this could pay off my debt.
+    playerEmote: 0
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 1
+    text: Then I hope it does.
+    playerEmote: 0
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 1
+    text: Just be careful, okay? this whole magical seeds thing sounds suspicious.
+    playerEmote: 0
+    npcEmote: 14
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 0
+    text: I'll keep that in mind.
+    playerEmote: 5
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 0
+    text: I'm get back to work now. see you later.
+    playerEmote: 5
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  - speaker: 1
+    text: Later.
+    playerEmote: 5
+    npcEmote: 0
+    isShaking: 0
+    isNpcGlaring: 0
+    focusNpcSO: {fileID: 0}
+  reward:
+    itemDataSO: {fileID: 0}
+    amount: 0
+  rewardDay: 0

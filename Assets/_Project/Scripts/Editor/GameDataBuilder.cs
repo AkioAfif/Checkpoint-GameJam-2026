@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 using static GrayboxBuild;
@@ -268,7 +269,7 @@ public static class GameDataBuilder
 
     public static DialogueSO Dialogue(string file, ItemAmount reward, params DialogueSO.DialogueLine[] lines)
     {
-        DialogueSO dialogue = Asset<DialogueSO>("Dialogues", file);
+        DialogueSO dialogue = Asset<DialogueSO>($"Dialogues/{DialogueFolder(file)}", file);
         dialogue.lineArray = lines;
         dialogue.reward = reward;
         EditorUtility.SetDirty(dialogue);
@@ -302,10 +303,26 @@ public static class GameDataBuilder
         return asset;
     }
 
+    // dialogues are filed by the day they play on ("Day3_Morning", "Ijah_Day5"), the yard day, or per NPC for the generic First/Repeat ones
+    private static string DialogueFolder(string file)
+    {
+        if (file == "Rigel_SeesLv2") return "Day2";
+        if (file.StartsWith("Distributor_Waiting")) return "Day1";
+        if (file.StartsWith("Yard_")) return "Yard";
+        Match day = Regex.Match(file, @"Day\d");
+        return day.Success ? day.Value : "Npcs";
+    }
+
     public static T Asset<T>(string folder, string file) where T : ScriptableObject
     {
         string dir = folder.Length > 0 ? $"{SO}/{folder}" : SO;
-        if (!AssetDatabase.IsValidFolder(dir)) AssetDatabase.CreateFolder(SO, folder);
+        string parent = SO;
+        foreach (string part in folder.Split('/', System.StringSplitOptions.RemoveEmptyEntries))
+        {
+            string current = $"{parent}/{part}";
+            if (!AssetDatabase.IsValidFolder(current)) AssetDatabase.CreateFolder(parent, part);
+            parent = current;
+        }
         string path = $"{dir}/{file}.asset";
         T asset = AssetDatabase.LoadAssetAtPath<T>(path);
         if (asset != null) return asset;
