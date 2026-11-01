@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
   itemName: Compost
   description: From Bu Ratna's garden. New soil is hungry soil.
-  icon: {fileID: 8147094560430267823, guid: 5dfe81ceb62f1a247a6ce5cb60d73825, type: 3}
+  icon: {fileID: 21300000, guid: 9de3719cf277b81409680823167e45f1, type: 3}
   prefab: {fileID: 6602345570902045329, guid: 8e0404c15edf08241b43429eb0360cc2, type: 3}
   liquidColor: {r: 0.35, g: 0.26, b: 0.18, a: 1}
   sellPrice: 0

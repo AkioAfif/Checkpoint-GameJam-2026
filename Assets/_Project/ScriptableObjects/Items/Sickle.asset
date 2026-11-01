@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
   itemName: Sickle
   description: Nek Ijah's late husband's arit. Old, but it still bites through weeds.
-  icon: {fileID: 269391865280201127, guid: 2fa62d6bb4e74d54d8553f74e97abd8a, type: 3}
+  icon: {fileID: 21300000, guid: 60c04fbad23f1cc44b0b10a263e2af5d, type: 3}
   prefab: {fileID: 789127891016055082, guid: 690eabaf120abfd408f459dd626cf10a, type: 3}
   liquidColor: {r: 0.7, g: 0.72, b: 0.75, a: 1}
   sellPrice: 0

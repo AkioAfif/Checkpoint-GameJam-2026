@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
   itemName: Rope
   description: The rope Pak Darto built the bridge with. Thick enough for a stubborn stump.
-  icon: {fileID: 2768442279794393852, guid: 8a50da11882a98148928a51e4ae98d35, type: 3}
+  icon: {fileID: 21300000, guid: 972e813abf5516343a45dae528f42a6b, type: 3}
   prefab: {fileID: 6830039184750329615, guid: 4b0d1311db120f04eb0734e7c55ee51f, type: 3}
   liquidColor: {r: 0.75, g: 0.62, b: 0.42, a: 1}
   sellPrice: 0
