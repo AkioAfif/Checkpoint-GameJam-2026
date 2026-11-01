@@ -34,6 +34,8 @@ public static class GrayboxIconBaker
 
         foreach (ItemDataSO item in itemArray)
         {
+            // the hand-drawn 2D icons win over a render (UiSkinApplier assigns them)
+            if (UiSkinApplier.HasDrawnIcon(item)) continue;
             GameObject model = (GameObject)PrefabUtility.InstantiatePrefab(item.prefab.gameObject);
             Bounds bounds = new Bounds(model.transform.position, Vector3.zero);
             foreach (Renderer r in model.GetComponentsInChildren<Renderer>()) bounds.Encapsulate(r.bounds);

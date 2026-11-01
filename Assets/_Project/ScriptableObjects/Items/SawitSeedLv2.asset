@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
   itemName: Sawit Seed Lv.2
   description: A darker seed, pressed with forest resin. It feels warm, and a little too heavy.
-  icon: {fileID: -8281294969779376518, guid: 4d954770d0d88694e9a9fccd7a0a9ebb, type: 3}
+  icon: {fileID: 21300000, guid: 28863fcd324670e498c5ae8e4580a9da, type: 3}
   prefab: {fileID: 8934208989341211818, guid: 996e32742c65df94f98b85203159d7f8, type: 3}
   liquidColor: {r: 0.78, g: 0.16, b: 0.2, a: 1}
   sellPrice: 0

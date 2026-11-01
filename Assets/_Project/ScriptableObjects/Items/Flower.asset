@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
   itemName: Wildflower
   description: A soft pink bloom from a villager's garden. Smells a little like honey.
-  icon: {fileID: 2421549395216914611, guid: 1ece6bb60ab0dec499482127b6b629c3, type: 3}
+  icon: {fileID: 21300000, guid: c3a6dd202197d5b479c61e24770d3456, type: 3}
   prefab: {fileID: 554445317093824239, guid: 3909c5a4449644b4695789d9e25816bf, type: 3}
   liquidColor: {r: 0.98, g: 0.52, b: 0.72, a: 1}
+  sellPrice: 0

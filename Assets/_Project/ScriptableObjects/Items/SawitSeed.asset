@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
   itemName: Sawit Seed Lv.1
   description: A warm, glowing seed pressed by the Fabricator. Plant it in an empty plot.
-  icon: {fileID: -618244441179235363, guid: 4aa02dba2f101454ea826f24f2956597, type: 3}
+  icon: {fileID: 21300000, guid: cae02d7f58c07ba428d14f8e0354bd88, type: 3}
   prefab: {fileID: 1014136733725347773, guid: 21dc0f858edd69d49b6cf130193407f4, type: 3}
   liquidColor: {r: 1, g: 0.8, b: 0.35, a: 1}
   sellPrice: 0

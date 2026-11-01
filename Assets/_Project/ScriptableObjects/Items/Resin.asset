@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
   itemName: Forest Resin
   description: Sticky amber sap from the old stumps at the forest edge. It smells sharp, almost like medicine.
-  icon: {fileID: 7438535188175272821, guid: 68ef12a5b48dc754083df52416df7f1b, type: 3}
+  icon: {fileID: 21300000, guid: 54e428569000e81429e5ff516cf13ea8, type: 3}
   prefab: {fileID: 7623595568060208666, guid: a2b7829955bfd3840b95fa64b6820831, type: 3}
   liquidColor: {r: 0.88, g: 0.55, b: 0.16, a: 1}
   sellPrice: 0

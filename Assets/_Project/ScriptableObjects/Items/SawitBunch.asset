@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
   itemName: Sawit Bunch
   description: A heavy bunch of ripe oil palm fruit. ICAN buys every one.
-  icon: {fileID: 156767253666869175, guid: b5be6bb7d8e1e7445a37d94d7fe5ba28, type: 3}
+  icon: {fileID: 21300000, guid: e2b36ed9ff037784a99bfae88bfb972b, type: 3}
   prefab: {fileID: 5443761702682461408, guid: 56f37fda5755fb84b8987bd55292cc52, type: 3}
   liquidColor: {r: 0.82, g: 0.28, b: 0.14, a: 1}
   sellPrice: 750000

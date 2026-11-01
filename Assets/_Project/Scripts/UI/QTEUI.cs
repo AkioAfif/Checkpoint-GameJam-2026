@@ -17,6 +17,8 @@ public class QTEUI : MonoBehaviour
     [SerializeField] private UIPop feedbackPop;
     [SerializeField] private Image[] pipImageArray;
     [SerializeField] private TextMeshProUGUI bannerText;
+    [Tooltip("Optional: the drawn \"Planted!\" banner, shown instead of the text on a success.")]
+    [SerializeField] private Image bannerImage;
     [SerializeField] private UIPop bannerPop;
     [SerializeField] private CanvasGroup bannerCanvasGroup;
     [SerializeField] private Color hitColor = new Color(.55f, .9f, .45f);
@@ -111,6 +113,9 @@ public class QTEUI : MonoBehaviour
     {
         bannerText.text = e.isSuccess ? successBanner : failBanner;
         bannerText.color = e.isSuccess ? hitColor : missColor;
+        bool isDrawnBanner = e.isSuccess && bannerImage != null;
+        if (bannerImage != null) bannerImage.enabled = isDrawnBanner;
+        bannerText.enabled = !isDrawnBanner;
         bannerTimer = 1.6f;
         bannerCanvasGroup.alpha = 1f;
         bannerPop.Play(0f);
